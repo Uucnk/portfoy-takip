@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: portfoy-takip
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
