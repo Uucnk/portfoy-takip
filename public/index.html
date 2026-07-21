@@ -147,6 +147,17 @@ body{padding-top:44px;padding-bottom:42px}
  .compactPositions .actionGroup button{padding:5px;font-size:8.5px}
 }
 
+
+.buttonLink{
+ display:inline-flex;align-items:center;justify-content:center;
+ background:var(--blue);color:#fff;text-decoration:none;border-radius:8px;
+ padding:9px 13px;font-size:12px;font-weight:700
+}
+.buttonLink:hover{filter:brightness(1.08)}
+#markets.tab.active,#calendar.tab.active{display:block}
+#marketContent{min-height:180px}
+.calendarFrame{display:block;min-height:720px}
+
 </style>
 </head>
 <body>
@@ -246,6 +257,8 @@ body{padding-top:44px;padding-bottom:42px}
   </div>
 
   
+
+
 <section id="markets" class="tab">
   <div class="sectionHead" style="margin-bottom:14px">
     <div><h2 style="margin-bottom:4px">Markets</h2><div class="muted">Yahoo Finance gecikmeli piyasa ekranı ve 24 saatlik trendler</div></div>
@@ -273,8 +286,19 @@ body{padding-top:44px;padding-bottom:42px}
     <div><h2 style="margin-bottom:4px">Economic Calendar</h2><div class="muted">Investing.com ekonomik takvim bileşeni</div></div>
   </div>
   <div class="panel">
-    <div class="marketNotice">Takvim Investing.com’un resmî webmaster bileşeni üzerinden gösterilir. İçerik üçüncü taraf koşullarına ve erişilebilirliğine bağlıdır.</div>
-    <iframe class="calendarFrame" title="Investing.com Ekonomik Takvim"
+    <div class="marketNotice">
+      Takvim Investing.com’un resmî webmaster bileşeni üzerinden gösterilir.
+      Bileşen tarayıcı tarafından engellenirse aşağıdaki doğrudan erişim butonunu kullanabilirsin.
+    </div>
+    <div id="calendarStatus" class="liveStatus" style="margin-bottom:12px">
+      <span id="calendarDot" class="liveDot loading"></span>
+      <span id="calendarStatusText">Investing.com takvimi yükleniyor…</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <a class="buttonLink" href="https://www.investing.com/economic-calendar/" target="_blank" rel="noopener noreferrer">Investing.com Takvimini Aç</a>
+      <button type="button" class="secondary" id="reloadCalendar">Takvimi Yenile</button>
+    </div>
+    <iframe id="investingCalendarFrame" class="calendarFrame" title="Investing.com Ekonomik Takvim"
       src="https://sslecal2.investing.com?ecoDayBackground=%230a1019&defaultFont=%23eef5ff&innerBorderColor=%23253243&borderColor=%23253243&ecoDayFontColor=%2391a4bc&columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone,timeselector,filters&countries=25,6,37,72,22,17,39,14,10,35,43,56,36,5,4,12&calType=week&timeZone=63&lang=10">
     </iframe>
   </div>
@@ -933,7 +957,14 @@ async function loadMarkets(category=activeMarketCategory){
   $("marketContent").innerHTML='<div class="marketEmpty">Bu bölümde gösterilecek ürün bulunmuyor. Market kartlarındaki ☆ işaretine basarak favori ekleyebilirsin.</div>';
   return;
  }
- const quotes=await fetchQuotesChunked(items);
+ let quotes={};
+ try{
+  quotes=await fetchQuotesChunked(items);
+ }catch(err){
+  $("marketContent").className="";
+  $("marketContent").innerHTML=`<div class="marketEmpty">Piyasa verileri şu anda alınamadı: ${esc(err.message||"Bağlantı hatası")}. Birkaç saniye sonra “Piyasaları Yenile” butonuna bas.</div>`;
+  return;
+ }
  $("marketContent").className="";
  const labels={all:"All Assets",favorites:"Favoriler",indices:"Indices",us:"US Stocks · S&P 500",bist:"BIST 100",etf:"ETFs",commodities:"Commodities",crypto:"Crypto",fx:"FX"};
  $("marketContent").innerHTML=`<div class="marketCategoryIntro"><div><strong>${labels[category]||category}</strong><div class="muted">${items.length} ürün · Yahoo Finance gecikmeli verileri</div></div><span class="muted">Son güncelleme: ${new Date().toLocaleTimeString("tr-TR")}</span></div><div class="marketGrid">${items.map(i=>marketCard(i,quotes[i.s])).join("")}</div>`;
@@ -954,6 +985,26 @@ document.querySelectorAll("[data-market]").forEach(b=>b.addEventListener("click"
 }));
 $("refreshMarkets").onclick=()=>loadMarkets();
 
+const calendarFrame=$("investingCalendarFrame");
+if(calendarFrame){
+ calendarFrame.addEventListener("load",()=>{
+  $("calendarDot").className="liveDot ok";
+  $("calendarStatusText").textContent="Investing.com ekonomik takvimi yüklendi";
+ });
+ calendarFrame.addEventListener("error",()=>{
+  $("calendarDot").className="liveDot error";
+  $("calendarStatusText").textContent="Takvim bileşeni yüklenemedi. Doğrudan erişim butonunu kullanabilirsin.";
+ });
+ $("reloadCalendar").addEventListener("click",()=>{
+  $("calendarDot").className="liveDot loading";
+  $("calendarStatusText").textContent="Investing.com takvimi yeniden yükleniyor…";
+  const current=calendarFrame.src;
+  calendarFrame.src="about:blank";
+  setTimeout(()=>calendarFrame.src=current,100);
+ });
+}
+
+
 $("refreshGeneralQuotes").addEventListener("click",()=>refreshQuotes("general"));
 $("refreshModelQuotes").addEventListener("click",()=>refreshQuotes("model"));
 setInterval(()=>{
@@ -962,7 +1013,14 @@ setInterval(()=>{
   }
 },60000);
 setInterval(()=>{if(document.visibilityState==="visible")refreshAllTickers()},180000);
-document.querySelectorAll(".tabBtn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabBtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active")});
+document.querySelectorAll(".tabBtn").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".tabBtn").forEach(x=>x.classList.remove("active"));
+ document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+ b.classList.add("active");
+ const target=$(b.dataset.tab);
+ if(target)target.classList.add("active");
+ if(b.dataset.tab==="markets")loadMarkets(activeMarketCategory||"all");
+});
 $("toggleGeneralForm").onclick=()=>$("generalFormPanel").classList.add("open");$("closeGeneralForm").onclick=()=>$("generalFormPanel").classList.remove("open");
 $("toggleModelForm").onclick=()=>$("modelFormPanel").classList.add("open");$("closeModelForm").onclick=()=>$("modelFormPanel").classList.remove("open");
 ["activeSearch","activeType","activeDir"].forEach(x=>$(x).addEventListener("input",renderGeneral));$("refreshGeneral").onclick=renderGeneral;
