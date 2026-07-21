@@ -76,9 +76,43 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}input,se
 @media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}.span4{grid-column:span 2}.trackGrid{grid-template-columns:1fr}.toolbar,.closeGrid{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.chartGrid{grid-template-columns:1fr}.modalOverlay{padding:10px}.modalBox{max-height:96vh}}
 @media(max-width:650px){.cards,.grid,.toolbar,.closeGrid{grid-template-columns:1fr}.span2,.span4{grid-column:span 1}.barRow{grid-template-columns:120px 1fr 28px}}
+
+body{padding-top:44px;padding-bottom:42px}
+.app{padding-top:18px}
+.fixedTicker{position:fixed;left:0;right:0;z-index:1200;background:#080d14;border-color:var(--line);overflow:hidden;white-space:nowrap}
+.fixedTicker.top{top:0;border-bottom:1px solid var(--line)}
+.fixedTicker.bottom{bottom:0;border-top:1px solid var(--line)}
+.tickerTrack{display:inline-flex;align-items:center;gap:28px;min-width:max-content;padding:11px 0;animation:tickerMove 85s linear infinite}
+.fixedTicker:hover .tickerTrack{animation-play-state:paused}
+.tickerItem{display:inline-flex;align-items:center;gap:8px;font-size:12px}
+.tickerSymbol{font-weight:800}.tickerPrice{color:#dce8f7}
+@keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.cards.six{grid-template-columns:repeat(6,1fr)}
+.editBtn{background:#7657e8}
+.actionGroup{display:flex;gap:6px;flex-wrap:wrap}
+.actionGroup button{padding:7px 10px;font-size:11px}
+.marketTabs{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px}
+.marketTab{background:#171d26;color:#aebed1;border:1px solid #29313c;border-radius:22px;padding:10px 17px}
+.marketTab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.marketGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.marketCard{display:grid;grid-template-columns:minmax(130px,1.25fr) minmax(90px,.75fr) 115px;gap:14px;align-items:center;background:#0e151e;border:1px solid var(--line);border-radius:12px;padding:14px}
+.marketName{font-size:13px;font-weight:800}.marketSub{font-size:11px;color:var(--muted);margin-top:4px}
+.marketPrice{text-align:right;font-weight:800}.marketChange{text-align:right;margin-top:5px}
+.spark{width:115px;height:44px;display:block}
+.marketSectionTitle{display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px}
+.marketLoading{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.calendarFrame{width:100%;height:750px;border:0;border-radius:12px;background:#fff}
+.editModalBox{width:min(900px,100%)}
+.tableWrap table{min-width:1500px}
+.positionSize{font-weight:800}
+@media(max-width:1100px){.cards.six{grid-template-columns:repeat(3,1fr)}.marketGrid{grid-template-columns:1fr}}
+@media(max-width:650px){.cards.six{grid-template-columns:1fr}.marketCard{grid-template-columns:1fr 90px}.spark{grid-column:1/-1;width:100%}}
+
 </style>
 </head>
 <body>
+<div id="topTicker" class="fixedTicker top"><div id="topTickerTrack" class="tickerTrack"><span class="tickerItem">BIST 100 verileri yükleniyor…</span></div></div>
 <div class="app">
 <header>
   <div><h1>📈 Pozisyon Öneri ve Portföy Takip</h1><div class="muted">Genel pozisyon takibi ve model portföy track record ekranı</div></div>
@@ -91,6 +125,8 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}input,se
 <div class="tabs">
   <button class="tabBtn active" data-tab="general">Genel Bakış</button>
   <button class="tabBtn" data-tab="model">Model Portföy</button>
+  <button class="tabBtn" data-tab="markets">Markets</button>
+  <button class="tabBtn" data-tab="calendar">Calendar</button>
 </div>
 
 <section id="general" class="tab active">
@@ -99,12 +135,13 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}input,se
     <div class="addBox" id="toggleGeneralForm"><div class="plus">+</div><div><strong>Yeni Pozisyon</strong><div class="muted">Pozisyon ekle</div></div></div>
   </div>
 
-  <div class="cards">
+  <div class="cards six">
     <div class="card"><div class="label">Aktif Pozisyon</div><div class="value" id="gActive">0</div></div>
     <div class="card"><div class="label">Kapalı Pozisyon</div><div class="value" id="gClosed">0</div></div>
     <div class="card"><div class="label">Başarı Oranı</div><div class="value" id="gWin">%0</div></div>
     <div class="card"><div class="label">Ortalama Getiri</div><div class="value" id="gAvg">%0</div></div>
     <div class="card"><div class="label">Gerçekleşen K/Z</div><div class="value" id="gPnl">0</div></div>
+    <div class="card"><div class="label">Toplam Pozisyon Büyüklüğü</div><div class="value" id="gPositionSize">0</div></div>
   </div>
 
   <div class="panel">
@@ -170,7 +207,40 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}input,se
     <div id="generalTotalPerformance" class="performanceList"></div>
   </div>
 
-  <div id="generalFormPanel" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="generalModalTitle"><div class="modalBox">
+  
+<section id="markets" class="tab">
+  <div class="sectionHead" style="margin-bottom:14px">
+    <div><h2 style="margin-bottom:4px">Markets</h2><div class="muted">Yahoo Finance gecikmeli piyasa ekranı ve 24 saatlik trendler</div></div>
+    <button id="refreshMarkets">Piyasaları Yenile</button>
+  </div>
+  <div class="panel">
+    <div class="marketTabs" id="marketTabs">
+      <button class="marketTab active" data-market="indices">Endeksler</button>
+      <button class="marketTab" data-market="bist">BIST 100 Hisseleri</button>
+      <button class="marketTab" data-market="us">S&P 500 Hisseleri</button>
+      <button class="marketTab" data-market="etf">ETF'ler</button>
+      <button class="marketTab" data-market="commodities">Emtialar</button>
+      <button class="marketTab" data-market="crypto">Kripto</button>
+      <button class="marketTab" data-market="fx">FX</button>
+    </div>
+    <div class="marketNotice">Piyasa verileri Yahoo Finance’ın gayriresmî uç noktalarından gecikmeli olarak alınır. Büyük listeler performans için gruplar halinde yüklenir.</div>
+    <div id="marketContent" class="marketLoading">Piyasa verileri yükleniyor…</div>
+  </div>
+</section>
+
+<section id="calendar" class="tab">
+  <div class="sectionHead" style="margin-bottom:14px">
+    <div><h2 style="margin-bottom:4px">Economic Calendar</h2><div class="muted">Investing.com ekonomik takvim bileşeni</div></div>
+  </div>
+  <div class="panel">
+    <div class="marketNotice">Takvim Investing.com’un resmî webmaster bileşeni üzerinden gösterilir. İçerik üçüncü taraf koşullarına ve erişilebilirliğine bağlıdır.</div>
+    <iframe class="calendarFrame" title="Investing.com Ekonomik Takvim"
+      src="https://sslecal2.investing.com?ecoDayBackground=%230a1019&defaultFont=%23eef5ff&innerBorderColor=%23253243&borderColor=%23253243&ecoDayFontColor=%2391a4bc&columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone,timeselector,filters&countries=25,6,37,72,22,17,39,14,10,35,43,56,36,5,4,12&calType=week&timeZone=63&lang=10">
+    </iframe>
+  </div>
+</section>
+
+<div id="generalFormPanel" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="generalModalTitle"><div class="modalBox">
     <div class="modalHead"><h3 id="generalModalTitle">Yeni Pozisyon Ekle</h3><button type="button" class="secondary" id="closeGeneralForm">Kapat</button></div>
     <form id="generalForm">
       <div class="grid">
@@ -352,9 +422,62 @@ label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}input,se
 
 <div class="note">Veriler Chrome tarayıcısının yerel hafızasında tutulur. Düzenli olarak “Yedek Al” butonunu kullanın.</div>
 </div>
+<div id="bottomTicker" class="fixedTicker bottom"><div id="bottomTickerTrack" class="tickerTrack"><span class="tickerItem">Emtia ve döviz verileri yükleniyor…</span></div></div>
+
+
+<div id="editPositionPanel" class="modalOverlay" role="dialog" aria-modal="true">
+  <div class="modalBox editModalBox">
+    <div class="modalHead"><h3>Pozisyonu Düzenle</h3><button type="button" class="secondary" id="closeEditPosition">Kapat</button></div>
+    <form id="editPositionForm">
+      <input type="hidden" id="editScope"><input type="hidden" id="editId">
+      <div class="grid">
+        <div><label>Ürün Tipi</label><select id="editAssetClass"></select></div>
+        <div><label>Sembol</label><input id="editSymbol" required></div>
+        <div><label>Yahoo Finance Sembolü</label><input id="editYahooSymbol"></div>
+        <div><label>Yön</label><select id="editDirection"><option>Uzun (Long)</option><option>Kısa (Short)</option></select></div>
+        <div><label>Para Birimi</label><select id="editCurrency"><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
+        <div><label>Açılış Fiyatı</label><input id="editEntry" type="number" step="any" required></div>
+        <div><label>Miktar</label><input id="editQty" type="number" step="any"></div>
+        <div><label>Açılış Tarihi</label><input id="editOpenDate" type="date"></div>
+        <div><label>Stop</label><input id="editStop" type="number" step="any"></div>
+        <div><label>Kâr Al</label><input id="editTarget" type="number" step="any"></div>
+        <div class="span2"><label>Not</label><textarea id="editNote"></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px"><button type="submit">Değişiklikleri Kaydet</button></div>
+    </form>
+  </div>
+</div>
 
 <script>
 "use strict";
+
+const MARKET_UNIVERSES={
+ indices:[
+  {s:"XU100.IS",n:"BIST 100",sub:"Türkiye"}, {s:"XU050.IS",n:"BIST 50",sub:"Türkiye"},
+  {s:"XU030.IS",n:"BIST 30",sub:"Türkiye"}, {s:"^GSPC",n:"S&P 500",sub:"ABD"},
+  {s:"^IXIC",n:"Nasdaq Composite",sub:"ABD"}, {s:"^DJI",n:"Dow Jones",sub:"ABD"},
+  {s:"^RUT",n:"Russell 2000",sub:"ABD"}, {s:"^VIX",n:"VIX",sub:"Volatilite"}
+ ],
+ bist:[
+ "AKBNK","ALARK","ARCLK","ASELS","ASTOR","BIMAS","BRSAN","CCOLA","CIMSA","DOAS","DOHOL","ECILC","EGEEN","EKGYO","ENJSA","ENKAI","EREGL","FROTO","GARAN","GUBRF","HALKB","ISCTR","KCHOL","KONTR","KOZAA","KOZAL","KRDMD","MAVI","MGROS","MIATK","ODAS","OTKAR","OYAKC","PETKM","PGSUS","QUAGR","SAHOL","SASA","SISE","SMRTG","SOKM","TAVHL","TCELL","THYAO","TKFEN","TOASO","TSKB","TTKOM","TUPRS","ULKER","VAKBN","VESBE","VESTL","YKBNK","AKSEN","ANSGR","AEFES","AGHOL","AKSA","ALBRK","BERA","BRYAT","BTCIM","CANTE","CLEBI","CWENE","EUREN","GESAN","GLYHO","HEKTS","IPEKE","ISGYO","KARSN","KAYSE","KCAER","KLSER","KMPUR","KONYA","KTLEV","LOGO","MPARK","OBAMS","PENTA","REEDR","SDTTR","SKBNK","TABGD","TATEN","TMSN","TRGYO","TTRAK","TURSG","YEOTK","ZOREN","AKFGY","AKFYE","AYDEM","BAGFS","BINHO","CVKMD","EUPWR"
+ ].map(s=>({s:s+".IS",n:s,sub:"BIST 100"})),
+ etf:["SPY","QQQ","IWM","DIA","VTI","VOO","XLK","XLF","XLE","GLD","SLV","TLT","HYG","EEM","EWZ","TUR"].map(s=>({s,n:s,sub:"ETF"})),
+ commodities:[
+  {s:"GC=F",n:"Altın",sub:"Futures"},{s:"SI=F",n:"Gümüş",sub:"Futures"},{s:"HG=F",n:"Bakır",sub:"Futures"},
+  {s:"CL=F",n:"WTI Petrol",sub:"Futures"},{s:"BZ=F",n:"Brent Petrol",sub:"Futures"},{s:"NG=F",n:"Doğal Gaz",sub:"Futures"},
+  {s:"ZC=F",n:"Mısır",sub:"Futures"},{s:"ZW=F",n:"Buğday",sub:"Futures"},{s:"ZS=F",n:"Soya",sub:"Futures"},
+  {s:"KC=F",n:"Kahve",sub:"Futures"},{s:"SB=F",n:"Şeker",sub:"Futures"},{s:"CT=F",n:"Pamuk",sub:"Futures"},
+  {s:"CC=F",n:"Kakao",sub:"Futures"},{s:"PL=F",n:"Platin",sub:"Futures"},{s:"PA=F",n:"Paladyum",sub:"Futures"}
+ ],
+ crypto:["BTC-USD","ETH-USD","BNB-USD","XRP-USD","SOL-USD","ADA-USD","DOGE-USD","AVAX-USD"].map(s=>({s,n:s.replace("-USD",""),sub:"Kripto"})),
+ fx:[
+  {s:"TRY=X",n:"USD/TRY",sub:"FX"},{s:"EURTRY=X",n:"EUR/TRY",sub:"FX"},{s:"EURUSD=X",n:"EUR/USD",sub:"FX"},
+  {s:"JPY=X",n:"USD/JPY",sub:"FX"},{s:"GBPUSD=X",n:"GBP/USD",sub:"FX"},{s:"AUDUSD=X",n:"AUD/USD",sub:"FX"},
+  {s:"USDCAD=X",n:"USD/CAD",sub:"FX"},{s:"USDCHF=X",n:"USD/CHF",sub:"FX"},{s:"NZDUSD=X",n:"NZD/USD",sub:"FX"},
+  {s:"EURGBP=X",n:"EUR/GBP",sub:"FX"},{s:"EURJPY=X",n:"EUR/JPY",sub:"FX"},{s:"GBPJPY=X",n:"GBP/JPY",sub:"FX"}
+ ]
+};
+
 const TYPES=["Yurtiçi Hisse","Yurtdışı Hisse","ETF","Türev (VİOP/Vadeli)","Yurtdışı Futures","Emtia","Fon","Eurobond","Yurtiçi Opsiyon","Yurtdışı Opsiyon","Varant"];
 const GK="portfolio_general_v5", MK="portfolio_model_v5", SK="portfolio_model_settings_v5";
 let general=JSON.parse(localStorage.getItem(GK)||"[]");
@@ -368,6 +491,13 @@ const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 function save(){localStorage.setItem(GK,JSON.stringify(general));localStorage.setItem(MK,JSON.stringify(model));localStorage.setItem(SK,JSON.stringify(settings))}
 function pnl(p){if(p.status!=="Kapalı"||p.closePrice==null)return null;return(p.closePrice-p.entry)*p.qty*(p.direction.startsWith("Uzun")?1:-1)}
 function ret(p){if(p.status!=="Kapalı"||!p.entry)return null;return((p.closePrice-p.entry)/p.entry)*100*(p.direction.startsWith("Uzun")?1:-1)}
+
+function liveReturn(p){
+ const current=p.currentPrice??p.entry;
+ if(!p.entry)return null;
+ return((current-p.entry)/p.entry)*100*(p.direction?.startsWith("Uzun")?1:-1);
+}
+function positionSize(p){return Math.abs((p.currentPrice??p.entry??0)*(p.qty??0))}
 function risk(p){return p.stop&&p.entry?Math.abs((p.entry-p.stop)/p.entry)*100:null}
 function reward(p){return p.target&&p.entry?((p.target-p.entry)/p.entry)*100*(p.direction.startsWith("Uzun")?1:-1):null}
 function rr(p){if(!p.stop||!p.target)return null;const a=Math.abs(p.entry-p.stop),b=Math.abs(p.target-p.entry);return a?b/a:null}
@@ -570,7 +700,7 @@ function renderActivities(){
 }
 function renderGeneral(){
  const a=general.filter(p=>p.status==="Aktif"),c=general.filter(p=>p.status==="Kapalı"),returns=c.map(ret).filter(x=>x!==null);
- $("gActive").textContent=a.length;$("gClosed").textContent=c.length;$("gWin").textContent="%"+f(c.length?c.filter(p=>pnl(p)>0).length/c.length*100:0,1);$("gAvg").textContent="%"+f(returns.length?returns.reduce((x,y)=>x+y,0)/returns.length:0,2);$("gPnl").textContent=f(c.reduce((s,p)=>s+(pnl(p)||0),0),2);
+ $("gActive").textContent=a.length;$("gClosed").textContent=c.length;$("gWin").textContent="%"+f(c.length?c.filter(p=>pnl(p)>0).length/c.length*100:0,1);$("gAvg").textContent="%"+f(returns.length?returns.reduce((x,y)=>x+y,0)/returns.length:0,2);$("gPnl").textContent=f(c.reduce((s,p)=>s+(pnl(p)||0),0),2);$("gPositionSize").textContent=f(a.reduce((s,p)=>s+positionSize(p),0),2);
  const counts={};TYPES.forEach(t=>counts[t]=0);a.forEach(p=>counts[p.assetClass]=(counts[p.assetClass]||0)+1);const mx=Math.max(...Object.values(counts),1);
  $("distribution").innerHTML=TYPES.map(t=>`<div class="barRow"><div>${t}</div><div class="track"><div class="fill" style="width:${counts[t]?counts[t]/mx*100:0}%"></div></div><div class="count">${counts[t]||0}</div></div>`).join("");
  const q=$("activeSearch").value.toLowerCase(),tp=$("activeType").value,dr=$("activeDir").value;const fa=a.filter(p=>(!q||(`${p.symbol} ${p.optionType||""}`).toLowerCase().includes(q))&&(!tp||p.assetClass===tp)&&(!dr||p.direction===dr));
@@ -593,14 +723,50 @@ function metrics(){
  const paired=c.filter(p=>p.benchmark!==null&&p.benchmark!==undefined),pr=paired.map(mret),br=paired.map(p=>p.benchmark/100);
  return{eq,total:start?eq/start-1:null,cagr:start&&eq>0?Math.pow(eq/start,1/years)-1:null,sharpe:st?mean(ex)/st*Math.sqrt(ppy):null,sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,dd,beta:variance(br)?cov(pr,br)/variance(br):null,dur:duration(sdte,edte)}
 }
-function modelTable(arr,closed){if(!arr.length)return'<div class="muted" style="padding:20px;text-align:center">Kayıt bulunmuyor.</div>';return`<div class="tableWrap"><table><thead><tr><th>Sembol</th><th>Ürün</th><th>Yön</th><th>Açılış</th><th>Miktar</th><th>Ayrılan Sermaye</th><th>Açılış Tarihi</th>${closed?'<th>Kapanış</th><th>K/Z</th><th>Getiri %</th><th>Benchmark %</th>':''}<th>İşlem</th></tr></thead><tbody>${arr.map(p=>`<tr><td><strong>${esc(p.symbol)}</strong><div class="muted">${esc(p.yahooSymbol||"")}</div></td><td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}</td><td>${esc(p.direction)}</td><td>${f(p.entry,4)}</td><td>${f(p.qty,2)}</td><td>${f(p.allocated,2)}</td><td>${esc(p.openDate)}</td>${closed?`<td>${f(p.closePrice,4)}</td><td class="${mpnl(p)>0?"positive":"negative"}">${f(mpnl(p),2)}</td><td>${f(mret(p)*100,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}<td><button class="danger" onclick="deleteModel('${p.id}')">Sil</button></td></tr>`).join("")}</tbody></table></div>`}
+function modelTable(arr,closed){
+ if(!arr.length)return'<div class="muted" style="padding:20px;text-align:center">Kayıt bulunmuyor.</div>';
+ return`<div class="tableWrap"><table><thead><tr>
+ <th>Sembol</th><th>Ürün</th><th>Yön</th><th>Açılış</th><th>Güncel Fiyat</th><th>Güncel K/Z %</th><th>Pozisyon Büyüklüğü</th>
+ <th>Miktar</th><th>Ayrılan Sermaye</th><th>Açılış Tarihi</th>
+ ${closed?'<th>Kapanış</th><th>K/Z</th><th>Getiri %</th><th>Benchmark %</th>':''}<th>İşlem</th></tr></thead><tbody>
+ ${arr.map(p=>`<tr><td><strong>${esc(p.symbol)}</strong><div class="muted">${esc(p.yahooSymbol||"")}</div></td>
+ <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}</td><td>${esc(p.direction)}</td>
+ <td>${f(p.entry,4)}</td><td>${f(p.currentPrice??p.entry,4)}</td>
+ <td class="${(liveReturn(p)||0)>=0?"positive":"negative"}">${f(liveReturn(p),2)}%</td>
+ <td class="positionSize">${f(positionSize(p),2)} ${esc(p.currency||"")}</td><td>${f(p.qty,2)}</td><td>${f(p.allocated,2)}</td><td>${esc(p.openDate)}</td>
+ ${closed?`<td>${f(p.closePrice,4)}</td><td class="${mpnl(p)>0?"positive":"negative"}">${f(mpnl(p),2)}</td><td>${f(mret(p)*100,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}
+ <td><div class="actionGroup">${!closed?`<button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`).join("")}</tbody></table></div>`}
+
 function renderModel(){const m=metrics(),a=model.filter(p=>p.status==="Aktif"),c=model.filter(p=>p.status==="Kapalı");$("mValue").textContent=settings.capital?f(m.eq,2):"-";$("mTotal").textContent=m.total===null?"-":"%"+f(m.total*100,2);$("mCagr").textContent=m.cagr===null?"-":"%"+f(m.cagr*100,2);$("mSharpe").textContent=m.sharpe===null?"-":f(m.sharpe,2);$("mSortino").textContent=m.sortino===null?"-":f(m.sortino,2);$("mDD").textContent="%"+f(m.dd*100,2);$("mBeta").textContent=m.beta===null?"-":f(m.beta,2);$("mDuration").textContent=m.dur;$("mActiveTable").innerHTML=modelTable(a,false);$("mClosedTable").innerHTML=modelTable(c,true);$("mCloseSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';renderModelPie();renderModelPerformance();renderActivities()}
-$("modelForm").addEventListener("submit",e=>{e.preventDefault();const p={id:id(),status:"Aktif",assetClass:$("mAssetClass").value,optionType:isOptionType($("mAssetClass").value)?$("mOptionType").value:null,symbol:$("mSymbol").value.trim().toUpperCase(),yahooSymbol:$("mYahooSymbol").value.trim().toUpperCase(),direction:$("mDirection").value,currency:$("mCurrency").value,entry:n($("mEntry").value),currentPrice:n($("mEntry").value),dailyChange:n($("mDailyChange").value)||0,qty:n($("mQty").value)||1,openDate:$("mOpenDate").value,allocated:n($("mAllocated").value),stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}model.unshift(p);save();e.target.reset();$("mOpenDate").value=today;$("mQty").value=1;$("modelFormPanel").classList.remove("open");renderModel();alert("Pozisyon model portföye eklendi.")});
+$("modelForm").addEventListener("submit",e=>{e.preventDefault();const p={id:id(),status:"Aktif",assetClass:$("mAssetClass").value,optionType:isOptionType($("mAssetClass").value)?$("mOptionType").value:null,symbol:$("mSymbol").value.trim().toUpperCase(),yahooSymbol:$("mYahooSymbol").value.trim().toUpperCase(),direction:$("mDirection").value,currency:$("mCurrency").value,entry:n($("mEntry").value),currentPrice:n($("mEntry").value),dailyChange:n($("mDailyChange").value)||0,qty:n($("mQty").value)||1,openDate:$("mOpenDate").value,allocated:n($("mAllocated").value),stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}model.unshift(p);save();e.target.reset();$("mOpenDate").value=today;$("mQty").value=1;$("modelFormPanel").classList.remove("open");$("editPositionPanel").classList.remove("open");renderModel();alert("Pozisyon model portföye eklendi.")});
 $("saveModelSettings").onclick=()=>{settings={capital:n($("startCapital").value)||0,startDate:$("modelStartDate").value||today,riskFree:n($("riskFree").value)||0};save();renderModel();alert("Model portföy ayarları kaydedildi.")};
 $("mCloseBtn").onclick=()=>{const p=model.find(x=>x.id===$("mCloseSelect").value),price=n($("mClosePrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDate=$("mCloseDate").value||today;p.benchmark=n($("mBenchmark").value);save();$("mClosePrice").value="";$("mBenchmark").value="";renderModel()};
 window.deleteModel=x=>{if(confirm("Kayıt silinsin mi?")){model=model.filter(p=>p.id!==x);save();renderModel()}};
 
 
+
+
+function populateEditTypes(){
+ $("editAssetClass").innerHTML=TYPES.map(t=>`<option>${t}</option>`).join("");
+}
+window.openEditPosition=(scope,posId)=>{
+ const list=scope==="general"?general:model;
+ const p=list.find(x=>x.id===posId);if(!p)return;
+ $("editScope").value=scope;$("editId").value=posId;$("editAssetClass").value=p.assetClass||TYPES[0];
+ $("editSymbol").value=p.symbol||"";$("editYahooSymbol").value=p.yahooSymbol||"";$("editDirection").value=p.direction||"Uzun (Long)";
+ $("editCurrency").value=p.currency||"TRY";$("editEntry").value=p.entry??"";$("editQty").value=p.qty??1;$("editOpenDate").value=p.openDate||today;
+ $("editStop").value=p.stop??"";$("editTarget").value=p.target??"";$("editNote").value=p.note||p.riskNote||p.thesis||"";
+ $("editPositionPanel").classList.add("open");
+};
+$("closeEditPosition").onclick=()=>$("editPositionPanel").classList.remove("open");
+$("editPositionForm").addEventListener("submit",e=>{
+ e.preventDefault();const scope=$("editScope").value,list=scope==="general"?general:model,p=list.find(x=>x.id===$("editId").value);if(!p)return;
+ p.assetClass=$("editAssetClass").value;p.symbol=$("editSymbol").value.trim().toUpperCase();p.yahooSymbol=$("editYahooSymbol").value.trim().toUpperCase();
+ p.direction=$("editDirection").value;p.currency=$("editCurrency").value;p.entry=n($("editEntry").value);p.qty=n($("editQty").value)||1;
+ p.openDate=$("editOpenDate").value||today;p.stop=n($("editStop").value);p.target=n($("editTarget").value);
+ if(scope==="general")p.riskNote=$("editNote").value;else p.note=$("editNote").value;
+ save();$("editPositionPanel").classList.remove("open");renderGeneral();renderModel();
+});
 
 document.querySelectorAll("[data-general-activity]").forEach(b=>b.addEventListener("click",()=>{
   generalActivityFilter=b.dataset.generalActivity;
@@ -641,14 +807,62 @@ $("modelUpdateBtn").addEventListener("click",()=>{
   save();renderModel();$("modelUpdatePrice").value="";$("modelUpdateDaily").value="";
 });
 
+
+let activeMarketCategory="indices";
+function sparklineSVG(points,positive){
+ const clean=(points||[]).filter(Number.isFinite);
+ if(clean.length<2)return`<svg class="spark" viewBox="0 0 115 44"></svg>`;
+ const min=Math.min(...clean),max=Math.max(...clean),range=max-min||1;
+ const path=clean.map((v,i)=>`${i?"L":"M"} ${(i/(clean.length-1)*113+1).toFixed(1)} ${(42-(v-min)/range*38).toFixed(1)}`).join(" ");
+ return`<svg class="spark" viewBox="0 0 115 44" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="${positive?"#2fca83":"#ff536d"}" stroke-width="2"/></svg>`;
+}
+async function fetchQuotesChunked(items){
+ const all={};for(let i=0;i<items.length;i+=35){
+  const syms=items.slice(i,i+35).map(x=>x.s);
+  try{Object.assign(all,await fetchYahooQuotes(syms))}catch(e){}
+ }
+ return all;
+}
+function marketCard(item,q){
+ const ch=q?.changePercent??0,positive=ch>=0;
+ return`<div class="marketCard"><div><div class="marketName">${esc(item.n)}</div><div class="marketSub">${esc(item.sub||item.s)} · ${esc(item.s)}</div></div>
+ <div><div class="marketPrice">${q?.price==null?"-":f(q.price,4)}</div><div class="marketChange ${positive?"positive":"negative"}">${ch>=0?"+":""}${f(ch,2)}%</div></div>
+ ${sparklineSVG(q?.sparkline||[],positive)}</div>`;
+}
+async function loadMarkets(category=activeMarketCategory){
+ activeMarketCategory=category;$("marketContent").className="marketLoading";$("marketContent").textContent="Piyasa verileri yükleniyor…";
+ let items=MARKET_UNIVERSES[category]||[];
+ if(category==="us"){
+  try{const r=await fetch("/api/universe/sp500");const d=await r.json();items=d.items||[];}catch(e){items=[]}
+ }
+ const quotes=await fetchQuotesChunked(items);
+ $("marketContent").className="";
+ $("marketContent").innerHTML=`<div class="marketSectionTitle"><strong>${items.length} ürün</strong><span class="muted">Son güncelleme: ${new Date().toLocaleTimeString("tr-TR")}</span></div><div class="marketGrid">${items.map(i=>marketCard(i,quotes[i.s])).join("")}</div>`;
+}
+async function loadTicker(trackId,items){
+ const quotes=await fetchQuotesChunked(items),one=items.map(i=>{
+  const q=quotes[i.s],ch=q?.changePercent??0;
+  return`<span class="tickerItem"><span class="tickerSymbol">${esc(i.n)}</span><span class="tickerPrice">${q?.price==null?"-":f(q.price,2)}</span><span class="${ch>=0?"positive":"negative"}">${ch>=0?"+":""}${f(ch,2)}%</span></span>`;
+ }).join("");
+ $(trackId).innerHTML=one+one;
+}
+function refreshAllTickers(){
+ loadTicker("topTickerTrack",MARKET_UNIVERSES.bist);
+ loadTicker("bottomTickerTrack",[...MARKET_UNIVERSES.commodities,...MARKET_UNIVERSES.fx]);
+}
+document.querySelectorAll("[data-market]").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll("[data-market]").forEach(x=>x.classList.remove("active"));b.classList.add("active");loadMarkets(b.dataset.market);
+}));
+$("refreshMarkets").onclick=()=>loadMarkets();
+
 $("refreshGeneralQuotes").addEventListener("click",()=>refreshQuotes("general"));
 $("refreshModelQuotes").addEventListener("click",()=>refreshQuotes("model"));
 setInterval(()=>{
   if(document.visibilityState==="visible"){
-    refreshQuotes("general");
-    refreshQuotes("model");
+    refreshQuotes("general");refreshQuotes("model");
   }
 },60000);
+setInterval(()=>{if(document.visibilityState==="visible")refreshAllTickers()},180000);
 document.querySelectorAll(".tabBtn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabBtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active")});
 $("toggleGeneralForm").onclick=()=>$("generalFormPanel").classList.add("open");$("closeGeneralForm").onclick=()=>$("generalFormPanel").classList.remove("open");
 $("toggleModelForm").onclick=()=>$("modelFormPanel").classList.add("open");$("closeModelForm").onclick=()=>$("modelFormPanel").classList.remove("open");
@@ -657,7 +871,7 @@ $("exportBtn").onclick=()=>{const a=document.createElement("a");a.href=URL.creat
 $("importInput").onchange=e=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);general=d.general||[];model=d.model||[];settings=d.settings||settings;save();location.reload()}catch{alert("Geçersiz yedek dosyası.")}};if(e.target.files[0])r.readAsText(e.target.files[0])};
 
 
-["generalFormPanel","modelFormPanel"].forEach(key=>{
+["generalFormPanel","modelFormPanel","editPositionPanel"].forEach(key=>{
   $(key).addEventListener("click",e=>{if(e.target===$(key))$(key).classList.remove("open")});
 });
 document.addEventListener("keydown",e=>{
@@ -668,11 +882,11 @@ document.addEventListener("keydown",e=>{
 });
 window.addEventListener("resize",()=>{renderGeneralPie();renderModelPie()});
 
-fillTypes();
+fillTypes();populateEditTypes();
 $("assetClass").addEventListener("change",syncOptionVisibility);
 $("mAssetClass").addEventListener("change",syncOptionVisibility);
 syncOptionVisibility();
-$("openDate").value=today;$("closeGeneralDate").value=today;$("mOpenDate").value=today;$("mCloseDate").value=today;$("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.startDate||today;$("riskFree").value=settings.riskFree||0;renderGeneral();renderModel();setTimeout(()=>{refreshQuotes("general");refreshQuotes("model")},800);
+$("openDate").value=today;$("closeGeneralDate").value=today;$("mOpenDate").value=today;$("mCloseDate").value=today;$("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.startDate||today;$("riskFree").value=settings.riskFree||0;renderGeneral();renderModel();setTimeout(()=>{refreshQuotes("general");refreshQuotes("model");loadMarkets("indices");refreshAllTickers()},800);
 </script>
 </body>
 </html>
