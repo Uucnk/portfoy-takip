@@ -202,3 +202,14 @@ Node servisindeki `OPENBB_BASE_URL` değişkenine elle girilmelidir.
 - OpenBB Render başlangıç komutu resmî `openbb-api` komutuna geçirildi.
 - FMP sağlayıcı uzantısı açıkça requirements dosyasına eklendi.
 - Render Blueprint ortam değişkenleri güvenli placeholder olarak düzenlendi.
+
+
+## Sürüm 6.2 — Veri ve Grafik Düzeltmeleri
+
+- Araştırma penceresi artık sol menü ve sağ emir terminalinin üstünde, tam ekran açılır.
+- BIST sembolleri OpenBB üzerinde otomatik olarak `yfinance` sağlayıcısına ve `.IS` sembolüne çevrilir.
+- FMP/OpenBB boş döndürdüğünde şirket özeti, fiyat ve temel oranlarda Yahoo Finance yedeklemesi kullanılır.
+- OpenBB servisine `openbb-yfinance` sağlayıcısı eklendi.
+- TradingView'in dış widget lisansı BIST grafiklerini engellediği için BIST'te TradingView Lightweight Charts motoru ve gecikmeli Yahoo/OpenBB OHLCV verisi kullanılır.
+- ABD ve widget kullanımına açık diğer sembollerde resmî TradingView Advanced Chart korunur.
+- Yeni `/api/chart/history` endpoint'i mum ve hacim verisi sağlar.
