@@ -1,52 +1,22 @@
-# Portföy Takip Web
 
-İnternete kurulabilir Node.js + Express web uygulaması.
+# OpenBB Research Service
 
-## Özellikler
+Bu servis OpenBB Open Data Platform REST API sunucusudur.
 
-- Mevcut portföy ve model portföy arayüzü
-- Yahoo Finance üzerinden gecikmeli fiyat ve günlük değişim
-- 60 saniyede bir otomatik yenileme
-- Manuel “Fiyatları Yenile” düğmesi
-- BIST hisselerinde sembol otomatik olarak `.IS` ile tamamlanır
-- Hisse, ETF, futures ve emtia sembolleri için manuel Yahoo Finance sembolü
-- Veriler tarayıcının localStorage alanında saklanır
-
-## Yahoo Finance sembol örnekleri
-
-- THYAO: `THYAO.IS`
-- ASELS: `ASELS.IS`
-- Apple: `AAPL`
-- S&P 500 ETF: `SPY`
-- Altın vadeli: `GC=F`
-- Brent vadeli: `BZ=F`
-- EUR/USD: `EURUSD=X`
-
-## Bilgisayarda çalıştırma
-
-Node.js 20 veya üzeri gerekir.
+Render başlangıç komutu:
 
 ```bash
-npm install
-npm start
+uvicorn openbb_core.rest_api:app --host 0.0.0.0 --port $PORT
 ```
 
-Ardından:
+Gerekli sağlayıcı API anahtarları Render environment variables üzerinden OpenBB kullanıcı ayarlarına bağlanmalıdır.
+ABD temel verileri için FMP veya Intrinio; haberler için Benzinga veya FMP kullanılabilir.
+
+Node servisinde:
 
 ```text
-http://localhost:3000
+OPENBB_BASE_URL=https://OPENBB-SERVICE-URL
+OPENBB_PROVIDER=fmp
 ```
 
-## Render'a kurulum
-
-1. Bu klasörü bir GitHub deposuna yükleyin.
-2. Render hesabında **New > Blueprint** seçin.
-3. GitHub deposunu bağlayın.
-4. Render, `render.yaml` dosyasını okuyarak siteyi kurar.
-5. Kurulum sonunda `https://...onrender.com` şeklinde bir adres oluşur.
-
-## Önemli
-
-Yahoo Finance bağlantısı resmî bir genel API değildir. Veri erişimi veya alan yapısı ileride değişebilir. Üretim ve müşteri kullanımı için lisanslı bir piyasa veri sağlayıcısı değerlendirilmelidir.
-
-Portföy kayıtları sunucu veritabanında değil, her kullanıcının kendi tarayıcısında tutulur. Çok kullanıcılı hesap sistemi ve merkezi kayıt için sonraki aşamada veritabanı ve kullanıcı girişi eklenmelidir.
+tanımlanmalıdır.

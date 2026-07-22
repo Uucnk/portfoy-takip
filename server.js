@@ -514,10 +514,178 @@ function dateTR(d=new Date()){return new Intl.DateTimeFormat("tr-TR",{day:"2-dig
 function flattenTefasRows(p){if(Array.isArray(p))return p;for(const k of["data","Data","funds","fonlar","result","Result","items"])if(Array.isArray(p?.[k]))return p[k];return[]}
 function normalizeFundRow(r,kind="YAT"){const code=r.FONKODU||r.FONKOD||r.fonKodu||r.fundCode||r.code||r.KOD,name=r.FONUNVAN||r.FONUNVANI||r.fonUnvan||r.fundName||r.name||r.UNVAN;if(!code||!name)return null;return{code:String(code).trim(),name:String(name).trim(),price:toNumberFlexible(r.FIYAT??r.SONFIYAT??r.price),dailyReturn:toNumberFlexible(r.GUNLUKGETIRI??r.dailyReturn),portfolioSize:toNumberFlexible(r.PORTFOYBUYUKLUK??r.FON_TOPLAM_DEGERI??r.portfolioSize),investorCount:toNumberFlexible(r.KISISAYISI??r.YATIRIMCISAYISI??r.investorCount),sharesOutstanding:toNumberFlexible(r.TEDPAYSAYISI??r.PAYADEDI??r.sharesOutstanding),manager:r.KURUCU||r.YONETICI||r.manager||null,kind:r.FONTUR||r.kind||kind,date:r.TARIH||r.date||null,category:classifyFundServer(name)}}
 let tefasFundCache={at:0,funds:[]};
-async function fetchAllTefasFunds(force=false){if(!force&&tefasFundCache.funds.length&&Date.now()-tefasFundCache.at<1800000)return tefasFundCache.funds;const today=dateTR(),all=[];for(const kind of["YAT","EMK","BYF"]){let rows=[];for(const payload of[{tarih:today,fonTipi:kind,dil:"TR"},{tarih:today,fontur:kind,dil:"TR"},{baslangicTarihi:today,bitisTarihi:today,fonTipi:kind,dil:"TR"}]){try{rows=flattenTefasRows(await tefasPost("fonGnlBlgSiraliGetir",payload));if(rows.length)break}catch{}}for(const row of rows){const f=normalizeFundRow(row,kind);if(f)all.push(f)}}const unique=[...new Map(all.map(f=>[f.code,f])).values()].sort((a,b)=>a.code.localeCompare(b.code,"tr"));if(!unique.length)throw new Error("TEFAS fon listesi alınamadı");tefasFundCache={at:Date.now(),funds:unique};return unique}
+
+async function fetchAllTefasFunds(force=false){
+ if(!force&&tefasFundCache.funds.length&&Date.now()-tefasFundCache.at<30*60*1000)return tefasFundCache.funds;
+ const todayCompact=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Istanbul",year:"numeric",month:"2-digit",day:"2-digit"})
+   .format(new Date()).replaceAll("-","");
+ const kinds=["YAT","EMK","BYF","GYF","GSYF"];
+ const all=[];
+ for(const kind of kinds){
+  const body={
+   fonTipi:kind,fonKodu:null,aramaMetni:null,fonTurKod:null,fonGrubu:null,
+   sfonTurKod:null,fonTurAciklama:null,kurucuKod:null,
+   basTarih:todayCompact,bitTarih:todayCompact,basSira:1,bitSira:100000,
+   dil:"TR",sFonTurKod:"",fonKod:"",fonGrup:"",fonUnvanTip:""
+  };
+  try{
+   const result=await tefasPost("fonGnlBlgSiraliGetir",body);
+   const rows=Array.isArray(result?.resultList)?result.resultList:[];
+   for(const row of rows){
+    const code=row.fonKodu;
+    const name=row.fonUnvan;
+    if(!code||!name)continue;
+    all.push({
+     code:String(code).trim().toUpperCase(),
+     name:String(name).trim(),
+     price:toNumberFlexible(row.fiyat),
+     dailyReturn:null,
+     portfolioSize:toNumberFlexible(row.portfoyBuyukluk),
+     investorCount:toNumberFlexible(row.kisiSayisi),
+     sharesOutstanding:toNumberFlexible(row.tedPaySayisi),
+     manager:null,
+     kind,
+     date:row.tarih||null,
+     category:classifyFundServer(name)
+    });
+   }
+  }catch(error){
+   console.warn(`TEFAS ${kind} alınamadı:`,error?.message);
+  }
+ }
+ const unique=[...new Map(all.map(f=>[f.code,f])).values()].sort((a,b)=>a.code.localeCompare(b.code,"tr"));
+ if(!unique.length){
+  if(tefasFundCache.funds.length)return tefasFundCache.funds;
+  throw new Error("TEFAS fon listesi şu anda alınamadı");
+ }
+ tefasFundCache={at:Date.now(),funds:unique};
+ return unique;
+}
+
 function calculateFundStats(points){const prices=points.map(p=>toNumberFlexible(p.price??p.FIYAT??p.fiyat)).filter(Number.isFinite);if(prices.length<2)return{};const ret=d=>prices.length>d&&prices.at(-(d+1))?((prices.at(-1)/prices.at(-(d+1)))-1)*100:null,returns=[];for(let i=1;i<prices.length;i++)if(prices[i-1]>0&&prices[i]>0)returns.push(Math.log(prices[i]/prices[i-1]));let volatility=null,sharpe=null,maxDrawdown=0;if(returns.length>1){const avg=returns.reduce((a,b)=>a+b,0)/returns.length,v=returns.reduce((s,r)=>s+(r-avg)**2,0)/(returns.length-1);volatility=Math.sqrt(v)*Math.sqrt(252)*100;sharpe=v>0?(avg*252)/(Math.sqrt(v)*Math.sqrt(252)):null}let peak=prices[0];for(const p of prices){peak=Math.max(peak,p);maxDrawdown=Math.max(maxDrawdown,((peak-p)/peak)*100)}return{return1m:ret(21),return3m:ret(63),return6m:ret(126),return1y:ret(252),volatility,sharpe,maxDrawdown}}
 app.get("/api/funds",async(req,res)=>{try{const funds=await fetchAllTefasFunds(req.query.refresh==="1");res.set("Cache-Control","public, max-age=600, s-maxage=600");res.json({source:"TEFAS",count:funds.length,funds})}catch(e){res.status(502).json({error:e?.message||"TEFAS fon verileri alınamadı"})}});
 app.get("/api/funds/:code",async(req,res)=>{const code=String(req.params.code||"").trim().toUpperCase();try{const funds=await fetchAllTefasFunds(),base=funds.find(f=>f.code===code);if(!base)return res.status(404).json({error:"Fon bulunamadı"});let profile={},pricePayload=null;try{profile=await tefasPost("fonProfilDtyGetir",{fonKodu:code,dil:"TR"})}catch{}try{pricePayload=await tefasPost("fonFiyatBilgiGetir",{fonKodu:code,dil:"TR",periyod:12})}catch{}const stats=calculateFundStats(flattenTefasRows(pricePayload||{})),pr=flattenTefasRows(profile)[0]||profile?.data||profile||{};res.json({...base,return1m:toNumberFlexible(pr.GETIRI1A??pr.return1m)??stats.return1m,return3m:toNumberFlexible(pr.GETIRI3A??pr.return3m)??stats.return3m,return6m:toNumberFlexible(pr.GETIRI6A??pr.return6m)??stats.return6m,return1y:toNumberFlexible(pr.GETIRI1Y??pr.return1y)??stats.return1y,riskValue:toNumberFlexible(pr.RISKDEGERI??pr.riskValue),managementFee:toNumberFlexible(pr.YONETIMUCRETI??pr.managementFee),volatility:stats.volatility,sharpe:stats.sharpe,maxDrawdown:stats.maxDrawdown,source:"TEFAS halka açık fon servisleri"})}catch(e){res.status(502).json({error:e?.message||"Fon detayı alınamadı"})}});
+
+
+const yahooSearchCache=new Map();
+async function searchYahooProducts(query){
+ const key=query.toUpperCase();
+ const cached=yahooSearchCache.get(key);
+ if(cached&&Date.now()-cached.at<5*60*1000)return cached.items;
+ const url=`https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=80&newsCount=0&enableFuzzyQuery=false&lang=tr-TR&region=TR`;
+ const response=await fetch(url,{
+  headers:{
+   "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/146 Safari/537.36",
+   "Accept":"application/json,text/plain,*/*"
+  },
+  signal:AbortSignal.timeout(15000)
+ });
+ if(!response.ok)throw new Error(`Yahoo arama HTTP ${response.status}`);
+ const data=await response.json();
+ const items=(Array.isArray(data?.quotes)?data.quotes:[]).map(q=>({
+  symbol:String(q.symbol||"").toUpperCase(),
+  yahooSymbol:String(q.symbol||"").toUpperCase(),
+  name:q.longname||q.shortname||q.symbol,
+  type:q.quoteType||q.typeDisp||"Ürün",
+  exchange:q.exchDisp||q.exchange||"",
+  source:"Yahoo Finance"
+ })).filter(x=>x.symbol);
+ yahooSearchCache.set(key,{at:Date.now(),items});
+ return items;
+}
+app.get("/api/search",async(req,res)=>{
+ const query=String(req.query.q||"").trim().toUpperCase();
+ if(!query)return res.json({items:[]});
+ try{
+  const [yahooResult,fundResult]=await Promise.allSettled([
+   searchYahooProducts(query),
+   fetchAllTefasFunds(false)
+  ]);
+  const yahoo=yahooResult.status==="fulfilled"?yahooResult.value:[];
+  const funds=fundResult.status==="fulfilled"
+   ?fundResult.value.filter(f=>f.code.startsWith(query)||f.name.toLocaleUpperCase("tr-TR").includes(query)).slice(0,80).map(f=>({
+      symbol:f.code,yahooSymbol:f.code,name:f.name,type:"Fon",exchange:"TEFAS",isFund:true,source:"TEFAS"
+    }))
+   :[];
+  const merged=[...funds,...yahoo];
+  const unique=[...new Map(merged.map(x=>[`${x.symbol}|${x.exchange}`,x])).values()]
+   .filter(x=>x.symbol.startsWith(query))
+   .sort((a,b)=>a.symbol.localeCompare(b.symbol,"tr"))
+   .slice(0,100);
+  res.set("Cache-Control","public, max-age=60, s-maxage=60");
+  res.json({query,count:unique.length,items:unique});
+ }catch(error){
+  res.status(502).json({error:error?.message||"Sembol araması yapılamadı",items:[]});
+ }
+});
+
+
+const OPENBB_BASE_URL=String(process.env.OPENBB_BASE_URL||"").replace(/\/$/,"");
+const OPENBB_TOKEN=String(process.env.OPENBB_TOKEN||"");
+const openbbResearchCache=new Map();
+
+async function fetchOpenBBRoute(route,params={}){
+ if(!OPENBB_BASE_URL)throw new Error("OPENBB_BASE_URL yapılandırılmadı");
+ const url=new URL(`${OPENBB_BASE_URL}${route}`);
+ Object.entries(params).forEach(([key,value])=>{
+  if(value!==undefined&&value!==null&&value!=="")url.searchParams.set(key,String(value));
+ });
+ const headers={"Accept":"application/json"};
+ if(OPENBB_TOKEN)headers.Authorization=`Bearer ${OPENBB_TOKEN}`;
+ const response=await fetch(url,{headers,signal:AbortSignal.timeout(30000)});
+ const text=await response.text();
+ if(!response.ok)throw new Error(`OpenBB ${route} HTTP ${response.status}: ${text.slice(0,160)}`);
+ try{return JSON.parse(text)}catch{return{text}};
+}
+async function fetchOpenBBAny(routes,params){
+ let lastError=null;
+ for(const route of routes){
+  try{return await fetchOpenBBRoute(route,params)}
+  catch(error){lastError=error}
+ }
+ return{results:[],error:lastError?.message||"OpenBB endpoint bulunamadı"};
+}
+app.get("/api/openbb/research",async(req,res)=>{
+ const symbol=String(req.query.symbol||"").trim().toUpperCase();
+ const provider=String(req.query.provider||process.env.OPENBB_PROVIDER||"").trim();
+ const force=req.query.force==="1";
+ if(!symbol)return res.status(400).json({error:"Sembol gereklidir"});
+ if(!OPENBB_BASE_URL){
+  return res.json({
+   configured:false,symbol,
+   info:{results:[]},quote:{results:[]},metrics:{results:[]},ratios:{results:[]},
+   income:{results:[]},balance:{results:[]},cash:{results:[]},dividends:{results:[]},
+   price_target:{results:[]},estimates:{results:[]},news:{results:[]}
+  });
+ }
+ const cacheKey=`${symbol}|${provider}`;
+ const cached=openbbResearchCache.get(cacheKey);
+ if(!force&&cached&&Date.now()-cached.at<10*60*1000)return res.json(cached.data);
+ const base={symbol,...(provider?{provider}:{})};
+ const period={...base,period:"annual",limit:5};
+ const [info,quote,metrics,ratios,income,balance,cash,dividends,priceTarget,estimates,news]=await Promise.all([
+  fetchOpenBBAny(["/api/v1/equity/profile","/api/v1/equity/info"],base),
+  fetchOpenBBAny(["/api/v1/equity/price/quote","/api/v1/equity/quote"],base),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/metrics"],period),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/ratios"],period),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/income"],period),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/balance"],period),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/cash"],period),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/dividends"],{...base,limit:20}),
+  fetchOpenBBAny(["/api/v1/equity/estimates/price_target_consensus","/api/v1/equity/price_target/consensus"],base),
+  fetchOpenBBAny(["/api/v1/equity/estimates/analyst"],{...base,limit:12}),
+  fetchOpenBBAny(["/api/v1/news/company"],{...base,limit:30})
+ ]);
+ const data={
+  configured:true,symbol,provider:provider||null,
+  info,quote,metrics,ratios,income,balance,cash,dividends,
+  price_target:priceTarget,estimates,news,
+  fetchedAt:new Date().toISOString()
+ };
+ openbbResearchCache.set(cacheKey,{at:Date.now(),data});
+ res.set("Cache-Control","public, max-age=300, s-maxage=300");
+ res.json(data);
+});
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "portfolio-tracker" });

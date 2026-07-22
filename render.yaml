@@ -1,9 +1,27 @@
 services:
   - type: web
-    name: portfoy-takip
+    name: portfolio-tracker
     runtime: node
     plan: free
     buildCommand: npm install
-    startCommand: npm start
-    healthCheckPath: /api/health
-    autoDeploy: true
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: OPENBB_BASE_URL
+        sync: false
+      - key: OPENBB_PROVIDER
+        value: fmp
+
+  - type: web
+    name: portfolio-openbb
+    runtime: python
+    plan: free
+    rootDir: openbb-service
+    buildCommand: pip install -r requirements.txt && openbb-build
+    startCommand: openbb-api --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: FMP_API_KEY
+        sync: false
