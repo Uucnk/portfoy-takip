@@ -272,7 +272,7 @@ body{padding-top:44px;padding-bottom:42px}
 .orderTerminal label{display:block;margin:0 0 6px;color:#b9c8d8;font-size:10px;font-weight:700}.orderTerminal input,.orderTerminal select,.orderTerminal textarea{display:block;width:100%;box-sizing:border-box;border:1px solid #34475b;background:#08111a;color:#f1f6fb;border-radius:7px;font-size:12px;padding:9px 10px}
 .orderTerminal input,.orderTerminal select{height:40px}.orderTerminal textarea{height:102px;min-height:102px;resize:vertical}.orderTerminal form button[type="submit"]{width:100%;height:42px;margin-top:0}
 .orderTerminal.collapsed{width:var(--terminal-collapsed);padding:8px 6px;overflow:hidden}.orderTerminal.collapsed .orderTerminalHead{position:static;margin:0;padding:0;border:0}.orderTerminal.collapsed .orderTerminalHead>div,.orderTerminal.collapsed .orderTerminalTabs,.orderTerminal.collapsed .orderTerminalPane{display:none}.orderTerminal.collapsed #orderTerminalCollapse span{transform:rotate(180deg)}
-.app{margin-left:var(--sidebar-w);margin-right:var(--terminal-w);transition:margin .24s ease}body.sidebarClosed .app{margin-left:var(--sidebar-collapsed)}body.terminalCollapsed .app{margin-right:var(--terminal-collapsed)}body.terminalHidden .app{margin-right:0}
+
 .securityDrawer{left:var(--sidebar-w);right:var(--terminal-w)}body.sidebarClosed .securityDrawer{left:var(--sidebar-collapsed)}body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}body.terminalHidden .securityDrawer{right:0}
 .fixedTicker.top,.fixedTicker.bottom{display:block!important}
 @media(max-width:900px){.app{margin-left:0!important;margin-right:0!important}.orderTerminal{display:none!important}.sidebar.closed{transform:translateX(-100%)}.securityDrawer{left:0!important;right:0!important}}
@@ -622,6 +622,80 @@ body{padding-top:44px;padding-bottom:42px}
 .tvFallbackCanvas{flex:1;min-height:500px;position:relative}
 .tvFallbackLoading{height:100%;display:flex;align-items:center;justify-content:center;color:#8094aa}
 .researchDataNotice{padding:10px 12px;margin-bottom:12px;border:1px solid #305171;background:#102238;border-radius:8px;color:#a9c9ed;font-size:10px;line-height:1.5}
+
+
+/* v6.3 definitive application shell */
+html,body{width:100%;min-height:100%;overflow-x:hidden}
+body{--active-sidebar-w:var(--sidebar-w);--active-terminal-w:var(--terminal-w)}
+body.sidebarClosed{--active-sidebar-w:var(--sidebar-collapsed)}
+body.terminalCollapsed{--active-terminal-w:var(--terminal-collapsed)}
+body.terminalHidden{--active-terminal-w:0px}
+
+.app{
+ position:relative!important;
+ display:block!important;
+ width:calc(100vw - var(--active-sidebar-w) - var(--active-terminal-w))!important;
+ max-width:none!important;
+ min-width:0!important;
+ margin:0 0 0 var(--active-sidebar-w)!important;
+ padding:22px 22px 28px!important;
+ overflow-x:hidden!important;
+ transition:width .24s ease,margin-left .24s ease!important;
+}
+.app>*,.page,.view,.content,.panel,.card,header,main,section{
+ min-width:0;
+}
+.sidebar{
+ width:var(--active-sidebar-w)!important;
+}
+.orderTerminal{
+ width:var(--active-terminal-w)!important;
+}
+body.terminalHidden .orderTerminal{display:none!important}
+
+/* Tables and wide controls must scroll inside the centre area, never below side panels. */
+.tableWrap,.statementTableWrap,.marketTableWrap,.positionsWrap{
+ max-width:100%;
+ overflow-x:auto;
+}
+table{max-width:100%}
+header,.hero,.toolbar,.grid,.stats,.kpiGrid{
+ max-width:100%;
+}
+
+/* Full research terminal always covers the whole viewport. */
+.researchModal{
+ position:fixed!important;
+ inset:0!important;
+ width:100vw!important;
+ height:100vh!important;
+ z-index:2147483646!important;
+ margin:0!important;
+ padding:0!important;
+}
+.researchShell{
+ position:absolute!important;
+ inset:0!important;
+ width:100%!important;
+ height:100%!important;
+ max-width:none!important;
+ margin:0!important;
+ border-radius:0!important;
+}
+body.researchOpen .sidebar,
+body.researchOpen .orderTerminal,
+body.researchOpen .fixedTicker{
+ visibility:hidden!important;
+ pointer-events:none!important;
+}
+body.researchOpen{overflow:hidden!important}
+
+@media(max-width:900px){
+ body{--active-sidebar-w:0px;--active-terminal-w:0px}
+ .app{width:100vw!important;margin-left:0!important;padding:16px 12px 24px!important}
+ .sidebar{transform:translateX(-100%)}
+ .sidebar:not(.closed){transform:translateX(0);width:min(82vw,280px)!important}
+}
 
 </style>
 </head>
@@ -2042,6 +2116,7 @@ window.openResearchModal=(asset)=>{
  };
  $("researchModal").classList.add("open");
  $("researchModal").setAttribute("aria-hidden","false");
+ document.body.classList.add("researchOpen");
  document.body.style.overflow="hidden";
  $("researchScroll").scrollTop=0;
  loadOpenBBResearch(normalized);
@@ -2049,6 +2124,7 @@ window.openResearchModal=(asset)=>{
 $("researchClose").addEventListener("click",()=>{
  $("researchModal").classList.remove("open");
  $("researchModal").setAttribute("aria-hidden","true");
+ document.body.classList.remove("researchOpen");
  document.body.style.overflow="";
 });
 $("researchRefresh").addEventListener("click",()=>currentResearchAsset&&loadOpenBBResearch(currentResearchAsset,true));
