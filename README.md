@@ -213,3 +213,31 @@ Node servisindeki `OPENBB_BASE_URL` değişkenine elle girilmelidir.
 - TradingView'in dış widget lisansı BIST grafiklerini engellediği için BIST'te TradingView Lightweight Charts motoru ve gecikmeli Yahoo/OpenBB OHLCV verisi kullanılır.
 - ABD ve widget kullanımına açık diğer sembollerde resmî TradingView Advanced Chart korunur.
 - Yeni `/api/chart/history` endpoint'i mum ve hacim verisi sağlar.
+
+
+## Sürüm 6.3 — Kesin Yerleşim ve Dosya Doğrulaması
+
+- Orta uygulama alanı artık ekran genişliğinden sol menü ve sağ emir terminali genişlikleri çıkarılarak hesaplanır.
+- `.app` için eski `max-width` ve otomatik margin davranışları kaldırılmıştır.
+- Sol menü veya emir terminali daraltıldığında orta alan otomatik genişler.
+- Araştırma terminali açıldığında sabit menü, terminal ve ticker katmanları gizlenir.
+- Araştırma terminali tam viewport üzerinde en yüksek z-index ile açılır.
+- OpenBB endpointleri hem `/api/v1/...` hem de sürüme göre doğrudan `/equity/...` biçiminde denenir.
+- `/api/openbb/status` tanılama endpointi eklendi.
+- ZIP oluşturulurken `server.js` ve `public/index.html` başlangıç içerikleri otomatik doğrulanmıştır.
+
+### Doğru dosya eşleşmesi
+
+```text
+server.js
+  İlk satır: import express from "express";
+
+public/index.html
+  İlk satır: <!doctype html>
+
+openbb-service/requirements.txt
+  OpenBB Python paketleri
+
+README.md
+  Repository kökündeki ana README
+```

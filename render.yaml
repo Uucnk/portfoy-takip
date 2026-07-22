@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: portfolio-tracker
+    name: portfoy-takip
     runtime: node
     plan: free
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: "22"
@@ -14,7 +14,7 @@ services:
         value: fmp
 
   - type: web
-    name: portfolio-openbb
+    name: portfolio-openbb2
     runtime: python
     plan: free
     rootDir: openbb-service
