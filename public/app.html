@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pozisyon ve Model Portföy Takip · v6.4</title>
+<title>Pozisyon ve Model Portföy Takip · v6.5</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -697,8 +697,55 @@ body.researchOpen{overflow:hidden!important}
  .sidebar:not(.closed){transform:translateX(0);width:min(82vw,280px)!important}
 }
 
+
+/* v6.5 centre viewport: never passes below fixed side panels */
+body{overflow:hidden!important}
+.app{
+ position:fixed!important;
+ top:44px!important;
+ bottom:42px!important;
+ left:var(--active-sidebar-w)!important;
+ right:var(--active-terminal-w)!important;
+ width:auto!important;
+ height:auto!important;
+ margin:0!important;
+ max-width:none!important;
+ padding:22px!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ z-index:100!important;
+ background:var(--bg)!important;
+ transition:left .24s ease,right .24s ease!important;
+}
+body.terminalHidden .app{right:0!important}
+.app .tab,.app .panel,.app .card,.app .tableWrap,.app .toolbar{
+ max-width:100%!important;
+ min-width:0!important;
+}
+.app .tableWrap{
+ overflow-x:auto!important;
+}
+.app table{
+ width:100%!important;
+ min-width:900px;
+}
+#markets{
+ width:100%!important;
+ min-width:0!important;
+}
+#marketContent,.marketGrid,.marketToolbar,.marketCategoryIntro{
+ width:100%!important;
+ min-width:0!important;
+}
+.marketGrid{
+ grid-template-columns:repeat(auto-fit,minmax(245px,1fr))!important;
+}
+@media(max-width:900px){
+ .app{left:0!important;right:0!important;top:44px!important;bottom:42px!important}
+}
+
 </style>
-<meta name="portfolio-build" content="v6.4-explicit-app-entry">
+<meta name="portfolio-build" content="v6.5-layout-markets-data">
 </head>
 <body>
 
@@ -2087,11 +2134,35 @@ async function loadOpenBBResearch(asset,force=false){
  mountTradingViewResearch(asset);
  try{
   const query=new URLSearchParams({symbol:asset.openbbSymbol||asset.yahooSymbol||asset.symbol,provider:asset.provider||"",force:force?"1":"0"});
-  const response=await fetch("/api/openbb/research?"+query.toString());
-  const data=await response.json();
-  if(!response.ok)throw new Error(data.error||"OpenBB verileri alınamadı");
+  const [openbbResponse,yahooResponse]=await Promise.all([
+   fetch("/api/openbb/research?"+query.toString()),
+   fetch("/api/details?symbol="+encodeURIComponent(asset.yahooSymbol||asset.openbbSymbol||asset.symbol)).catch(()=>null)
+  ]);
+  const data=await openbbResponse.json();
+  if(!openbbResponse.ok)throw new Error(data.error||"OpenBB verileri alınamadı");
+  if(yahooResponse&&yahooResponse.ok){
+   const yahoo=await yahooResponse.json();
+   data.yahoo_details=yahoo;
+   data.info=(data.info&&recordList(data.info).length)?data.info:{results:[{
+    symbol:yahoo.symbol,name:yahoo.name,company_name:yahoo.name,exchange:yahoo.exchange,
+    sector:yahoo.sector,industry:yahoo.industry,currency:yahoo.currency
+   }]};
+   data.quote=(data.quote&&recordList(data.quote).length)?data.quote:{results:[{
+    symbol:yahoo.symbol,price:yahoo.price,last_price:yahoo.price,currency:yahoo.currency,
+    year_high:yahoo.fiftyTwoWeekHigh,year_low:yahoo.fiftyTwoWeekLow,
+    market_cap:yahoo.marketCap
+   }]};
+   data.metrics=(data.metrics&&recordList(data.metrics).length)?data.metrics:{results:[{
+    market_cap:yahoo.marketCap,pe_ratio:yahoo.trailingPE,price_to_book:yahoo.priceToBook,
+    enterprise_value_over_ebitda:yahoo.enterpriseToEbitda,dividend_yield:yahoo.dividendYield,
+    return_on_equity:yahoo.returnOnEquity,return_on_assets:yahoo.returnOnAssets,
+    net_profit_margin:yahoo.netMargin,debt_to_equity:yahoo.debtToEquityComputed,
+    current_ratio:yahoo.currentRatio,beta:yahoo.beta,earnings_per_share:yahoo.trailingEps,
+    book_value_per_share:yahoo.bookValue,net_debt:yahoo.netCash==null?null:-yahoo.netCash
+   }]};
+  }
   $("researchStatus").style.display="block";
-  $("researchStatus").innerHTML=`<div class="researchDataNotice">${esc(data.source_note||"Veriler OpenBB üzerinden getirildi.")}</div>`;
+  $("researchStatus").innerHTML=`<div class="researchDataNotice">${esc(data.source_note||"OpenBB ve Yahoo Finance üzerinden erişilebilen veriler getirildi.")}</div>`;
   if(!data.configured)$("researchStatus").innerHTML='<div class="openbbConfigWarning">OpenBB servisi henüz yapılandırılmadı. TradingView grafiği çalışır; temel veriler için Render üzerinde OPENBB_BASE_URL tanımlanmalıdır.</div>';
   renderResearchOverview(data,asset);
   renderResearchFundamentals(data);
@@ -2141,7 +2212,7 @@ $("researchScroll").addEventListener("scroll",()=>{
 
 window.openFundDetails=async code=>{$("securityDrawer").classList.add("open");$("securityDrawer").setAttribute("aria-hidden","false");$("securityDrawerTitle").textContent=code;$("securityDrawerSubtitle").textContent="TEFAS Yatırım Fonu";$("securityDrawerContent").innerHTML='<div class="marketLoading">Fon bilgileri yükleniyor…</div>';try{const r=await fetch("/api/funds/"+encodeURIComponent(code));const d=await r.json();if(!r.ok)throw new Error(d.error||"Fon detayı alınamadı");$("securityDrawerTitle").textContent=`${d.code} · ${d.name||""}`;$("securityDrawerSubtitle").textContent=[d.category,d.manager,d.kind].filter(Boolean).join(" · ");const tone=v=>Number(v)>=0?"positive":"negative";$("securityDrawerContent").innerHTML=[detailSection("FON ÖZETİ"),metric("Son Fiyat",fundNumber(d.price,6)+" TL"),metric("Günlük Getiri",fundNumber(d.dailyReturn,2)+"%",false,"Son açıklanan NAV",tone(d.dailyReturn)),metric("1 Aylık Getiri",fundNumber(d.return1m,2)+"%",false,"",tone(d.return1m)),metric("3 Aylık Getiri",fundNumber(d.return3m,2)+"%",false,"",tone(d.return3m)),metric("6 Aylık Getiri",fundNumber(d.return6m,2)+"%",false,"",tone(d.return6m)),metric("1 Yıllık Getiri",fundNumber(d.return1y,2)+"%",false,"",tone(d.return1y)),metric("Fon Toplam Değeri",compactMoney(d.portfolioSize,"TRY")),metric("Yatırımcı Sayısı",fundNumber(d.investorCount,0)),metric("Tedavüldeki Pay",fundNumber(d.sharesOutstanding,0)),metric("Risk Değeri",fundNumber(d.riskValue,0)),metric("Yönetim Ücreti",fundNumber(d.managementFee,2)+"%"),detailSection("RİSK VE PERFORMANS"),metric("Yıllık Volatilite",fundNumber(d.volatility,2)+"%"),metric("Sharpe",fundNumber(d.sharpe,2)),metric("Maksimum Düşüş",fundNumber(d.maxDrawdown,2)+"%"),detailSection("SINIFLANDIRMA"),metric("Şemsiye Fon Türü",esc(d.category||"-")),metric("Fon Türü",esc(d.kind||"-")),metric("Kurucu/Yönetici",esc(d.manager||"-"),true),metric("Veri Kaynağı",esc(d.source||"TEFAS"),true)].join("")}catch(e){$("securityDrawerContent").innerHTML=`<div class="marketEmpty">${esc(e.message||"Fon bilgileri alınamadı")}</div>`}}
 
-async function loadMarkets(category=activeMarketCategory){
+window.loadMarkets=async function loadMarkets(category=activeMarketCategory){
  activeMarketCategory=category;
  if(category==="funds"){await loadFunds();return;}
  $("marketContent").className="marketLoading";$("marketContent").textContent="Piyasa verileri yükleniyor…";
@@ -2231,5 +2302,57 @@ $("mAssetClass").addEventListener("change",syncOptionVisibility);
 syncOptionVisibility();
 $("openDate").value=today;$("closeGeneralDate").value=today;$("mOpenDate").value=today;$("mCloseDate").value=today;$("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.startDate||today;$("riskFree").value=settings.riskFree||0;renderGeneral();renderModel();setTimeout(()=>{refreshQuotes("general");refreshQuotes("model");loadMarkets("all");refreshAllTickers()},800);
 </script>
+
+<script>
+(function(){
+ function byId(id){return document.getElementById(id)}
+ function activateMarkets(category){
+  try{
+   document.querySelectorAll(".tab").forEach(function(section){
+    var on=section.id==="markets";
+    section.classList.toggle("active",on);
+    section.style.display=on?"block":"none";
+   });
+   document.querySelectorAll("[data-side-tab]").forEach(function(button){
+    button.classList.toggle("active",button.dataset.sideTab==="markets");
+   });
+   var terminal=byId("orderTerminal");
+   if(terminal)terminal.style.display="none";
+   document.body.classList.add("terminalHidden");
+   document.querySelectorAll("[data-market-target]").forEach(function(button){
+    button.classList.toggle("active",button.dataset.marketTarget===category);
+   });
+   document.querySelectorAll("[data-market]").forEach(function(button){
+    button.classList.toggle("active",button.dataset.market===category);
+   });
+   if(typeof window.loadMarkets==="function")window.loadMarkets(category);
+   else if(typeof loadMarkets==="function")loadMarkets(category);
+   var content=byId("marketContent");
+   if(content&&(!content.innerHTML||content.textContent.trim()==="")){
+    content.innerHTML='<div class="marketLoading">Piyasa bölümü hazırlanıyor…</div>';
+   }
+  }catch(error){
+   var content=byId("marketContent");
+   if(content)content.innerHTML='<div class="marketEmpty">Markets bölümü açılırken hata oluştu: '+String(error.message||error)+'</div>';
+   console.error("Market navigation error",error);
+  }
+ }
+ document.addEventListener("click",function(event){
+  var sub=event.target.closest("[data-market-target]");
+  if(sub){
+   event.preventDefault();event.stopPropagation();
+   activateMarkets(sub.dataset.marketTarget||"all");
+   return;
+  }
+  var tab=event.target.closest("[data-market]");
+  if(tab){
+   event.preventDefault();
+   activateMarkets(tab.dataset.market||"all");
+  }
+ },true);
+ window.activateMarkets=activateMarkets;
+})();
+</script>
+
 </body>
 </html>
