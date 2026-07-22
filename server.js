@@ -651,8 +651,12 @@ async function fetchOpenBBRoute(route,params={}){
 async function fetchOpenBBAny(routes,paramVariants){
  let lastError=null;
  const variants=Array.isArray(paramVariants)?paramVariants:[paramVariants];
+ const expandedRoutes=[...new Set(routes.flatMap(route=>{
+  const clean=route.replace(/^\/api\/v1/,"");
+  return [route,clean,`/api/v1${clean}`];
+ }))];
  for(const params of variants){
-  for(const route of routes){
+  for(const route of expandedRoutes){
    try{
     const value=await fetchOpenBBRoute(route,params);
     if(hasOpenBBData(value))return value;
@@ -772,6 +776,34 @@ app.get("/api/openbb/research",async(req,res)=>{
  openbbResearchCache.set(cacheKey,{at:Date.now(),data});
  res.set("Cache-Control","public, max-age=300, s-maxage=300");
  res.json(data);
+});
+
+
+app.get("/api/openbb/status",async(req,res)=>{
+ const result={
+  configured:Boolean(OPENBB_BASE_URL),
+  base_url:OPENBB_BASE_URL||null,
+  provider:process.env.OPENBB_PROVIDER||"fmp",
+  time:new Date().toISOString()
+ };
+ if(!OPENBB_BASE_URL)return res.json(result);
+ try{
+  const response=await fetch(`${OPENBB_BASE_URL}/openapi.json`,{
+   headers:{Accept:"application/json"},
+   signal:AbortSignal.timeout(20000)
+  });
+  result.openbb_http_status=response.status;
+  result.openbb_reachable=response.ok;
+  if(response.ok){
+   const schema=await response.json();
+   result.route_count=Object.keys(schema.paths||{}).length;
+   result.sample_routes=Object.keys(schema.paths||{}).filter(x=>x.includes("equity")).slice(0,12);
+  }
+ }catch(error){
+  result.openbb_reachable=false;
+  result.error=error.message;
+ }
+ res.json(result);
 });
 
 app.get("/api/health", (_req, res) => {
