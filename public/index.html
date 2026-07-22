@@ -247,426 +247,35 @@ body{padding-top:44px;padding-bottom:42px}
 .fundLoading{padding:35px;text-align:center;color:var(--muted)}
 
 
-/* v5 collapsible left navigation */
-:root{--sidebar-w:238px;--sidebar-collapsed:62px}
-.sidebar{
- position:fixed;left:0;top:44px;bottom:42px;width:var(--sidebar-w);z-index:1180;
- background:#09111b;border-right:1px solid #223040;box-shadow:10px 0 28px rgba(0,0,0,.18);
- transition:width .24s ease;overflow:hidden
-}
+.legacyTopTabs{display:none!important}
+:root{--sidebar-w:238px;--sidebar-collapsed:62px;--terminal-w:390px;--terminal-collapsed:52px}
+.sidebar{position:fixed;left:0;top:44px;bottom:42px;width:var(--sidebar-w);z-index:1180;background:#09111b;border-right:1px solid #223040;transition:width .24s ease;overflow:hidden}
 .sidebar.closed{width:var(--sidebar-collapsed)}
 .sidebarTop{height:60px;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid #1f2b39}
-.sidebarToggle{
- width:34px;height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;
- gap:5px;background:#111c28;border:1px solid #2a394a;border-radius:8px;padding:0;flex:0 0 34px
-}
+.sidebarToggle{width:34px;height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:#111c28;border:1px solid #2a394a;border-radius:8px;padding:0}
 .sidebarToggle span{display:block;width:16px;height:2px;background:#dbe7f5;border-radius:3px}
 .sidebarBrand{font-size:11px;font-weight:900;letter-spacing:.1em;color:#dce7f4;white-space:nowrap}
 .sidebar.closed .sidebarBrand,.sidebar.closed .sideLabel,.sidebar.closed .sideChevron,.sidebar.closed .sideSubmenu{display:none}
-.sidebarNav{padding:12px 8px}
-.sideMain,.sideSub{
- width:100%;border:0;background:transparent;color:#9fb1c5;display:flex;align-items:center;
- text-align:left;border-radius:8px;cursor:pointer
-}
-.sideMain{height:42px;padding:0 11px;gap:11px;font-size:12px;font-weight:700}
-.sideMain:hover,.sideSub:hover{background:#121e2b;color:#f4f7fb}
-.sideMain.active{background:#2869dc;color:#fff}
-.sideIcon{width:20px;text-align:center;font-size:15px;flex:0 0 20px}
-.sideChevron{margin-left:auto;transition:transform .2s ease}
-.sideExpandable.expanded .sideChevron{transform:rotate(180deg)}
-.sideSubmenu{padding:4px 0 8px 31px;display:none}
-.sideSubmenu.open{display:block}
-.sideSub{height:31px;padding:0 10px;font-size:11px;margin:2px 0}
-.sideSub.active{background:#162840;color:#74a9ff;font-weight:800}
-.app{margin-left:var(--sidebar-w);transition:margin-left .24s ease}
-body.sidebarClosed .app{margin-left:var(--sidebar-collapsed)}
-.securityDrawer{left:var(--sidebar-w);transition:left .24s ease,transform .32s ease}
-body.sidebarClosed .securityDrawer{left:var(--sidebar-collapsed)}
-@media(max-width:900px){
- .sidebar{width:var(--sidebar-w);transform:translateX(0);transition:transform .24s ease}
- .sidebar.closed{width:var(--sidebar-w);transform:translateX(-100%)}
- .sidebar.closed .sidebarBrand,.sidebar.closed .sideLabel,.sidebar.closed .sideChevron{display:block}
- .sidebar.closed .sideSubmenu.open{display:block}
- .app{margin-left:0!important}
- .securityDrawer{left:0!important}
-}
+.sidebarNav{padding:12px 8px}.sideMain,.sideSub{width:100%;border:0;background:transparent;color:#9fb1c5;display:flex;align-items:center;text-align:left;border-radius:8px;cursor:pointer}
+.sideMain{height:42px;padding:0 11px;gap:11px;font-size:12px;font-weight:700}.sideMain:hover,.sideSub:hover{background:#121e2b;color:#f4f7fb}.sideMain.active{background:#2869dc;color:#fff}
+.sideIcon{width:20px;text-align:center;font-size:15px}.sideChevron{margin-left:auto;transition:transform .2s ease}.sideExpandable.expanded .sideChevron{transform:rotate(180deg)}
+.sideSubmenu{padding:4px 0 8px 31px;display:none}.sideSubmenu.open{display:block}.sideSub{height:31px;padding:0 10px;font-size:11px;margin:2px 0}.sideSub.active{background:#162840;color:#74a9ff;font-weight:800}
 
-.sidebarManagedTabs{display:none!important}
-
-:root{--terminal-w:360px;--terminal-collapsed:52px}
-.orderTerminal{position:fixed;right:0;top:44px;bottom:42px;width:var(--terminal-w);z-index:1170;background:#09111b;border-left:1px solid #223040;box-shadow:-10px 0 28px rgba(0,0,0,.2);transition:width .24s ease;overflow:auto;padding:12px}
-.orderTerminal.collapsed{width:var(--terminal-collapsed);padding:8px 6px;overflow:hidden}
-.orderTerminalHead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
-.orderTerminalEyebrow{font-size:9px;letter-spacing:.13em;color:#8295ab;font-weight:900}
-.orderTerminalHead h3{margin:3px 0 0;font-size:15px}
-.orderTerminal.collapsed .orderTerminalHead>div,.orderTerminal.collapsed .orderTerminalTabs,.orderTerminal.collapsed .orderTerminalPane{display:none}
-.orderTerminal.collapsed #orderTerminalCollapse{writing-mode:vertical-rl;transform:rotate(180deg);height:100px;margin:auto;padding:8px}
-.orderTerminalTabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
-.orderTerminalTab{background:#141f2b;border:1px solid #2a394a;color:#9fb1c5;border-radius:8px;padding:8px 7px;font-size:11px}
-.orderTerminalTab.active{background:#2869dc;color:#fff;border-color:#2869dc}
-.orderTerminalPane{display:none}.orderTerminalPane.active{display:block}
-.orderTerminal form{margin:0}.orderTerminal .grid{grid-template-columns:1fr 1fr;gap:8px}.orderTerminal .grid .span2{grid-column:1/-1}
-.orderTerminal label{font-size:9px;margin-bottom:4px}.orderTerminal input,.orderTerminal select,.orderTerminal textarea{width:100%;font-size:11px;padding:7px 8px;min-height:34px}
-.orderTerminal textarea{min-height:64px}.orderTerminal form button[type="submit"]{width:100%;margin-top:8px}
-.app{margin-right:var(--terminal-w);transition:margin-right .24s ease}
-body.terminalCollapsed .app{margin-right:var(--terminal-collapsed)}
-body.terminalHidden .app{margin-right:0}
-.securityDrawer{right:var(--terminal-w);transition:right .24s ease,left .24s ease,transform .32s ease}
-body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
-body.terminalHidden .securityDrawer{right:0}
-@media(max-width:1200px){.orderTerminal{width:300px}.app{margin-right:300px}}
-@media(max-width:900px){.orderTerminal{display:none!important}.app{margin-right:0!important}.securityDrawer{right:0!important}}
-
-
-/* v5.2 terminal symmetry and symbol autocomplete */
-.orderTerminal{
- width:360px;
- padding:14px;
-}
-.orderTerminal .grid{
- grid-template-columns:1fr 1fr;
- gap:10px;
- align-items:start;
-}
-.orderTerminal .grid>div{
- min-width:0;
- width:100%;
-}
-.orderTerminal .grid .span2{
- grid-column:1/-1;
- width:100%;
-}
-.orderTerminal label{
- display:block;
- min-height:14px;
- font-size:9px;
- line-height:1.2;
- margin-bottom:5px;
-}
-.orderTerminal input,
-.orderTerminal select,
-.orderTerminal textarea{
- width:100%;
- min-width:0;
- box-sizing:border-box;
- height:38px;
- font-size:11px;
- padding:8px 9px;
- border-radius:7px;
-}
-.orderTerminal textarea{
- height:82px;
- resize:vertical;
-}
-.orderTerminal form button[type="submit"]{
- height:40px;
- margin-top:10px;
- font-size:12px;
- font-weight:800;
-}
-.orderTerminalHead{
- align-items:center;
-}
-#orderTerminalCollapse{
- width:34px;
- height:34px;
- padding:0;
- display:flex;
- align-items:center;
- justify-content:center;
- font-size:0;
- border-radius:8px;
-}
-
-.orderTerminal.collapsed #orderTerminalCollapse{
- writing-mode:horizontal-tb;
- transform:none;
- height:34px;
- margin:auto;
-}
-.orderTerminal.collapsed 
-.symbolFieldWrap{
- position:relative;
-}
-.symbolSuggestions{
- position:absolute;
- left:0;
- right:0;
- top:100%;
- z-index:1400;
- background:#0d1722;
- border:1px solid #2a394a;
- border-top:0;
- border-radius:0 0 8px 8px;
- box-shadow:0 12px 25px rgba(0,0,0,.35);
- max-height:260px;
- overflow-y:auto;
- display:none;
-}
-.symbolSuggestions.open{
- display:block;
-}
-.symbolSuggestion{
- width:100%;
- display:grid;
- grid-template-columns:72px 1fr auto;
- gap:8px;
- align-items:center;
- padding:8px 9px;
- background:transparent;
- border:0;
- border-bottom:1px solid #1d2936;
- color:#dce8f6;
- text-align:left;
- cursor:pointer;
-}
-.symbolSuggestion:last-child{
- border-bottom:0;
-}
-.symbolSuggestion:hover,
-.symbolSuggestion.active{
- background:#17304f;
-}
-.symbolSuggestionCode{
- font-weight:900;
- color:#f5f8fc;
-}
-.symbolSuggestionName{
- color:#9db0c6;
- font-size:10px;
- overflow:hidden;
- text-overflow:ellipsis;
- white-space:nowrap;
-}
-.symbolSuggestionType{
- color:#6f88a5;
- font-size:9px;
-}
-.symbolNoResult{
- padding:10px;
- color:#8195aa;
- font-size:10px;
-}
-@media(max-width:1200px){
- .orderTerminal{width:340px}
- .app{margin-right:340px}
-}
-
-
-/* v5.3 refined order terminal */
-:root{--terminal-w:390px;--terminal-collapsed:52px}
-.orderTerminal{
- width:var(--terminal-w);
- padding:14px 15px 20px;
- overflow-y:auto;
- overflow-x:hidden;
-}
-.orderTerminal .grid{
- display:grid;
- grid-template-columns:minmax(0,1fr) minmax(0,1fr);
- gap:12px;
- align-items:start;
-}
-.orderTerminal .grid>div{
- width:100%;
- min-width:0;
- padding:9px;
- background:#0f1924;
- border:1px solid #2b3949;
- border-radius:9px;
- box-sizing:border-box;
-}
-.orderTerminal .grid>div:focus-within{
- border-color:#4f8cf7;
- box-shadow:0 0 0 1px rgba(79,140,247,.22);
-}
-.orderTerminal .grid .span2,
-.orderTerminal .grid .terminalFullRow{
- grid-column:1/-1;
- width:100%;
-}
-.orderTerminal label{
- display:block;
- margin:0 0 6px;
- color:#b9c8d8;
- font-size:10px;
- font-weight:700;
- line-height:1.25;
-}
-.orderTerminal input,
-.orderTerminal select,
-.orderTerminal textarea{
- display:block;
- width:100%;
- min-width:0;
- box-sizing:border-box;
- border:1px solid #34475b;
- background:#08111a;
- color:#f1f6fb;
- border-radius:7px;
- font-size:12px;
- padding:9px 10px;
- outline:none;
-}
-.orderTerminal input,.orderTerminal select{height:39px}
-.orderTerminal textarea{height:94px;min-height:94px;resize:vertical;line-height:1.4}
-.orderTerminal input:focus,.orderTerminal select:focus,.orderTerminal textarea:focus{border-color:#69a0ff}
-.orderTerminal form button[type="submit"]{
- width:100%;
- height:42px;
- margin-top:12px;
- border-radius:8px;
- font-size:12px;
- font-weight:900;
-}
-.orderTerminalHead{
- position:sticky;
- top:-14px;
- z-index:6;
- margin:-14px -15px 12px;
- padding:14px 15px 10px;
- background:#09111b;
- border-bottom:1px solid #223040;
-}
-#orderTerminalCollapse{
- width:34px;height:34px;flex:0 0 34px;
- display:flex;align-items:center;justify-content:center;
- padding:0;font-size:15px;
-}
-#orderTerminalCollapse span{display:block;transition:transform .22s ease}
-.orderTerminal.collapsed{
- width:var(--terminal-collapsed);
- padding:8px 6px;
- overflow:hidden;
-}
-.orderTerminal.collapsed #orderTerminalCollapse{
- width:36px;height:36px;margin:0 auto;
- writing-mode:horizontal-tb;transform:none;
-}
-.orderTerminal.collapsed #orderTerminalCollapse span{transform:rotate(180deg)}
-.orderTerminal.collapsed .orderTerminalHead{
- position:static;margin:0;padding:0;border:0;background:transparent;
-}
-.orderTerminal.collapsed .orderTerminalHead>div,
-.orderTerminal.collapsed .orderTerminalTabs,
-.orderTerminal.collapsed .orderTerminalPane{display:none}
-.app{margin-right:var(--terminal-w)}
-body.terminalCollapsed .app{margin-right:var(--terminal-collapsed)}
-.securityDrawer{right:var(--terminal-w)}
-body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
+.orderTerminal{position:fixed;right:0;top:44px;bottom:42px;width:var(--terminal-w);z-index:1170;background:#09111b;border-left:1px solid #223040;transition:width .24s ease;overflow-y:auto;overflow-x:hidden;padding:14px 15px 20px}
+.orderTerminalHead{position:sticky;top:-14px;z-index:8;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:-14px -15px 12px;padding:14px 15px 10px;background:#09111b;border-bottom:1px solid #223040}
+.orderTerminalEyebrow{font-size:9px;letter-spacing:.13em;color:#8295ab;font-weight:900}.orderTerminalHead h3{margin:3px 0 0;font-size:15px}
+#orderTerminalCollapse{width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0}.orderTerminalTabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.orderTerminalTab{background:#141f2b;border:1px solid #2a394a;color:#9fb1c5;border-radius:8px;padding:8px 7px;font-size:11px}.orderTerminalTab.active{background:#2869dc;color:#fff}
+.orderTerminalPane{display:none}.orderTerminalPane.active{display:block}.orderTerminal form{margin:0}.orderTerminal form>.grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:12px!important}
+.orderTerminal form>.grid>div{position:relative;width:100%;min-width:0;box-sizing:border-box;padding:10px;background:#0f1924;border:1px solid #2b3949;border-radius:9px}
+.orderTerminal form>.grid>div:focus-within{border-color:#4f8cf7}.orderTerminal form>.grid>.span2,.orderTerminal form>.grid>.span4{grid-column:1/-1}
+.orderTerminal label{display:block;margin:0 0 6px;color:#b9c8d8;font-size:10px;font-weight:700}.orderTerminal input,.orderTerminal select,.orderTerminal textarea{display:block;width:100%;box-sizing:border-box;border:1px solid #34475b;background:#08111a;color:#f1f6fb;border-radius:7px;font-size:12px;padding:9px 10px}
+.orderTerminal input,.orderTerminal select{height:40px}.orderTerminal textarea{height:102px;min-height:102px;resize:vertical}.orderTerminal form button[type="submit"]{width:100%;height:42px;margin-top:0}
+.orderTerminal.collapsed{width:var(--terminal-collapsed);padding:8px 6px;overflow:hidden}.orderTerminal.collapsed .orderTerminalHead{position:static;margin:0;padding:0;border:0}.orderTerminal.collapsed .orderTerminalHead>div,.orderTerminal.collapsed .orderTerminalTabs,.orderTerminal.collapsed .orderTerminalPane{display:none}.orderTerminal.collapsed #orderTerminalCollapse span{transform:rotate(180deg)}
+.app{margin-left:var(--sidebar-w);margin-right:var(--terminal-w);transition:margin .24s ease}body.sidebarClosed .app{margin-left:var(--sidebar-collapsed)}body.terminalCollapsed .app{margin-right:var(--terminal-collapsed)}body.terminalHidden .app{margin-right:0}
+.securityDrawer{left:var(--sidebar-w);right:var(--terminal-w)}body.sidebarClosed .securityDrawer{left:var(--sidebar-collapsed)}body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}body.terminalHidden .securityDrawer{right:0}
 .fixedTicker.top,.fixedTicker.bottom{display:block!important}
-@media(max-width:1280px){
- :root{--terminal-w:360px}
-}
-
-
-/* v5.4 clean order terminal */
-.orderTerminal{
- width:390px!important;
- padding:14px 15px 20px!important;
- overflow-y:auto!important;
- overflow-x:hidden!important;
-}
-.orderTerminal .grid{
- display:grid!important;
- grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
- gap:12px!important;
- align-items:start!important;
-}
-.orderTerminal .grid>.orderField{
- position:relative!important;
- display:block!important;
- width:100%!important;
- min-width:0!important;
- box-sizing:border-box!important;
- padding:10px!important;
- margin:0!important;
- background:#0f1924!important;
- border:1px solid #2b3949!important;
- border-radius:9px!important;
- box-shadow:none!important;
- overflow:visible!important;
-}
-.orderTerminal .grid>.orderField:focus-within{
- border-color:#4f8cf7!important;
- box-shadow:0 0 0 1px rgba(79,140,247,.22)!important;
-}
-.orderTerminal .grid>.orderFieldFull{
- grid-column:1/-1!important;
-}
-.orderTerminal .grid>.orderSubmitRow{
- grid-column:1/-1!important;
- width:100%!important;
- padding:0!important;
- margin:0!important;
- background:transparent!important;
- border:0!important;
- box-shadow:none!important;
-}
-.orderTerminal .orderField label{
- display:block!important;
- margin:0 0 6px!important;
- min-height:auto!important;
- color:#b9c8d8!important;
- font-size:10px!important;
- font-weight:700!important;
- line-height:1.25!important;
-}
-.orderTerminal .orderField input,
-.orderTerminal .orderField select,
-.orderTerminal .orderField textarea{
- display:block!important;
- width:100%!important;
- min-width:0!important;
- box-sizing:border-box!important;
- border:1px solid #34475b!important;
- background:#08111a!important;
- color:#f1f6fb!important;
- border-radius:7px!important;
- font-size:12px!important;
- padding:9px 10px!important;
- outline:none!important;
-}
-.orderTerminal .orderField input,
-.orderTerminal .orderField select{
- height:40px!important;
-}
-.orderTerminal .orderField textarea{
- height:102px!important;
- min-height:102px!important;
- resize:vertical!important;
- line-height:1.4!important;
-}
-.orderTerminal .orderField>.symbolSuggestions{
- left:10px!important;
- right:10px!important;
- top:calc(100% - 10px)!important;
- width:auto!important;
- padding:0!important;
- margin:0!important;
- background:#0d1722!important;
- border:1px solid #2a394a!important;
- border-top:0!important;
- border-radius:0 0 8px 8px!important;
- box-shadow:0 12px 25px rgba(0,0,0,.35)!important;
-}
-.orderTerminal .orderField>.symbolSuggestions .symbolSuggestion{
- margin:0!important;
- border-radius:0!important;
- box-shadow:none!important;
-}
-.orderTerminal form button[type="submit"]{
- width:100%!important;
- height:42px!important;
- margin-top:0!important;
-}
-.orderTerminal .grid>div:not(.orderField):not(.orderSubmitRow){
- background:transparent!important;
- border:0!important;
- box-shadow:none!important;
- padding:0!important;
- margin:0!important;
-}
+@media(max-width:900px){.app{margin-left:0!important;margin-right:0!important}.orderTerminal{display:none!important}.sidebar.closed{transform:translateX(-100%)}.securityDrawer{left:0!important;right:0!important}}
 
 </style>
 </head>
@@ -674,25 +283,14 @@ body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
 
 <aside id="sidebar" class="sidebar open">
   <div class="sidebarTop">
-    <button id="sidebarToggle" class="sidebarToggle" type="button" aria-label="Menüyü aç veya kapat">
-      <span></span><span></span><span></span>
-    </button>
+    <button id="sidebarToggle" class="sidebarToggle" type="button" aria-label="Menüyü aç veya kapat"><span></span><span></span><span></span></button>
     <div class="sidebarBrand">DASHBOARD</div>
   </div>
-
   <nav class="sidebarNav">
-    <button class="sideMain active" data-tab-target="general">
-      <span class="sideIcon">⌂</span><span class="sideLabel">Portfolio</span>
-    </button>
-
-    <button class="sideMain" data-tab-target="model">
-      <span class="sideIcon">◫</span><span class="sideLabel">Model Portföy</span>
-    </button>
-
+    <button class="sideMain active" data-side-tab="general"><span class="sideIcon">⌂</span><span class="sideLabel">Portfolio</span></button>
+    <button class="sideMain" data-side-tab="model"><span class="sideIcon">◫</span><span class="sideLabel">Model Portföy</span></button>
     <div class="sideGroup">
-      <button class="sideMain sideExpandable expanded" data-tab-target="markets" data-side-group="markets">
-        <span class="sideIcon">▦</span><span class="sideLabel">Markets</span><span class="sideChevron">⌄</span>
-      </button>
+      <button class="sideMain sideExpandable expanded" data-side-tab="markets" id="marketsSideButton"><span class="sideIcon">▦</span><span class="sideLabel">Markets</span><span class="sideChevron">⌄</span></button>
       <div id="marketsSubmenu" class="sideSubmenu open">
         <button class="sideSub active" data-market-target="all">All Assets</button>
         <button class="sideSub" data-market-target="favorites">Favoriler</button>
@@ -706,11 +304,21 @@ body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
         <button class="sideSub" data-market-target="fx">FX</button>
       </div>
     </div>
-
-    <button class="sideMain" data-tab-target="calendar">
-      <span class="sideIcon">▣</span><span class="sideLabel">Calendar</span>
-    </button>
+    <button class="sideMain" data-side-tab="calendar"><span class="sideIcon">▣</span><span class="sideLabel">Calendar</span></button>
   </nav>
+</aside>
+
+<aside id="orderTerminal" class="orderTerminal">
+  <div class="orderTerminalHead">
+    <div><div class="orderTerminalEyebrow">EMİR TERMİNALİ</div><h3 id="orderTerminalTitle">Portfolio Pozisyonu</h3></div>
+    <button id="orderTerminalCollapse" type="button" class="secondary" aria-label="Emir terminalini daralt veya aç"><span aria-hidden="true">❯</span></button>
+  </div>
+  <div class="orderTerminalTabs">
+    <button type="button" class="orderTerminalTab active" data-order-mode="general">Portfolio</button>
+    <button type="button" class="orderTerminalTab" data-order-mode="model">Model Portföy</button>
+  </div>
+  <div id="generalOrderTerminal" class="orderTerminalPane active"></div>
+  <div id="modelOrderTerminal" class="orderTerminalPane"></div>
 </aside>
 
 <div id="securityDrawer" class="securityDrawer" aria-hidden="true">
@@ -728,72 +336,6 @@ body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
 </div>
 
 <div id="topTicker" class="fixedTicker top"><div id="topTickerTrack" class="tickerTrack"><span class="tickerItem">BIST 100 verileri yükleniyor…</span></div></div>
-
-<aside id="orderTerminal" class="orderTerminal">
-  <div class="orderTerminalHead">
-    <div>
-      <div class="orderTerminalEyebrow">EMİR TERMİNALİ</div>
-      <h3 id="orderTerminalTitle">Portfolio Pozisyonu</h3>
-    </div>
-    <button id="orderTerminalCollapse" type="button" class="secondary" aria-label="Emir terminalini daralt veya aç"><span aria-hidden="true">❯</span></button>
-  </div>
-  <div class="orderTerminalTabs">
-    <button type="button" class="orderTerminalTab active" data-order-mode="general">Portfolio</button>
-    <button type="button" class="orderTerminalTab" data-order-mode="model">Model Portföy</button>
-  </div>
-  <div id="generalOrderTerminal" class="orderTerminalPane active"><form id="generalForm">
-      <div class="grid">
-        <div class="orderField"><label>Ürün Tipi</label><select id="assetClass"></select></div>
-        <div id="optionTypeWrap" class="orderField hidden">
-          <label>Opsiyon Türü</label>
-          <select id="optionType"><option>Call</option><option>Put</option></select>
-        </div>
-        
-        <div class="orderField symbolFieldWrap">
-      <label>Sembol *</label>
-      <input id="symbol" autocomplete="off" required>
-      <div id="symbolSuggestions" class="symbolSuggestions"></div>
-    </div><div class="orderField"><label>Yahoo Finance Sembolü</label><input id="yahooSymbol" placeholder="THYAO.IS, AAPL, GC=F"></div>
-        
-        <div class="orderField"><label>Yön</label><select id="direction"><option>Uzun (Long)</option><option>Kısa (Short)</option></select></div>
-        <div class="orderField"><label>Para Birimi</label><select id="currency"><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
-        <div class="orderField"><label>Açılış Fiyatı *</label><input id="entry" type="number" step="any" required></div>
-        <div class="orderField"><label>Miktar *</label><input id="qty" type="number" step="any" value="1" required></div>
-        <div class="orderField"><label>Stop</label><input id="stop" type="number" step="any"></div>
-        <div class="orderField"><label>Kâr Al</label><input id="target" type="number" step="any"></div>
-        <div class="orderField"><label>Açılış Tarihi *</label><input id="openDate" type="date" required></div>
-        
-        <div class="orderField orderFieldFull"><label>Pozisyon Tezi</label><textarea id="thesis"></textarea></div>
-        <div class="orderField orderFieldFull"><label>Risk Notu</label><textarea id="riskNote"></textarea></div>
-        <div class="orderSubmitRow"><button type="submit" style="width:100%">Emri Kaydet</button></div>
-      </div>
-    </form></div>
-  <div id="modelOrderTerminal" class="orderTerminalPane"><form id="modelForm">
-      <div class="grid">
-        <div class="orderField"><label>Ürün Tipi</label><select id="mAssetClass"></select></div>
-        <div id="mOptionTypeWrap" class="orderField hidden">
-          <label>Opsiyon Türü</label>
-          <select id="mOptionType"><option>Call</option><option>Put</option></select>
-        </div>
-        <div class="orderField symbolFieldWrap">
-      <label>Sembol *</label>
-      <input id="mSymbol" autocomplete="off" required>
-      <div id="mSymbolSuggestions" class="symbolSuggestions"></div>
-    </div><div class="orderField"><label>Yahoo Finance Sembolü</label><input id="mYahooSymbol" placeholder="THYAO.IS, AAPL, GC=F"></div>
-        <div class="orderField"><label>Yön</label><select id="mDirection"><option>Uzun (Long)</option><option>Kısa (Short)</option></select></div>
-        <div class="orderField"><label>Para Birimi</label><select id="mCurrency"><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
-        <div class="orderField"><label>Açılış Fiyatı *</label><input id="mEntry" type="number" step="any" required></div>
-        <div class="orderField"><label>Miktar *</label><input id="mQty" type="number" step="any" value="1" required></div>
-        <div class="orderField"><label>Açılış Tarihi *</label><input id="mOpenDate" type="date" required></div>
-        <div class="orderField"><label>Pozisyona Ayrılan Sermaye</label><input id="mAllocated" type="number" step="any"></div>
-        <div class="orderField"><label>Stop</label><input id="mStop" type="number" step="any"></div>
-        <div class="orderField"><label>Kâr Al</label><input id="mTarget" type="number" step="any"></div>
-        <div class="orderField orderFieldFull"><label>Risk Notu</label><textarea id="mNote"></textarea></div>
-        <div class="orderSubmitRow"><button type="submit" style="width:100%">Model Portföye Ekle</button></div>
-      </div>
-    </form></div>
-</aside>
-
 <div class="app">
 <header>
   <div><h1>📈 Pozisyon Öneri ve Portföy Takip</h1><div class="muted">Genel pozisyon takibi ve model portföy track record ekranı</div></div>
@@ -803,7 +345,12 @@ body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
   </div>
 </header>
 
-
+<div class="tabs legacyTopTabs">
+  <button class="tabBtn active" data-tab="general">Portfolio</button>
+  <button class="tabBtn" data-tab="model">Model Portföy</button>
+  <button class="tabBtn" data-tab="markets">Markets</button>
+  <button class="tabBtn" data-tab="calendar">Calendar</button>
+</div>
 
 
 
@@ -818,6 +365,7 @@ body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
 <section id="general" class="tab active">
   <div class="sectionHead" style="margin-bottom:14px">
     <div><h2 style="margin-bottom:4px">Portfolio</h2><div class="muted">Aktif ve kapalı öneriler</div></div>
+    <div class="addBox" id="toggleGeneralForm"><div class="plus">+</div><div><strong>Yeni Pozisyon</strong><div class="muted">Pozisyon ekle</div></div></div>
   </div>
 
   <div class="cards six">
@@ -899,6 +447,225 @@ body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
 
 
 
+<div id="generalFormPanel" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="generalModalTitle"><div class="modalBox">
+    <div class="modalHead"><h3 id="generalModalTitle">Yeni Pozisyon Ekle</h3><button type="button" class="secondary" id="closeGeneralForm">Kapat</button></div>
+    <form id="generalForm">
+      <div class="grid">
+        <div><label>Ürün Tipi</label><select id="assetClass"></select></div>
+        <div id="optionTypeWrap" class="hidden">
+          <label>Opsiyon Türü</label>
+          <select id="optionType"><option>Call</option><option>Put</option></select>
+        </div>
+        
+        <div><label>Sembol *</label><input id="symbol" required></div><div><label>Yahoo Finance Sembolü</label><input id="yahooSymbol" placeholder="THYAO.IS, AAPL, GC=F"></div>
+        
+        <div><label>Yön</label><select id="direction"><option>Uzun (Long)</option><option>Kısa (Short)</option></select></div>
+        <div><label>Para Birimi</label><select id="currency"><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
+        <div><label>Açılış Fiyatı *</label><input id="entry" type="number" step="any" required></div>
+        <div><label>Miktar *</label><input id="qty" type="number" step="any" value="1" required></div><input id="dailyChange" type="hidden" value="0">
+        <div><label>Stop</label><input id="stop" type="number" step="any"></div>
+        <div><label>Kâr Al</label><input id="target" type="number" step="any"></div>
+        <div><label>Açılış Tarihi *</label><input id="openDate" type="date" required></div>
+        <input id="expiry" type="hidden" value="">
+        <div class="span2"><label>Pozisyon Tezi</label><textarea id="thesis"></textarea></div>
+        <div class="span2"><label>Risk Notu</label><textarea id="riskNote"></textarea></div>
+        <div class="span4"><button type="submit" style="width:100%">Pozisyonu Kaydet</button></div>
+      </div>
+    </form>
+  </div></div>
+
+  <div class="panel">
+    <h3>Kapalı Pozisyonlar</h3>
+    <div id="closedTable"></div>
+  </div>
+
+
+  <div class="panel">
+    <div class="sectionHead">
+      <div><h3 style="margin-bottom:4px">Hareket</h3><div class="muted">Genel portföy işlem geçmişi</div></div>
+      <div class="activityTools"><span>⇧ Yükle</span><span>⇩ İndir</span></div>
+    </div>
+    <div class="activityTabs">
+      <button type="button" class="activityTab active" data-general-activity="trades">İşlemler</button>
+      <button type="button" class="activityTab" data-general-activity="cash">Nakit</button>
+      <button type="button" class="activityTab" data-general-activity="dividend">Temettüler</button>
+    </div>
+    <div id="generalActivity"></div>
+  </div>
+</section>
+
+<section id="model" class="tab">
+  <div class="sectionHead" style="margin-bottom:14px">
+    <div><h2 style="margin-bottom:4px">Model Portföy</h2><div class="muted">Track record ve performans analizi</div></div>
+    <div class="addBox" id="toggleModelForm"><div class="plus">+</div><div><strong>Pozisyon Ekle</strong><div class="muted">Model portföye işlem ekle</div></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="grid">
+      <div><label>Başlangıç Portföy Değeri</label><input id="startCapital" type="number" step="any"></div>
+      <div><label>Başlangıç Tarihi</label><input id="modelStartDate" type="date"></div>
+      <div><label>Yıllık Risksiz Faiz (%)</label><input id="riskFree" type="number" step="any" value="0"></div>
+      <div style="display:flex;align-items:end"><button id="saveModelSettings" style="width:100%">Ayarları Kaydet</button></div>
+    </div>
+  </div>
+
+  <div class="trackGrid">
+    <div class="panel">
+      <h3>Otomatik Hesaplanan Track Record</h3>
+      <div class="metricRow"><span>Güncel Portföy Değeri</span><strong id="mValue">-</strong></div>
+      <div class="metricRow"><span>Toplam Getiri</span><strong id="mTotal">-</strong></div>
+      <div class="metricRow"><span>CAGR</span><strong id="mCagr">-</strong></div>
+      <div class="metricRow"><span>Sharpe</span><strong id="mSharpe">-</strong></div>
+      <div class="metricRow"><span>Sortino</span><strong id="mSortino">-</strong></div>
+      <div class="metricRow"><span>Max Drawdown</span><strong id="mDD">-</strong></div>
+      <div class="metricRow"><span>Beta</span><strong id="mBeta">-</strong></div>
+      <div class="metricRow"><span>Süre</span><strong id="mDuration">-</strong></div>
+    </div>
+    <div class="panel">
+      <h3>Benchmark Kıyasları</h3>
+      <div class="metricRow"><span>CAGR <span class="infoTip" data-tip="Bileşik yıllık büyüme oranıdır. Portföyün başlangıçtan sona yıllıklandırılmış ortalama büyümesini gösterir.">i</span></span><strong>%12–%18</strong></div>
+      <div class="metricRow"><span>Sharpe <span class="infoTip" data-tip="Portföyün risksiz faiz üzerindeki getirisini toplam volatilitesine böler. Daha yüksek değer, alınan risk başına daha iyi getiri anlamına gelir.">i</span></span><strong>1.5+</strong></div>
+      <div class="metricRow"><span>Sortino <span class="infoTip" data-tip="Sharpe oranına benzer; ancak yalnızca negatif oynaklığı risk kabul eder. Aşağı yönlü risk başına getiriyi ölçer.">i</span></span><strong>2.0+</strong></div>
+      <div class="metricRow"><span>Max Drawdown <span class="infoTip" data-tip="Portföy değerinin bir zirveden sonraki en düşük seviyeye kadar yaşadığı en büyük yüzdesel kayıptır.">i</span></span><strong>&lt;%15</strong></div>
+      <div class="metricRow"><span>Beta <span class="infoTip" data-tip="Portföyün benchmark hareketlerine duyarlılığını ölçer. 1 benchmark ile aynı, 1’in altı daha düşük sistematik risk anlamına gelir.">i</span></span><strong>&lt;0.70</strong></div>
+      <div class="metricRow"><span>Süre <span class="infoTip" data-tip="Track recordun kapsadığı zamandır. Daha uzun dönem, performansın farklı piyasa koşullarında değerlendirilmesini kolaylaştırır.">i</span></span><strong>3+ yıl</strong></div>
+    </div>
+  </div>
+
+  <div id="modelFormPanel" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modelModalTitle"><div class="modalBox">
+    <div class="modalHead"><h3 id="modelModalTitle">Model Portföye Pozisyon Ekle</h3><button type="button" class="secondary" id="closeModelForm">Kapat</button></div>
+    <form id="modelForm">
+      <div class="grid">
+        <div><label>Ürün Tipi</label><select id="mAssetClass"></select></div>
+        <div id="mOptionTypeWrap" class="hidden">
+          <label>Opsiyon Türü</label>
+          <select id="mOptionType"><option>Call</option><option>Put</option></select>
+        </div>
+        <div><label>Sembol *</label><input id="mSymbol" required></div><div><label>Yahoo Finance Sembolü</label><input id="mYahooSymbol" placeholder="THYAO.IS, AAPL, GC=F"></div>
+        <div><label>Yön</label><select id="mDirection"><option>Uzun (Long)</option><option>Kısa (Short)</option></select></div>
+        <div><label>Para Birimi</label><select id="mCurrency"><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
+        <div><label>Açılış Fiyatı *</label><input id="mEntry" type="number" step="any" required></div>
+        <div><label>Miktar *</label><input id="mQty" type="number" step="any" value="1" required></div><input id="mDailyChange" type="hidden" value="0">
+        <div><label>Açılış Tarihi *</label><input id="mOpenDate" type="date" required></div>
+        <div><label>Pozisyona Ayrılan Sermaye</label><input id="mAllocated" type="number" step="any"></div>
+        <div><label>Stop</label><input id="mStop" type="number" step="any"></div>
+        <div><label>Kâr Al</label><input id="mTarget" type="number" step="any"></div>
+        <div class="span2"><label>Risk Notu</label><textarea id="mNote"></textarea></div>
+        <div class="span4"><button type="submit" style="width:100%">Model Portföye Ekle</button></div>
+      </div>
+    </form>
+  </div></div>
+
+  <div class="panel">
+    <h3>Model Portföy Dağılımı</h3>
+    <div class="muted">Ağırlıklar ayrılan sermaye üzerinden; bu alan boşsa açılış fiyatı × miktar üzerinden hesaplanır.</div>
+    <div class="chartGrid" style="margin-top:16px">
+      <div class="pieWrap"><canvas id="modelPie" class="pieCanvas" width="420" height="420"></canvas></div>
+      <div id="modelPieLegend" class="pieLegend"></div>
+    </div>
+  </div>
+
+
+  <div class="panel">
+    <h3>Günlük Artanlar ve Düşenler</h3>
+    <div class="muted">Model portföy aktif pozisyonlarının günlük yüzdesel değişimi</div>
+    <div class="performanceTabs">
+      <button type="button" class="performanceTab active" data-model-daily="all">Tümü</button>
+      <button type="button" class="performanceTab" data-model-daily="up">Artanlar</button>
+      <button type="button" class="performanceTab" data-model-daily="down">Azalanlar</button>
+    </div>
+    <div id="modelDailyPerformance" class="performanceList"></div>
+    <div class="updateGrid">
+      <div><label>Pozisyon</label><select id="modelUpdateSelect"></select></div>
+      <div><label>Güncel Fiyat</label><input id="modelUpdatePrice" type="number" step="any"></div>
+      <div><label>Günlük Değişim (%)</label><input id="modelUpdateDaily" type="number" step="any"></div>
+      <button type="button" id="modelUpdateBtn">Güncelle</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Pozisyon Performansı</h3>
+    <div class="muted">Model portföy aktif pozisyonlarının açılıştan itibaren toplam getirisi</div>
+    <div class="performanceTabs">
+      <button type="button" class="performanceTab active" data-model-total="all">Tümü</button>
+      <button type="button" class="performanceTab" data-model-total="up">Artanlar</button>
+      <button type="button" class="performanceTab" data-model-total="down">Azalanlar</button>
+    </div>
+    <div id="modelTotalPerformance" class="performanceList"></div>
+  </div>
+
+  <div class="panel">
+    <div class="sectionHead">
+      <div><h3 style="margin-bottom:4px">Model Portföy Aktif Pozisyonları</h3><div class="liveStatus"><span id="modelLiveDot" class="liveDot"></span><span id="modelLiveText">Yahoo Finance bağlantısı bekleniyor</span></div></div>
+      <button type="button" id="refreshModelQuotes">Fiyatları Yenile</button>
+    </div>
+    <div class="marketNotice">Aktif model portföy pozisyonları, girilen Yahoo Finance sembolleri üzerinden güncellenir.</div>
+    <div id="mActiveTable"></div>
+    <div class="closeGrid">
+      <div><label>Pozisyon</label><select id="mCloseSelect"></select></div>
+      <div><label>Kapanış Fiyatı</label><input id="mClosePrice" type="number" step="any"></div>
+      <div><label>Kapanış Tarihi</label><input id="mCloseDate" type="date"></div>
+      <div><label>Benchmark Getirisi (%)</label><input id="mBenchmark" type="number" step="any"></div>
+      <button class="success" id="mCloseBtn">Pozisyonu Kapat</button>
+    </div>
+  </div>
+
+  <div class="panel"><h3>Model Portföy Kapalı Pozisyonları</h3><div id="mClosedTable"></div></div>
+
+
+  <div class="panel">
+    <div class="sectionHead">
+      <div><h3 style="margin-bottom:4px">Hareket</h3><div class="muted">Model portföy işlem geçmişi</div></div>
+      <div class="activityTools"><span>⇧ Yükle</span><span>⇩ İndir</span></div>
+    </div>
+    <div class="activityTabs">
+      <button type="button" class="activityTab active" data-model-activity="trades">İşlemler</button>
+      <button type="button" class="activityTab" data-model-activity="cash">Nakit</button>
+      <button type="button" class="activityTab" data-model-activity="dividend">Temettüler</button>
+    </div>
+    <div id="modelActivity"></div>
+  </div>
+</section>
+
+<section id="markets" class="tab">
+  <div class="sectionHead" style="margin-bottom:14px">
+    <div><h2 style="margin-bottom:4px">Markets</h2><div class="muted">Gecikmeli fiyatlar, günlük değişimler ve mini trend grafikleri</div></div>
+    <button id="refreshMarkets">Piyasaları Yenile</button>
+  </div>
+  <div class="panel">
+    <div class="marketTabs" id="marketTabs">
+      <button class="marketTab active" data-market="all">All Assets</button>
+      <button class="marketTab" data-market="favorites">★ Favoriler</button>
+      <button class="marketTab" data-market="indices">Indices</button>
+      <button class="marketTab" data-market="us">US Stocks</button>
+      <button class="marketTab" data-market="bist">BIST</button>
+      <button class="marketTab" data-market="etf">ETFs</button>
+      <button class="marketTab" data-market="funds">FON</button>
+      <button class="marketTab" data-market="commodities">Commodities</button>
+      <button class="marketTab" data-market="crypto">Crypto</button>
+      <button class="marketTab" data-market="fx">FX</button>
+    </div>
+    <div class="marketNotice">Piyasa verileri Yahoo Finance’ın gayriresmî uç noktalarından gecikmeli olarak alınır. Büyük listeler performans için gruplar halinde yüklenir.</div>
+    <div id="marketContent" class="marketLoading">Piyasa verileri yükleniyor…</div>
+  </div>
+</section>
+
+<section id="calendar" class="tab">
+  <div class="calendarOnlyShell">
+    <iframe
+      id="investingCalendarFrame"
+      class="calendarFrame darkCalendar"
+      title="Investing.com Economic Calendar"
+      src="https://sslecal2.investing.com?ecoDayBackground=%23000000&defaultFont=%23000000&innerBorderColor=%23d8d8d8&borderColor=%23d8d8d8&ecoDayFontColor=%23000000&columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&features=datepicker,timezone,timeselector,filters&countries=25,6,37,72,22,17,39,14,10,35,43,56,36,5,4,12&calType=week&timeZone=63&lang=10">
+    </iframe>
+  </div>
+</section>
+
+<div class="note">Veriler Chrome tarayıcısının yerel hafızasında tutulur. Düzenli olarak “Yedek Al” butonunu kullanın.</div>
+</div>
+<div id="bottomTicker" class="fixedTicker bottom"><div id="bottomTickerTrack" class="tickerTrack"><span class="tickerItem">Emtia ve döviz verileri yükleniyor…</span></div></div>
+
+
 <div id="editPositionPanel" class="modalOverlay" role="dialog" aria-modal="true">
   <div class="modalBox editModalBox">
     <div class="modalHead"><h3>Pozisyonu Düzenle</h3><button type="button" class="secondary" id="closeEditPosition">Kapat</button></div>
@@ -922,7 +689,6 @@ body.terminalCollapsed .securityDrawer{right:var(--terminal-collapsed)}
   </div>
 </div>
 
-<div id="bottomTicker" class="fixedTicker bottom"><div id="bottomTickerTrack" class="tickerTrack"><span class="tickerItem">Emtia ve döviz verileri yükleniyor…</span></div></div>
 <script>
 "use strict";
 
@@ -989,6 +755,38 @@ let general=JSON.parse(localStorage.getItem(GK)||"[]");
 let model=JSON.parse(localStorage.getItem(MK)||"[]");
 let settings=JSON.parse(localStorage.getItem(SK)||'{"capital":0,"startDate":"","riskFree":0}');
 const $=id=>document.getElementById(id), today=new Date().toISOString().slice(0,10);
+
+const moveOrderForms=()=>{
+ const gf=$("generalForm"),mf=$("modelForm");
+ if(gf&&$("generalOrderTerminal"))$("generalOrderTerminal").appendChild(gf);
+ if(mf&&$("modelOrderTerminal"))$("modelOrderTerminal").appendChild(mf);
+ if($("generalFormPanel"))$("generalFormPanel").style.display="none";
+ if($("modelFormPanel"))$("modelFormPanel").style.display="none";
+};
+moveOrderForms();
+function setOrderMode(mode){
+ document.querySelectorAll("[data-order-mode]").forEach(b=>b.classList.toggle("active",b.dataset.orderMode===mode));
+ $("generalOrderTerminal").classList.toggle("active",mode==="general");
+ $("modelOrderTerminal").classList.toggle("active",mode==="model");
+ $("orderTerminalTitle").textContent=mode==="general"?"Portfolio Pozisyonu":"Model Portföy Pozisyonu";
+}
+function showMainTab(tabId){
+ document.querySelectorAll(".tab").forEach(s=>{const on=s.id===tabId;s.classList.toggle("active",on);s.style.display=on?"block":"none"});
+ document.querySelectorAll("[data-side-tab]").forEach(b=>b.classList.toggle("active",b.dataset.sideTab===tabId));
+ const showTerminal=tabId==="general"||tabId==="model";
+ $("orderTerminal").style.display=showTerminal?"block":"none";
+ document.body.classList.toggle("terminalHidden",!showTerminal);
+ setOrderMode(tabId==="model"?"model":"general");
+ if(tabId==="markets")setTimeout(()=>loadMarkets(activeMarketCategory||"all"),0);
+}
+document.querySelectorAll("[data-order-mode]").forEach(b=>b.addEventListener("click",()=>setOrderMode(b.dataset.orderMode)));
+if(localStorage.getItem("sidebarClosed")==="1"){$("sidebar").classList.add("closed");document.body.classList.add("sidebarClosed")}
+$("sidebarToggle").addEventListener("click",()=>{const c=$("sidebar").classList.toggle("closed");document.body.classList.toggle("sidebarClosed",c);localStorage.setItem("sidebarClosed",c?"1":"0")});
+if(localStorage.getItem("terminalCollapsed")==="1"){$("orderTerminal").classList.add("collapsed");document.body.classList.add("terminalCollapsed")}
+$("orderTerminalCollapse").addEventListener("click",()=>{const c=$("orderTerminal").classList.toggle("collapsed");document.body.classList.toggle("terminalCollapsed",c);localStorage.setItem("terminalCollapsed",c?"1":"0")});
+document.querySelectorAll("[data-side-tab]").forEach(b=>b.addEventListener("click",()=>{const tab=b.dataset.sideTab;if(tab==="markets"){const sm=$("marketsSubmenu");const open=!sm.classList.contains("open");sm.classList.toggle("open",open);b.classList.toggle("expanded",open)}showMainTab(tab)}));
+document.querySelectorAll("[data-market-target]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();const c=b.dataset.marketTarget;document.querySelectorAll("[data-market-target]").forEach(x=>x.classList.toggle("active",x.dataset.marketTarget===c));showMainTab("markets");loadMarkets(c)}));
+
 const n=v=>{const x=parseFloat(v);return Number.isFinite(x)?x:null};
 const f=(v,d=2)=>v===null||v===undefined||Number.isNaN(v)?"-":Number(v).toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -1230,7 +1028,7 @@ function renderGeneral(){
  const q=$("activeSearch").value.toLowerCase(),tp=$("activeType").value,dr=$("activeDir").value;const fa=a.filter(p=>(!q||(`${p.symbol} ${p.optionType||""}`).toLowerCase().includes(q))&&(!tp||p.assetClass===tp)&&(!dr||p.direction===dr));
  $("activeTable").innerHTML=generalTable(fa,false);$("closedTable").innerHTML=generalTable(c,true);$("closeGeneralSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';renderGeneralPie();renderGeneralPerformance();renderActivities();
 }
-$("generalForm").addEventListener("submit",e=>{e.preventDefault();const p={id:id(),status:"Aktif",assetClass:$("assetClass").value,optionType:isOptionType($("assetClass").value)?$("optionType").value:null,symbol:$("symbol").value.trim().toUpperCase(),yahooSymbol:$("yahooSymbol").value.trim().toUpperCase(),direction:$("direction").value,currency:$("currency").value,entry:n($("entry").value),currentPrice:n($("entry").value),dailyChange:n(0)||0,qty:n($("qty").value)||1,stop:n($("stop").value),target:n($("target").value),openDate:$("openDate").value,expiry:"",thesis:$("thesis").value,riskNote:$("riskNote").value};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}general.unshift(p);save();e.target.reset();$("openDate").value=today;$("qty").value=1;renderGeneral();alert("Pozisyon aktif pozisyonlara eklendi.")});
+$("generalForm").addEventListener("submit",e=>{e.preventDefault();const p={id:id(),status:"Aktif",assetClass:$("assetClass").value,optionType:isOptionType($("assetClass").value)?$("optionType").value:null,symbol:$("symbol").value.trim().toUpperCase(),yahooSymbol:$("yahooSymbol").value.trim().toUpperCase(),direction:$("direction").value,currency:$("currency").value,entry:n($("entry").value),currentPrice:n($("entry").value),dailyChange:n($("dailyChange").value)||0,qty:n($("qty").value)||1,stop:n($("stop").value),target:n($("target").value),openDate:$("openDate").value,expiry:$("expiry").value,thesis:$("thesis").value,riskNote:$("riskNote").value};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}general.unshift(p);save();e.target.reset();$("openDate").value=today;$("qty").value=1;renderGeneral();alert("Pozisyon aktif pozisyonlara eklendi.")});
 $("closeGeneralBtn").onclick=()=>{const p=general.find(x=>x.id===$("closeGeneralSelect").value),price=n($("closeGeneralPrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDate=$("closeGeneralDate").value||today;save();$("closeGeneralPrice").value="";renderGeneral()};
 window.deleteGeneral=x=>{if(confirm("Kayıt silinsin mi?")){general=general.filter(p=>p.id!==x);save();renderGeneral()}};
 
@@ -1263,7 +1061,7 @@ function modelTable(arr,closed){
  <td><div class="actionGroup">${!closed?`<button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`).join("")}</tbody></table></div>`}
 
 function renderModel(){const m=metrics(),a=model.filter(p=>p.status==="Aktif"),c=model.filter(p=>p.status==="Kapalı");$("mValue").textContent=settings.capital?f(m.eq,2):"-";$("mTotal").textContent=m.total===null?"-":"%"+f(m.total*100,2);$("mCagr").textContent=m.cagr===null?"-":"%"+f(m.cagr*100,2);$("mSharpe").textContent=m.sharpe===null?"-":f(m.sharpe,2);$("mSortino").textContent=m.sortino===null?"-":f(m.sortino,2);$("mDD").textContent="%"+f(m.dd*100,2);$("mBeta").textContent=m.beta===null?"-":f(m.beta,2);$("mDuration").textContent=m.dur;$("mActiveTable").innerHTML=modelTable(a,false);$("mClosedTable").innerHTML=modelTable(c,true);$("mCloseSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';renderModelPie();renderModelPerformance();renderActivities()}
-$("modelForm").addEventListener("submit",e=>{e.preventDefault();const p={id:id(),status:"Aktif",assetClass:$("mAssetClass").value,optionType:isOptionType($("mAssetClass").value)?$("mOptionType").value:null,symbol:$("mSymbol").value.trim().toUpperCase(),yahooSymbol:$("mYahooSymbol").value.trim().toUpperCase(),direction:$("mDirection").value,currency:$("mCurrency").value,entry:n($("mEntry").value),currentPrice:n($("mEntry").value),dailyChange:n(0)||0,qty:n($("mQty").value)||1,openDate:$("mOpenDate").value,allocated:n($("mAllocated").value),stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}model.unshift(p);save();e.target.reset();$("mOpenDate").value=today;$("mQty").value=1;$("editPositionPanel").classList.remove("open");renderModel();alert("Pozisyon model portföye eklendi.")});
+$("modelForm").addEventListener("submit",e=>{e.preventDefault();const p={id:id(),status:"Aktif",assetClass:$("mAssetClass").value,optionType:isOptionType($("mAssetClass").value)?$("mOptionType").value:null,symbol:$("mSymbol").value.trim().toUpperCase(),yahooSymbol:$("mYahooSymbol").value.trim().toUpperCase(),direction:$("mDirection").value,currency:$("mCurrency").value,entry:n($("mEntry").value),currentPrice:n($("mEntry").value),dailyChange:n($("mDailyChange").value)||0,qty:n($("mQty").value)||1,openDate:$("mOpenDate").value,allocated:n($("mAllocated").value),stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}model.unshift(p);save();e.target.reset();$("mOpenDate").value=today;$("mQty").value=1;$("editPositionPanel").classList.remove("open");renderModel();alert("Pozisyon model portföye eklendi.")});
 $("saveModelSettings").onclick=()=>{settings={capital:n($("startCapital").value)||0,startDate:$("modelStartDate").value||today,riskFree:n($("riskFree").value)||0};save();renderModel();alert("Model portföy ayarları kaydedildi.")};
 $("mCloseBtn").onclick=()=>{const p=model.find(x=>x.id===$("mCloseSelect").value),price=n($("mClosePrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDate=$("mCloseDate").value||today;p.benchmark=n($("mBenchmark").value);save();$("mClosePrice").value="";$("mBenchmark").value="";renderModel()};
 window.deleteModel=x=>{if(confirm("Kayıt silinsin mi?")){model=model.filter(p=>p.id!==x);save();renderModel()}};
@@ -1577,10 +1375,7 @@ function refreshAllTickers(){
  loadTicker("bottomTickerTrack",[...MARKET_UNIVERSES.commodities,...MARKET_UNIVERSES.fx]);
 }
 document.querySelectorAll("[data-market]").forEach(b=>b.addEventListener("click",()=>{
- document.querySelectorAll("[data-market]").forEach(x=>x.classList.remove("active"));
- b.classList.add("active");
- document.querySelectorAll("[data-market-target]").forEach(x=>x.classList.toggle("active",x.dataset.marketTarget===b.dataset.market));
- loadMarkets(b.dataset.market);
+ document.querySelectorAll("[data-market]").forEach(x=>x.classList.remove("active"));b.classList.add("active");loadMarkets(b.dataset.market);
 }));
 $("refreshMarkets").onclick=()=>loadMarkets();
 
@@ -1595,13 +1390,14 @@ setInterval(()=>{
   }
 },60000);
 setInterval(()=>{if(document.visibilityState==="visible")refreshAllTickers()},180000);
-["activeSearch","activeType","activeDir"].forEach(x=>$(x).addEventListener("input",renderGeneral));$("refreshGeneral").onclick=renderGeneral;
+document.querySelectorAll(".tabBtn").forEach(b=>b.onclick=()=>showMainTab(b.dataset.tab));["activeSearch","activeType","activeDir"].forEach(x=>$(x).addEventListener("input",renderGeneral));$("refreshGeneral").onclick=renderGeneral;
 $("exportBtn").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({general,model,settings},null,2)],{type:"application/json"}));a.download="portfoy_yedek.json";a.click()};
 $("importInput").onchange=e=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);general=d.general||[];model=d.model||[];settings=d.settings||settings;save();location.reload()}catch{alert("Geçersiz yedek dosyası.")}};if(e.target.files[0])r.readAsText(e.target.files[0])};
 
 
-["editPositionPanel"].forEach(key=>{
-  $(key).addEventListener("click",e=>{if(e.target===$(key))$(key).classList.remove("open")});
+["generalFormPanel","modelFormPanel","editPositionPanel"].forEach(key=>{
+  const panel=$(key);
+  if(panel)panel.addEventListener("click",e=>{if(e.target===panel)panel.classList.remove("open")});
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){
@@ -1611,208 +1407,9 @@ document.addEventListener("keydown",e=>{
 });
 window.addEventListener("resize",()=>{renderGeneralPie();renderModelPie()});
 
-
-
-
-const SEARCHABLE_SYMBOLS=(()=>{
- const items=[];
- const push=(symbol,name,type,yahooSymbol=symbol)=>{
-  if(!symbol)return;
-  items.push({
-   symbol:String(symbol).toUpperCase(),
-   name:name||symbol,
-   type:type||"",
-   yahooSymbol:String(yahooSymbol||symbol).toUpperCase()
-  });
- };
- (MARKET_UNIVERSES.bist||[]).forEach(x=>push(x.n||x.s.replace(".IS",""),x.n||x.s,"BIST",x.s));
- (MARKET_UNIVERSES.indices||[]).forEach(x=>push(x.n||x.s,x.n||x.s,"Endeks",x.s));
- (MARKET_UNIVERSES.etf||[]).forEach(x=>push(x.s,x.n||x.s,"ETF",x.s));
- (MARKET_UNIVERSES.commodities||[]).forEach(x=>push(x.s,x.n||x.s,"Emtia",x.s));
- (MARKET_UNIVERSES.crypto||[]).forEach(x=>push(x.s,x.n||x.s,"Kripto",x.s));
- (MARKET_UNIVERSES.fx||[]).forEach(x=>push(x.n||x.s,x.n||x.s,"FX",x.s));
- US_ACTIVE_FALLBACK.forEach(x=>push(x.s,x.n||x.s,"US Stock",x.s));
- const seen=new Set();
- return items.filter(x=>{
-   const key=x.symbol+"|"+x.yahooSymbol;
-   if(seen.has(key))return false;
-   seen.add(key);return true;
- });
-})();
-
-function setupSymbolAutocomplete(inputId,suggestionsId,yahooInputId){
- const input=$(inputId),box=$(suggestionsId),yahooInput=$(yahooInputId);
- let activeIndex=-1,current=[];
-
- function closeBox(){
-  box.classList.remove("open");
-  box.innerHTML="";
-  activeIndex=-1;
-  current=[];
- }
-
- function choose(item){
-  input.value=item.symbol;
-  if(yahooInput)yahooInput.value=item.yahooSymbol;
-  closeBox();
-  input.dispatchEvent(new Event("change",{bubbles:true}));
- }
-
- function render(){
-  const q=input.value.trim().toLocaleUpperCase("tr-TR");
-  if(!q){closeBox();return;}
-  current=SEARCHABLE_SYMBOLS
-   .filter(item=>
-     item.symbol.includes(q)||
-     item.yahooSymbol.includes(q)||
-     String(item.name).toLocaleUpperCase("tr-TR").includes(q)
-   )
-   .sort((a,b)=>{
-     const aStart=a.symbol.startsWith(q)?0:1;
-     const bStart=b.symbol.startsWith(q)?0:1;
-     if(aStart!==bStart)return aStart-bStart;
-     return a.symbol.localeCompare(b.symbol);
-   })
-   .slice(0,30);
-
-  if(!current.length){
-   box.innerHTML='<div class="symbolNoResult">Eşleşen sembol bulunamadı.</div>';
-   box.classList.add("open");
-   return;
-  }
-
-  box.innerHTML=current.map((item,i)=>`
-   <button type="button" class="symbolSuggestion ${i===activeIndex?"active":""}" data-symbol-index="${i}">
-    <span class="symbolSuggestionCode">${esc(item.symbol)}</span>
-    <span class="symbolSuggestionName">${esc(item.name)}</span>
-    <span class="symbolSuggestionType">${esc(item.type)}</span>
-   </button>`).join("");
-  box.classList.add("open");
-  box.querySelectorAll("[data-symbol-index]").forEach(btn=>{
-   btn.addEventListener("mousedown",event=>{
-    event.preventDefault();
-    choose(current[Number(btn.dataset.symbolIndex)]);
-   });
-  });
- }
-
- input.addEventListener("input",()=>{
-  activeIndex=-1;
-  render();
- });
- input.addEventListener("focus",render);
- input.addEventListener("keydown",event=>{
-  if(!box.classList.contains("open"))return;
-  if(event.key==="ArrowDown"){
-   event.preventDefault();
-   activeIndex=Math.min(activeIndex+1,current.length-1);
-   render();
-  }else if(event.key==="ArrowUp"){
-   event.preventDefault();
-   activeIndex=Math.max(activeIndex-1,0);
-   render();
-  }else if(event.key==="Enter"&&activeIndex>=0){
-   event.preventDefault();
-   choose(current[activeIndex]);
-  }else if(event.key==="Escape"){
-   closeBox();
-  }
- });
- document.addEventListener("mousedown",event=>{
-  if(!box.contains(event.target)&&event.target!==input)closeBox();
- });
-}
-
-setupSymbolAutocomplete("symbol","symbolSuggestions","yahooSymbol");
-setupSymbolAutocomplete("mSymbol","mSymbolSuggestions","mYahooSymbol");
-
-function setOrderMode(mode){
- document.querySelectorAll("[data-order-mode]").forEach(btn=>btn.classList.toggle("active",btn.dataset.orderMode===mode));
- $("generalOrderTerminal").classList.toggle("active",mode==="general");
- $("modelOrderTerminal").classList.toggle("active",mode==="model");
- $("orderTerminalTitle").textContent=mode==="general"?"Portfolio Pozisyonu":"Model Portföy Pozisyonu";
-}
-document.querySelectorAll("[data-order-mode]").forEach(btn=>btn.addEventListener("click",()=>setOrderMode(btn.dataset.orderMode)));
-const terminalWasCollapsed=localStorage.getItem("terminalCollapsed")==="1";
-if(terminalWasCollapsed){
- $("orderTerminal").classList.add("collapsed");
- document.body.classList.add("terminalCollapsed");
- 
-}
-$("orderTerminalCollapse").addEventListener("click",()=>{
- const collapsed=$("orderTerminal").classList.toggle("collapsed");
- document.body.classList.toggle("terminalCollapsed",collapsed);
- 
- localStorage.setItem("terminalCollapsed",collapsed?"1":"0");
-});
-
-function activateMainSection(tabId){
- document.querySelectorAll(".tab").forEach(section=>{
-   section.classList.remove("active");
-   section.style.display="none";
- });
- const target=document.getElementById(tabId);
- if(target){
-   target.classList.add("active");
-   target.style.display="block";
- }
- document.querySelectorAll("[data-tab-target]").forEach(btn=>{
-   btn.classList.toggle("active",btn.dataset.tabTarget===tabId);
- });
- if(tabId==="general")setOrderMode("general");
- if(tabId==="model")setOrderMode("model");
- const showTerminal=tabId==="general"||tabId==="model";
- $("orderTerminal").style.display=showTerminal?"block":"none";
- document.body.classList.toggle("terminalHidden",!showTerminal);
- if(tabId==="markets"){
-   setTimeout(()=>loadMarkets(activeMarketCategory||"all"),0);
- }
-}
-function activateMarketSection(category){
- activeMarketCategory=category;
- activateMainSection("markets");
- document.querySelectorAll("[data-market-target]").forEach(btn=>{
-   btn.classList.toggle("active",btn.dataset.marketTarget===category);
- });
- document.querySelectorAll("[data-market]").forEach(btn=>{
-   btn.classList.toggle("active",btn.dataset.market===category);
- });
- setTimeout(()=>loadMarkets(category),0);
-}
-const savedSidebarState=localStorage.getItem("sidebarClosed")==="1";
-if(savedSidebarState){
- $("sidebar").classList.add("closed");
- document.body.classList.add("sidebarClosed");
-}
-$("sidebarToggle").addEventListener("click",()=>{
- const closed=$("sidebar").classList.toggle("closed");
- document.body.classList.toggle("sidebarClosed",closed);
- localStorage.setItem("sidebarClosed",closed?"1":"0");
-});
-document.querySelectorAll("[data-tab-target]").forEach(btn=>{
- btn.addEventListener("click",event=>{
-   const tabId=btn.dataset.tabTarget;
-   if(btn.dataset.sideGroup==="markets"){
-     const submenu=$("marketsSubmenu");
-     const willOpen=!submenu.classList.contains("open");
-     submenu.classList.toggle("open",willOpen);
-     btn.classList.toggle("expanded",willOpen);
-     activateMainSection("markets");
-   }else{
-     activateMainSection(tabId);
-   }
- });
-});
-document.querySelectorAll("[data-market-target]").forEach(btn=>{
- btn.addEventListener("click",event=>{
-   event.stopPropagation();
-   activateMarketSection(btn.dataset.marketTarget);
- });
-});
-
 fillTypes();populateEditTypes();
 
-activateMainSection("general");
+showMainTab("general");
 
 $("assetClass").addEventListener("change",syncOptionVisibility);
 $("mAssetClass").addEventListener("change",syncOptionVisibility);
