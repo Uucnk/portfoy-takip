@@ -314,7 +314,11 @@ async function fetchYahooDetails(symbol) {
     `/v10/finance/quoteSummary/${encoded}?modules=price%2CsummaryDetail%2CdefaultKeyStatistics%2CfinancialData%2CassetProfile%2CincomeStatementHistory%2CbalanceSheetHistory`
   ]).catch(() => null);
 
-  const [chartPayload, summaryPayload] = await Promise.all([chartPromise, summaryPromise]);
+  const quotePromise = fetchJsonFromYahoo([
+    `/v7/finance/quote?symbols=${encoded}`
+  ]).catch(() => null);
+
+  const [chartPayload, summaryPayload, quotePayload] = await Promise.all([chartPromise, summaryPromise, quotePromise]);
 
   const chartResult = chartPayload?.chart?.result?.[0];
   if (!chartResult) {
@@ -388,6 +392,7 @@ async function fetchYahooDetails(symbol) {
   }
 
   const result = summaryPayload?.quoteSummary?.result?.[0] || {};
+  const quoteRow = quotePayload?.quoteResponse?.result?.[0] || {};
   const price = result.price || {};
   const summary = result.summaryDetail || {};
   const stats = result.defaultKeyStatistics || {};
@@ -423,9 +428,9 @@ async function fetchYahooDetails(symbol) {
 
   return {
     symbol,
-    name: price.longName || price.shortName || meta.longName || meta.shortName || symbol,
-    currency: price.currency || financial.financialCurrency || meta.currency || null,
-    exchange: price.exchangeName || price.fullExchangeName || meta.fullExchangeName || meta.exchangeName || null,
+    name: price.longName || price.shortName || quoteRow.longName || quoteRow.shortName || meta.longName || meta.shortName || symbol,
+    currency: price.currency || quoteRow.currency || financial.financialCurrency || meta.currency || null,
+    exchange: price.exchangeName || price.fullExchangeName || quoteRow.fullExchangeName || quoteRow.exchange || meta.fullExchangeName || meta.exchangeName || null,
     assetType,
     assetTypeLabel: assetTypeLabel(assetType),
     open: dayOpen,
@@ -444,12 +449,12 @@ async function fetchYahooDetails(symbol) {
     momentum200d: momentumFromCloses(closes, 200),
     sector: profile.sector || null,
     industry: profile.industry || null,
-    price: rawValue(financial, "currentPrice") ?? rawValue(price, "regularMarketPrice") ?? latestPrice,
+    price: rawValue(financial, "currentPrice") ?? rawValue(price, "regularMarketPrice") ?? safeNumber(quoteRow.regularMarketPrice) ?? latestPrice,
     changePercent,
-    trailingPE: rawValue(summary, "trailingPE") ?? rawValue(stats, "trailingPE"),
-    priceToBook: rawValue(stats, "priceToBook"),
+    trailingPE: rawValue(summary, "trailingPE") ?? rawValue(stats, "trailingPE") ?? safeNumber(quoteRow.trailingPE),
+    priceToBook: rawValue(stats, "priceToBook") ?? safeNumber(quoteRow.priceToBook),
     bookValue: rawValue(stats, "bookValue"),
-    beta: rawValue(stats, "beta"),
+    beta: rawValue(stats, "beta") ?? safeNumber(quoteRow.beta),
     enterpriseToEbitda: rawValue(stats, "enterpriseToEbitda"),
     enterpriseValue: rawValue(stats, "enterpriseValue"),
     totalCash,
@@ -460,9 +465,9 @@ async function fetchYahooDetails(symbol) {
       rawValue(balance, "stockholdersEquity") ??
       rawValue(balance, "totalStockholderEquity"),
     ebitda: rawValue(financial, "ebitda"),
-    trailingEps: rawValue(stats, "trailingEps"),
+    trailingEps: rawValue(stats, "trailingEps") ?? safeNumber(quoteRow.epsTrailingTwelveMonths),
     dividendYield: dividendYieldRaw === null ? null : dividendYieldRaw * 100,
-    marketCap: rawValue(price, "marketCap") ?? rawValue(summary, "marketCap"),
+    marketCap: rawValue(price, "marketCap") ?? rawValue(summary, "marketCap") ?? safeNumber(quoteRow.marketCap),
     floatShares,
     sharesOutstanding,
     floatRatio,
@@ -472,9 +477,9 @@ async function fetchYahooDetails(symbol) {
     returnOnEquity: roeRaw === null ? null : roeRaw * 100,
     returnOnAssets: roaRaw === null ? null : roaRaw * 100,
     historicalVolatility100d: volatility,
-    fiftyTwoWeekHigh: rawValue(summary, "fiftyTwoWeekHigh") ?? safeNumber(meta.fiftyTwoWeekHigh),
-    fiftyTwoWeekLow: rawValue(summary, "fiftyTwoWeekLow") ?? safeNumber(meta.fiftyTwoWeekLow),
-    averageVolume: rawValue(summary, "averageVolume"),
+    fiftyTwoWeekHigh: rawValue(summary, "fiftyTwoWeekHigh") ?? safeNumber(quoteRow.fiftyTwoWeekHigh) ?? safeNumber(meta.fiftyTwoWeekHigh),
+    fiftyTwoWeekLow: rawValue(summary, "fiftyTwoWeekLow") ?? safeNumber(quoteRow.fiftyTwoWeekLow) ?? safeNumber(meta.fiftyTwoWeekLow),
+    averageVolume: rawValue(summary, "averageVolume") ?? safeNumber(quoteRow.averageDailyVolume3Month) ?? safeNumber(quoteRow.averageDailyVolume10Day),
     contractSymbol: assetType === "future" ? symbol : null,
     expirationDate: meta.expireDate
       ? new Date(meta.expireDate * 1000).toISOString().slice(0, 10)
@@ -735,6 +740,34 @@ app.get("/api/chart/history",async(req,res)=>{
   res.json({symbol,candles,volume,currency:result.meta?.currency});
  }catch(error){res.status(502).json({error:error.message})}
 });
+
+function yahooDetailsToResearch(details){
+ if(!details||typeof details!=="object")return{};
+ return{
+  info:{results:[{
+   symbol:details.symbol,name:details.name,company_name:details.name,
+   exchange:details.exchange,sector:details.sector,industry:details.industry,
+   currency:details.currency
+  }]},
+  quote:{results:[{
+   symbol:details.symbol,price:details.price,last_price:details.price,
+   currency:details.currency,year_high:details.fiftyTwoWeekHigh,
+   year_low:details.fiftyTwoWeekLow,market_cap:details.marketCap
+  }]},
+  metrics:{results:[{
+   market_cap:details.marketCap,pe_ratio:details.trailingPE,
+   price_to_book:details.priceToBook,
+   enterprise_value_over_ebitda:details.enterpriseToEbitda,
+   dividend_yield:details.dividendYield,return_on_equity:details.returnOnEquity,
+   return_on_assets:details.returnOnAssets,net_profit_margin:details.netMargin,
+   debt_to_equity:details.debtToEquityComputed,current_ratio:details.currentRatio,
+   beta:details.beta,earnings_per_share:details.trailingEps,
+   book_value_per_share:details.bookValue,
+   net_debt:details.netCash==null?null:-details.netCash
+  }]}
+ };
+}
+
 app.get("/api/openbb/research",async(req,res)=>{
  const requested=String(req.query.symbol||"").trim().toUpperCase();
  if(!requested)return res.status(400).json({error:"Sembol gereklidir"});
@@ -763,13 +796,24 @@ app.get("/api/openbb/research",async(req,res)=>{
  ]);
  let fallback={};
  try{fallback=yahooFallbackShape(await yahooQuoteSummary(symbol),symbol)}catch{}
+ try{
+  const robustYahoo=yahooDetailsToResearch(await fetchYahooDetails(symbol));
+  fallback={
+   ...fallback,
+   info:hasOpenBBData(fallback.info)?fallback.info:robustYahoo.info,
+   quote:hasOpenBBData(fallback.quote)?fallback.quote:robustYahoo.quote,
+   metrics:hasOpenBBData(fallback.metrics)?fallback.metrics:robustYahoo.metrics
+  };
+ }catch(error){
+  console.warn("Yahoo detay yedeklemesi alınamadı:",error?.message);
+ }
  const choose=(primary,key)=>hasOpenBBData(primary)?primary:(fallback[key]||primary);
  const openbbCount=[info,quote,metrics,ratios,income,balance,cash,news].filter(hasOpenBBData).length;
  const data={
   configured:true,symbol,provider:providers[0],
   source_note:isBist
    ?"BIST verileri OpenBB yfinance sağlayıcısı üzerinden; eksik anlık alanlar Yahoo Finance yedeklemesiyle getiriliyor. TradingView, BIST sembollerini dış widget’larda lisans nedeniyle göstermediğinden teknik grafik TradingView Lightweight Charts motoruyla gecikmeli fiyat verisinden çiziliyor."
-   :"Temel veriler OpenBB üzerinden getiriliyor; sağlayıcının döndürmediği özet alanlarda Yahoo Finance yedeklemesi kullanılıyor.",
+   :"Erişilebilen temel veriler OpenBB ve doğrudan Yahoo Finance yedeklemesi birlikte kullanılarak getiriliyor.",
   info:choose(info,"info"),quote:choose(quote,"quote"),metrics:choose(metrics,"metrics"),ratios,
   income,balance,cash,dividends,price_target:choose(priceTarget,"price_target"),estimates,news,
   diagnostics:{openbb_sections_with_data:openbbCount,providers_tried:providers},
@@ -780,6 +824,24 @@ app.get("/api/openbb/research",async(req,res)=>{
  res.json(data);
 });
 
+
+
+app.get("/api/data-diagnostic",async(req,res)=>{
+ const symbol=String(req.query.symbol||"AAPL").trim().toUpperCase();
+ const output={symbol,time:new Date().toISOString()};
+ try{
+  const details=await fetchYahooDetails(symbol);
+  output.yahoo_ok=true;
+  output.yahoo_fields={
+   name:details.name,price:details.price,marketCap:details.marketCap,
+   pe:details.trailingPE,priceToBook:details.priceToBook,
+   currency:details.currency,sourceStatus:details.sourceStatus
+  };
+ }catch(error){
+  output.yahoo_ok=false;output.yahoo_error=error.message;
+ }
+ res.json(output);
+});
 
 app.get("/api/openbb/status",async(req,res)=>{
  const result={
