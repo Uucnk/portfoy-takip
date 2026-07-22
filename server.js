@@ -620,66 +620,153 @@ app.get("/api/search",async(req,res)=>{
 });
 
 
+
 const OPENBB_BASE_URL=String(process.env.OPENBB_BASE_URL||"").replace(/\/$/,"");
 const OPENBB_TOKEN=String(process.env.OPENBB_TOKEN||"");
 const openbbResearchCache=new Map();
 
+function unwrapOpenBB(payload){
+ if(Array.isArray(payload))return payload;
+ if(Array.isArray(payload?.results))return payload.results;
+ if(Array.isArray(payload?.data))return payload.data;
+ return payload?.results||payload?.data||payload||{};
+}
+function hasOpenBBData(payload){
+ const value=unwrapOpenBB(payload);
+ return Array.isArray(value)?value.length>0:!!(value&&typeof value==="object"&&Object.keys(value).length);
+}
 async function fetchOpenBBRoute(route,params={}){
  if(!OPENBB_BASE_URL)throw new Error("OPENBB_BASE_URL yapılandırılmadı");
  const url=new URL(`${OPENBB_BASE_URL}${route}`);
  Object.entries(params).forEach(([key,value])=>{
   if(value!==undefined&&value!==null&&value!=="")url.searchParams.set(key,String(value));
  });
- const headers={"Accept":"application/json"};
+ const headers={Accept:"application/json"};
  if(OPENBB_TOKEN)headers.Authorization=`Bearer ${OPENBB_TOKEN}`;
- const response=await fetch(url,{headers,signal:AbortSignal.timeout(30000)});
+ const response=await fetch(url,{headers,signal:AbortSignal.timeout(45000)});
  const text=await response.text();
- if(!response.ok)throw new Error(`OpenBB ${route} HTTP ${response.status}: ${text.slice(0,160)}`);
+ if(!response.ok)throw new Error(`OpenBB ${route} HTTP ${response.status}: ${text.slice(0,180)}`);
  try{return JSON.parse(text)}catch{return{text}};
 }
-async function fetchOpenBBAny(routes,params){
+async function fetchOpenBBAny(routes,paramVariants){
  let lastError=null;
- for(const route of routes){
-  try{return await fetchOpenBBRoute(route,params)}
-  catch(error){lastError=error}
+ const variants=Array.isArray(paramVariants)?paramVariants:[paramVariants];
+ for(const params of variants){
+  for(const route of routes){
+   try{
+    const value=await fetchOpenBBRoute(route,params);
+    if(hasOpenBBData(value))return value;
+   }catch(error){lastError=error}
+  }
  }
- return{results:[],error:lastError?.message||"OpenBB endpoint bulunamadı"};
+ return{results:[],error:lastError?.message||"Veri bulunamadı"};
 }
-app.get("/api/openbb/research",async(req,res)=>{
- const symbol=String(req.query.symbol||"").trim().toUpperCase();
- const provider=String(req.query.provider||process.env.OPENBB_PROVIDER||"").trim();
- const force=req.query.force==="1";
- if(!symbol)return res.status(400).json({error:"Sembol gereklidir"});
- if(!OPENBB_BASE_URL){
-  return res.json({
-   configured:false,symbol,
-   info:{results:[]},quote:{results:[]},metrics:{results:[]},ratios:{results:[]},
-   income:{results:[]},balance:{results:[]},cash:{results:[]},dividends:{results:[]},
-   price_target:{results:[]},estimates:{results:[]},news:{results:[]}
+function yahooSymbolFor(symbol){
+ const s=String(symbol||"").trim().toUpperCase();
+ if(/^[A-Z0-9]{2,8}$/.test(s)&&["THYAO","ASELS","AKBNK","YKBNK","DOHOL","VESTL","GARAN","SISE","EREGL","TUPRS","KCHOL","SAHOL","BIMAS","FROTO","TOASO"].includes(s))return`${s}.IS`;
+ return s;
+}
+async function yahooQuoteSummary(symbol){
+ const modules="price,summaryDetail,defaultKeyStatistics,financialData,assetProfile,calendarEvents,recommendationTrend,earningsTrend";
+ const url=`https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=${modules}`;
+ const response=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0","Accept":"application/json"},signal:AbortSignal.timeout(20000)});
+ if(!response.ok)throw new Error(`Yahoo quoteSummary HTTP ${response.status}`);
+ const json=await response.json();
+ return json?.quoteSummary?.result?.[0]||{};
+}
+function raw(v){return v&&typeof v==="object"&&"raw" in v?v.raw:v}
+function yahooFallbackShape(y,symbol){
+ const p=y.price||{}, sd=y.summaryDetail||{}, ks=y.defaultKeyStatistics||{}, fd=y.financialData||{}, ap=y.assetProfile||{};
+ return{
+  info:{results:[{
+   symbol,name:p.longName||p.shortName,company_name:p.longName||p.shortName,
+   exchange:p.exchangeName||p.exchange,sector:ap.sector,industry:ap.industry,country:ap.country,
+   website:ap.website,long_business_summary:ap.longBusinessSummary,full_time_employees:ap.fullTimeEmployees,
+   currency:p.currency
+  }]},
+  quote:{results:[{
+   symbol,price:raw(p.regularMarketPrice),last_price:raw(p.regularMarketPrice),currency:p.currency,
+   year_high:raw(sd.fiftyTwoWeekHigh),year_low:raw(sd.fiftyTwoWeekLow),
+   market_cap:raw(p.marketCap)
+  }]},
+  metrics:{results:[{
+   market_cap:raw(p.marketCap),pe_ratio:raw(sd.trailingPE),forward_pe:raw(ks.forwardPE),
+   price_to_book:raw(ks.priceToBook),enterprise_value_over_ebitda:raw(ks.enterpriseToEbitda),
+   enterprise_value_over_revenue:raw(ks.enterpriseToRevenue),peg_ratio:raw(ks.pegRatio),
+   dividend_yield:(raw(sd.dividendYield)||0)*100,return_on_equity:(raw(fd.returnOnEquity)||0)*100,
+   return_on_assets:(raw(fd.returnOnAssets)||0)*100,gross_margin:(raw(fd.grossMargins)||0)*100,
+   operating_margin:(raw(fd.operatingMargins)||0)*100,net_profit_margin:(raw(fd.profitMargins)||0)*100,
+   debt_to_equity:raw(fd.debtToEquity),current_ratio:raw(fd.currentRatio),quick_ratio:raw(fd.quickRatio),
+   beta:raw(ks.beta),earnings_per_share:raw(ks.trailingEps),book_value_per_share:raw(ks.bookValue),
+   free_cash_flow:raw(fd.freeCashflow),net_debt:(raw(fd.totalDebt)||0)-(raw(fd.totalCash)||0)
+  }]},
+  price_target:{results:[{
+   target_consensus:raw(fd.targetMeanPrice),target_high:raw(fd.targetHighPrice),
+   target_low:raw(fd.targetLowPrice),analyst_count:raw(fd.numberOfAnalystOpinions)
+  }]}
+ };
+}
+app.get("/api/chart/history",async(req,res)=>{
+ try{
+  const symbol=yahooSymbolFor(req.query.symbol);
+  const range=String(req.query.range||"1y");
+  const interval=String(req.query.interval||"1d");
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}&events=div%2Csplits`;
+  const response=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0"},signal:AbortSignal.timeout(20000)});
+  if(!response.ok)throw new Error(`Yahoo chart HTTP ${response.status}`);
+  const json=await response.json();
+  const result=json?.chart?.result?.[0];
+  if(!result)throw new Error(json?.chart?.error?.description||"Grafik verisi bulunamadı");
+  const q=result.indicators?.quote?.[0]||{}, ts=result.timestamp||[];
+  const candles=[],volume=[];
+  ts.forEach((time,i)=>{
+   const open=q.open?.[i],high=q.high?.[i],low=q.low?.[i],close=q.close?.[i],vol=q.volume?.[i];
+   if([open,high,low,close].every(Number.isFinite)){
+    candles.push({time,open,high,low,close});
+    if(Number.isFinite(vol))volume.push({time,value:vol,color:close>=open?"rgba(38,166,154,.45)":"rgba(239,83,80,.45)"});
+   }
   });
- }
- const cacheKey=`${symbol}|${provider}`;
- const cached=openbbResearchCache.get(cacheKey);
+  res.json({symbol,candles,volume,currency:result.meta?.currency});
+ }catch(error){res.status(502).json({error:error.message})}
+});
+app.get("/api/openbb/research",async(req,res)=>{
+ const requested=String(req.query.symbol||"").trim().toUpperCase();
+ if(!requested)return res.status(400).json({error:"Sembol gereklidir"});
+ const isBist=requested.endsWith(".IS")||req.query.market==="BIST";
+ const symbol=isBist?yahooSymbolFor(requested):requested;
+ const preferred=String(req.query.provider||process.env.OPENBB_PROVIDER||"fmp").trim();
+ const providers=isBist?["yfinance","fmp"]:[preferred,"fmp","yfinance"].filter((v,i,a)=>v&&a.indexOf(v)===i);
+ const cacheKey=`${symbol}|${providers.join(",")}`;
+ const force=req.query.force==="1",cached=openbbResearchCache.get(cacheKey);
  if(!force&&cached&&Date.now()-cached.at<10*60*1000)return res.json(cached.data);
- const base={symbol,...(provider?{provider}:{})};
- const period={...base,period:"annual",limit:5};
+ if(!OPENBB_BASE_URL)return res.json({configured:false,symbol,source_note:"OpenBB servisi yapılandırılmadı."});
+ const variants=(extra={})=>providers.map(provider=>({symbol,provider,...extra}));
+ const periodVariants=(extra={})=>providers.map(provider=>({symbol,provider,period:"annual",limit:5,...extra}));
  const [info,quote,metrics,ratios,income,balance,cash,dividends,priceTarget,estimates,news]=await Promise.all([
-  fetchOpenBBAny(["/api/v1/equity/profile","/api/v1/equity/info"],base),
-  fetchOpenBBAny(["/api/v1/equity/price/quote","/api/v1/equity/quote"],base),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/metrics"],period),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/ratios"],period),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/income"],period),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/balance"],period),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/cash"],period),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/dividends"],{...base,limit:20}),
-  fetchOpenBBAny(["/api/v1/equity/estimates/price_target_consensus","/api/v1/equity/price_target/consensus"],base),
-  fetchOpenBBAny(["/api/v1/equity/estimates/analyst"],{...base,limit:12}),
-  fetchOpenBBAny(["/api/v1/news/company"],{...base,limit:30})
+  fetchOpenBBAny(["/api/v1/equity/profile","/api/v1/equity/info"],variants()),
+  fetchOpenBBAny(["/api/v1/equity/price/quote","/api/v1/equity/quote"],variants()),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/metrics"],periodVariants()),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/ratios"],periodVariants()),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/income"],periodVariants()),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/balance"],periodVariants()),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/cash"],periodVariants()),
+  fetchOpenBBAny(["/api/v1/equity/fundamental/dividends"],variants({limit:20})),
+  fetchOpenBBAny(["/api/v1/equity/estimates/price_target_consensus","/api/v1/equity/price_target/consensus"],variants()),
+  fetchOpenBBAny(["/api/v1/equity/estimates/analyst","/api/v1/equity/estimates/historical"],variants({limit:12})),
+  fetchOpenBBAny(["/api/v1/news/company","/api/v1/news/world"],variants({limit:30}))
  ]);
+ let fallback={};
+ try{fallback=yahooFallbackShape(await yahooQuoteSummary(symbol),symbol)}catch{}
+ const choose=(primary,key)=>hasOpenBBData(primary)?primary:(fallback[key]||primary);
+ const openbbCount=[info,quote,metrics,ratios,income,balance,cash,news].filter(hasOpenBBData).length;
  const data={
-  configured:true,symbol,provider:provider||null,
-  info,quote,metrics,ratios,income,balance,cash,dividends,
-  price_target:priceTarget,estimates,news,
+  configured:true,symbol,provider:providers[0],
+  source_note:isBist
+   ?"BIST verileri OpenBB yfinance sağlayıcısı üzerinden; eksik anlık alanlar Yahoo Finance yedeklemesiyle getiriliyor. TradingView, BIST sembollerini dış widget’larda lisans nedeniyle göstermediğinden teknik grafik TradingView Lightweight Charts motoruyla gecikmeli fiyat verisinden çiziliyor."
+   :"Temel veriler OpenBB üzerinden getiriliyor; sağlayıcının döndürmediği özet alanlarda Yahoo Finance yedeklemesi kullanılıyor.",
+  info:choose(info,"info"),quote:choose(quote,"quote"),metrics:choose(metrics,"metrics"),ratios,
+  income,balance,cash,dividends,price_target:choose(priceTarget,"price_target"),estimates,news,
+  diagnostics:{openbb_sections_with_data:openbbCount,providers_tried:providers},
   fetchedAt:new Date().toISOString()
  };
  openbbResearchCache.set(cacheKey,{at:Date.now(),data});
