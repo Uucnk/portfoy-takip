@@ -1,5 +1,6 @@
 import express from "express";
 import path from "node:path";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const app = express();
@@ -51,7 +52,8 @@ function stripHtml(value = "") {
 app.disable("x-powered-by");
 app.use(express.static(publicDir, {
   etag: true,
-  maxAge: "1h"
+  maxAge: "1h",
+  index: false
 }));
 
 function safeNumber(value) {
@@ -844,10 +846,50 @@ app.get("/api/quotes", async (req, res) => {
   });
 });
 
+const uiEntryFile = path.join(publicDir, "app.html");
+
+app.get("/__ui-diagnostic", (_req, res) => {
+  try {
+    const text = fs.readFileSync(uiEntryFile, "utf8");
+    res.json({
+      ok: true,
+      uiEntryFile,
+      exists: true,
+      first80: text.slice(0, 80),
+      size: Buffer.byteLength(text),
+      startsWithDoctype: text.trimStart().toLowerCase().startsWith("<!doctype html>")
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      uiEntryFile,
+      exists: false,
+      error: error.message
+    });
+  }
+});
+
+app.get("/", (_req, res) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  res.sendFile(uiEntryFile);
+});
+
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(publicDir, "index.html"));
+  res.set("Cache-Control", "no-store");
+  res.sendFile(uiEntryFile);
 });
 
 app.listen(PORT, () => {
+  let uiStatus = "missing";
+  try {
+    const first = fs.readFileSync(uiEntryFile, "utf8").slice(0, 80);
+    uiStatus = JSON.stringify(first);
+  } catch (error) {
+    uiStatus = `ERROR: ${error.message}`;
+  }
   console.log(`Portfolio Tracker running on port ${PORT}`);
+  console.log(`UI entry: ${uiEntryFile}`);
+  console.log(`UI first bytes: ${uiStatus}`);
 });
