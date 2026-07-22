@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pozisyon ve Model Portföy Takip · v6.5</title>
+<title>Pozisyon ve Model Portföy Takip · v6.6</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -744,8 +744,15 @@ body.terminalHidden .app{right:0!important}
  .app{left:0!important;right:0!important;top:44px!important;bottom:42px!important}
 }
 
+
+/* v6.6 tab visibility recovery */
+.app>.tab{display:none!important}
+.app>.tab.active{display:block!important}
+#general.active,#model.active,#markets.active,#calendar.active{visibility:visible!important;opacity:1!important}
+.cards,.panel{position:relative;z-index:1}
+
 </style>
-<meta name="portfolio-build" content="v6.5-layout-markets-data">
+<meta name="portfolio-build" content="v6.6-html-data-recovery">
 </head>
 <body>
 
@@ -891,7 +898,6 @@ body.terminalHidden .app{right:0!important}
 <section id="general" class="tab active">
   <div class="sectionHead" style="margin-bottom:14px">
     <div><h2 style="margin-bottom:4px">Portfolio</h2><div class="muted">Aktif ve kapalı öneriler</div></div>
-    </div></div>
   </div>
 
   <div class="cards six">
@@ -1024,7 +1030,6 @@ body.terminalHidden .app{right:0!important}
 <section id="model" class="tab">
   <div class="sectionHead" style="margin-bottom:14px">
     <div><h2 style="margin-bottom:4px">Model Portföy</h2><div class="muted">Track record ve performans analizi</div></div>
-    </div></div>
   </div>
 
   <div class="panel">
@@ -1556,7 +1561,7 @@ function renderActivities(){
   $("generalActivity").innerHTML=activityHTML(general,generalActivityFilter);
   $("modelActivity").innerHTML=activityHTML(model,modelActivityFilter);
 }
-function renderGeneral(){
+window.renderGeneral=function renderGeneral(){
  const a=general.filter(p=>p.status==="Aktif"),c=general.filter(p=>p.status==="Kapalı"),returns=c.map(ret).filter(x=>x!==null);
  $("gActive").textContent=a.length;$("gClosed").textContent=c.length;$("gWin").textContent="%"+f(c.length?c.filter(p=>pnl(p)>0).length/c.length*100:0,1);$("gAvg").textContent="%"+f(returns.length?returns.reduce((x,y)=>x+y,0)/returns.length:0,2);$("gPnl").textContent=f(c.reduce((s,p)=>s+(pnl(p)||0),0),2);$("gPositionSize").textContent=f(a.reduce((s,p)=>s+positionSize(p),0),2);
  const counts={};TYPES.forEach(t=>counts[t]=0);a.forEach(p=>counts[p.assetClass]=(counts[p.assetClass]||0)+1);const mx=Math.max(...Object.values(counts),1);
@@ -1596,7 +1601,7 @@ function modelTable(arr,closed){
  ${closed?`<td>${f(p.closePrice,4)}</td><td class="${mpnl(p)>0?"positive":"negative"}">${f(mpnl(p),2)}</td><td>${f(mret(p)*100,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}
  <td><div class="actionGroup">${!closed?`<button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`).join("")}</tbody></table></div>`}
 
-function renderModel(){const m=metrics(),a=model.filter(p=>p.status==="Aktif"),c=model.filter(p=>p.status==="Kapalı");$("mValue").textContent=settings.capital?f(m.eq,2):"-";$("mTotal").textContent=m.total===null?"-":"%"+f(m.total*100,2);$("mCagr").textContent=m.cagr===null?"-":"%"+f(m.cagr*100,2);$("mSharpe").textContent=m.sharpe===null?"-":f(m.sharpe,2);$("mSortino").textContent=m.sortino===null?"-":f(m.sortino,2);$("mDD").textContent="%"+f(m.dd*100,2);$("mBeta").textContent=m.beta===null?"-":f(m.beta,2);$("mDuration").textContent=m.dur;$("mActiveTable").innerHTML=modelTable(a,false);$("mClosedTable").innerHTML=modelTable(c,true);$("mCloseSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';renderModelPie();renderModelPerformance();renderActivities()}
+window.renderModel=function renderModel(){const m=metrics(),a=model.filter(p=>p.status==="Aktif"),c=model.filter(p=>p.status==="Kapalı");$("mValue").textContent=settings.capital?f(m.eq,2):"-";$("mTotal").textContent=m.total===null?"-":"%"+f(m.total*100,2);$("mCagr").textContent=m.cagr===null?"-":"%"+f(m.cagr*100,2);$("mSharpe").textContent=m.sharpe===null?"-":f(m.sharpe,2);$("mSortino").textContent=m.sortino===null?"-":f(m.sortino,2);$("mDD").textContent="%"+f(m.dd*100,2);$("mBeta").textContent=m.beta===null?"-":f(m.beta,2);$("mDuration").textContent=m.dur;$("mActiveTable").innerHTML=modelTable(a,false);$("mClosedTable").innerHTML=modelTable(c,true);$("mCloseSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';renderModelPie();renderModelPerformance();renderActivities()}
 $("modelForm").addEventListener("submit",e=>{e.preventDefault();const p={id:id(),status:"Aktif",assetClass:$("mAssetClass").value,optionType:isOptionType($("mAssetClass").value)?$("mOptionType").value:null,symbol:$("mSymbol").value.trim().toUpperCase(),yahooSymbol:$("mYahooSymbol").value.trim().toUpperCase(),direction:$("mDirection").value,currency:$("mCurrency").value,entry:n($("mEntry").value),currentPrice:n($("mEntry").value),dailyChange:n($("mDailyChange").value)||0,qty:n($("mQty").value)||1,openDate:$("mOpenDate").value,allocated:n($("mAllocated").value),stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}model.unshift(p);save();e.target.reset();$("mOpenDate").value=today;$("mQty").value=1;$("editPositionPanel").classList.remove("open");renderModel();alert("Pozisyon model portföye eklendi.")});
 $("saveModelSettings").onclick=()=>{settings={capital:n($("startCapital").value)||0,startDate:$("modelStartDate").value||today,riskFree:n($("riskFree").value)||0};save();renderModel();alert("Model portföy ayarları kaydedildi.")};
 $("mCloseBtn").onclick=()=>{const p=model.find(x=>x.id===$("mCloseSelect").value),price=n($("mClosePrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDate=$("mCloseDate").value||today;p.benchmark=n($("mBenchmark").value);save();$("mClosePrice").value="";$("mBenchmark").value="";renderModel()};
@@ -2062,27 +2067,39 @@ function renderResearchOverview(data,asset){
 function renderResearchFundamentals(data){
  const m=firstRecord(data.metrics);
  const r=firstRecord(data.ratios);
+ const y=data.yahoo_details||{};
  const values=[
-  ["F/K",m.pe_ratio??m.price_earnings_ratio??r.price_earnings_ratio],
+  ["F/K",m.pe_ratio??m.price_earnings_ratio??r.price_earnings_ratio??y.trailingPE],
   ["İleri F/K",m.forward_pe??r.forward_pe_ratio],
-  ["PD/DD",m.price_to_book??r.price_to_book_ratio],
-  ["FD/FAVÖK",m.enterprise_value_over_ebitda??m.ev_to_ebitda??r.enterprise_value_ebitda_ratio],
+  ["PD/DD",m.price_to_book??r.price_to_book_ratio??y.priceToBook],
+  ["FD/FAVÖK",m.enterprise_value_over_ebitda??m.ev_to_ebitda??r.enterprise_value_ebitda_ratio??y.enterpriseToEbitda],
   ["FD/Satış",m.enterprise_value_over_revenue??r.enterprise_value_revenue_ratio],
-  ["PEG",m.peg_ratio??r.peg_ratio],
-  ["Temettü Verimi",m.dividend_yield??r.dividend_yield,"percent"],
-  ["ROE",m.return_on_equity??r.return_on_equity,"percent"],
-  ["ROA",m.return_on_assets??r.return_on_assets,"percent"],
-  ["Brüt Marj",m.gross_margin??r.gross_profit_margin,"percent"],
-  ["Faaliyet Marjı",m.operating_margin??r.operating_profit_margin,"percent"],
-  ["Net Marj",m.net_profit_margin??r.net_profit_margin,"percent"],
-  ["Borç/Özkaynak",m.debt_to_equity??r.debt_to_equity],
-  ["Cari Oran",m.current_ratio??r.current_ratio],
-  ["Hızlı Oran",m.quick_ratio??r.quick_ratio],
-  ["Beta",m.beta],
-  ["Hisse Başına Kâr",m.earnings_per_share??m.eps],
-  ["Defter Değeri/Hisse",m.book_value_per_share],
-  ["Serbest Nakit Akışı",m.free_cash_flow,"money"],
-  ["Net Borç",m.net_debt,"money"]
+  ["Temettü Verimi",m.dividend_yield??r.dividend_yield??y.dividendYield,"percent"],
+  ["ROE",m.return_on_equity??r.return_on_equity??y.returnOnEquity,"percent"],
+  ["ROA",m.return_on_assets??r.return_on_assets??y.returnOnAssets,"percent"],
+  ["Net Marj",m.net_profit_margin??r.net_profit_margin??y.netMargin,"percent"],
+  ["Borç/Özkaynak",m.debt_to_equity??r.debt_to_equity??y.debtToEquityComputed],
+  ["Cari Oran",m.current_ratio??r.current_ratio??y.currentRatio],
+  ["Beta",m.beta??y.beta],
+  ["Hisse Başına Kâr",m.earnings_per_share??m.eps??y.trailingEps],
+  ["Defter Değeri/Hisse",m.book_value_per_share??y.bookValue],
+  ["Önceki Kapanış",y.previousClose,"money"],
+  ["Gün Açılış",y.open,"money"],
+  ["Gün İçi Yüksek",y.dayHigh,"money"],
+  ["Gün İçi Düşük",y.dayLow,"money"],
+  ["Günlük Değişim",y.changePercent,"percent"],
+  ["Günlük Aralık",y.dailyRangePercent,"percent"],
+  ["Hacim",y.volume],
+  ["Ortalama Hacim",y.averageVolume],
+  ["SMA 50",y.sma50,"money"],
+  ["SMA 200",y.sma200,"money"],
+  ["SMA 50 Uzaklık",y.distanceFromSma50,"percent"],
+  ["SMA 200 Uzaklık",y.distanceFromSma200,"percent"],
+  ["20 Gün Momentum",y.momentum20d,"percent"],
+  ["50 Gün Momentum",y.momentum50d,"percent"],
+  ["20 Gün Volatilite",y.volatility20d,"percent"],
+  ["100 Gün Volatilite",y.historicalVolatility100d,"percent"],
+  ["Net Borç",m.net_debt??(y.netCash==null?null:-y.netCash),"money"]
  ];
  $("researchFundamentalContent").innerHTML=`<div class="researchMetricGrid">${values.map(([l,v,t])=>researchMetric(l,researchValue(v,{percent:t==="percent",money:t==="money"}))).join("")}</div>`;
 }
@@ -2352,6 +2369,27 @@ $("openDate").value=today;$("closeGeneralDate").value=today;$("mOpenDate").value
  },true);
  window.activateMarkets=activateMarkets;
 })();
+</script>
+
+
+<script>
+window.addEventListener("load",function(){
+ setTimeout(function(){
+  try{
+   var general=document.getElementById("general");
+   var cards=general&&general.querySelector(".cards");
+   if(general){
+    general.classList.add("active");
+    general.style.display="block";
+   }
+   if(cards)cards.style.display="grid";
+   if(typeof window.renderGeneral==="function")window.renderGeneral();
+   else if(typeof renderGeneral==="function")renderGeneral();
+  }catch(error){
+   console.error("Portfolio recovery error",error);
+  }
+ },200);
+});
 </script>
 
 </body>
