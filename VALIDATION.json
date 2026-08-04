@@ -1,11 +1,16 @@
 {
-  "version": "6.5",
+  "version": "6.7",
   "validated": true,
-  "fixes": [
-    "fixed centre viewport",
-    "resilient market navigation",
-    "Yahoo fundamental fallback"
+  "features": [
+    "model KPI cards",
+    "T+2 credit cost",
+    "manual commission units",
+    "exact timestamps",
+    "net current PnL amount",
+    "VIOP collateral ledger",
+    "Is Yatirim contract refresh",
+    "TCMB reference rate refresh"
   ],
-  "app_sha256": "52409ad5353382b8de5248453bce56d00a49b093c116c8a672626c38dea5ffde",
-  "server_sha256": "6dd4c5a21dd80f9f3e852314a8d7b3aa153026f81dce57e85c3c951e9c83cb5b"
+  "app_sha256": "de90851d2ed641b499585aedd5f168ac3c01e57514502b65129baf085f1885ce",
+  "server_sha256": "d02cea9092a85b72308aba76937d5b75eed5c690a3f9de6476a753f299fc87f9"
 }
