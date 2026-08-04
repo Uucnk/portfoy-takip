@@ -1,18 +1,17 @@
 {
-  "version": "7.0",
+  "version": "7.1",
   "validated": true,
-  "includes_v6_8_and_v6_9": true,
   "features": [
-    "global TradingView screener",
-    "SEC Company Facts fundamentals",
-    "valuation help tooltips",
-    "custom drawing tools",
-    "VIOP exact TradingView handoff",
-    "Oyak margin fallback",
-    "removed allocated capital",
-    "Ask ChatGPT handoff",
-    "mobile responsive shell"
+    "VIOP PSR live calculation",
+    "nonzero margin fallback",
+    "global futures catalog and prices",
+    "global futures margin estimates",
+    "drawable domestic and futures charts",
+    "continuous BIST futures codes",
+    "compact market cards",
+    "embedded Warren AI chat",
+    "optional OpenAI Responses API"
   ],
-  "app_sha256": "395d6d21b82828eb302146860efc287a617887f85d1ebf52eb47430685046f56",
-  "server_sha256": "71efa23e5774a83e1c582760cb4cd66744d6a1ad8562d621a837092ff4519dec"
+  "app_sha256": "4ca711c4431bf0939f8d59975f460aefa6df21386f379de22861ae33b15db472",
+  "server_sha256": "4dbb5409a64aad2ada5ad6b1842fa90a91700f207f7cf9d46fa05da0fc4fceb1"
 }
