@@ -1,17 +1,16 @@
 {
-  "version": "7.1",
+  "version": "7.2",
   "validated": true,
+  "fully_free_ai": true,
+  "api_key_required": false,
   "features": [
-    "VIOP PSR live calculation",
-    "nonzero margin fallback",
-    "global futures catalog and prices",
-    "global futures margin estimates",
-    "drawable domestic and futures charts",
-    "continuous BIST futures codes",
-    "compact market cards",
-    "embedded Warren AI chat",
-    "optional OpenAI Responses API"
+    "fixed chat send button",
+    "data-driven local market assistant",
+    "fundamental analysis",
+    "technical indicators",
+    "portfolio analysis",
+    "VIOP and futures margin Q&A"
   ],
-  "app_sha256": "4ca711c4431bf0939f8d59975f460aefa6df21386f379de22861ae33b15db472",
-  "server_sha256": "4dbb5409a64aad2ada5ad6b1842fa90a91700f207f7cf9d46fa05da0fc4fceb1"
+  "app_sha256": "0a86900a0333c57ba28e26483f5e5c6d75dd85017d74ab664e4b062dc32fbd3e",
+  "server_sha256": "b2f1c96c1e87db5ddafda963f960a4964ffe32635f3151b7f593989ad7d56d16"
 }
