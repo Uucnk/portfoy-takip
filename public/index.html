@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pozisyon ve Model Portföy Takip · v6.9</title>
+<title>Pozisyon ve Model Portföy Takip · v7.0</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -748,7 +748,7 @@ body.terminalHidden .app{right:0!important}
 /* v6.6 tab visibility recovery */
 .app>.tab{display:none!important}
 .app>.tab.active{display:block!important}
-#general.active,#model.active,#markets.active,#calendar.active{visibility:visible!important;opacity:1!important}
+#general.active,#model.active,#markets.active,#calendar.active,#askai.active{visibility:visible!important;opacity:1!important}
 .cards,.panel{position:relative;z-index:1}
 
 
@@ -853,8 +853,112 @@ body.terminalHidden .app{right:0!important}
 }
 .viopChartIdentity strong{color:#eef5fc;font-size:11px}
 
+
+/* v7.0 fundamentals, drawings, Ask ChatGPT and mobile */
+.researchMetricLabel{display:flex!important;align-items:center;gap:5px}
+.researchMetricLabel .infoTip{width:15px;height:15px;margin-left:1px;font-size:9px;flex:0 0 auto}
+.researchMetricLabel .infoTip:hover::after,
+.researchMetricLabel .infoTip:focus::after{
+ display:block;content:attr(data-tip);position:absolute;z-index:2147483647;
+ left:18px;top:-8px;width:min(310px,72vw);padding:10px 12px;border-radius:8px;
+ background:#172536;border:1px solid #3b526a;color:#edf5fd;font-size:10px;
+ font-weight:400;line-height:1.55;white-space:normal;box-shadow:0 12px 34px rgba(0,0,0,.45)
+}
+.researchMetricLabel .infoTip:focus{outline:2px solid #5a91d5;outline-offset:2px}
+.tvFallbackToolbar{position:relative;z-index:25}
+.tvFallbackButton,.tvExternalButton{
+ border:1px solid #31465c;background:#111e2b;color:#b6c7d8;border-radius:6px;
+ padding:6px 9px;font-size:9px;text-decoration:none;cursor:pointer
+}
+.tvFallbackButton.active{background:#2869dc;border-color:#2869dc;color:#fff}
+.tvExternalButton{background:#17345a;border-color:#3769a5;color:#dcecff}
+.tvFallbackCanvas{position:relative!important;touch-action:none}
+.tvDrawingOverlay{
+ position:absolute;inset:0;width:100%;height:100%;z-index:20;pointer-events:none
+}
+.tvDrawingOverlay.drawing{pointer-events:auto;cursor:crosshair}
+.tvProxyWarning{
+ padding:7px 10px;border-bottom:1px solid #564817;background:#2b250e;
+ color:#e7ce80;font-size:9px;line-height:1.45
+}
+.askAiShell{max-width:980px;margin:0 auto}
+.askAiHero{
+ display:grid;grid-template-columns:1.1fr .9fr;gap:14px;
+ background:linear-gradient(135deg,#0f2134,#111a26);border:1px solid #29445f;
+ border-radius:14px;padding:20px
+}
+.askAiHero h2{font-size:28px;margin:0 0 8px}
+.askAiComposer textarea{min-height:180px;font-size:14px;line-height:1.5}
+.askAiActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.askAiPromptGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.askAiPrompt{
+ text-align:left;padding:10px;background:#101e2c;border:1px solid #2b435a;
+ color:#aec3d9;border-radius:9px;font-size:10px;line-height:1.4
+}
+.askAiNotice{
+ padding:12px;border:1px solid #4e4520;background:#28230e;border-radius:9px;
+ color:#dfca7d;font-size:10px;line-height:1.55
+}
+.mobileDock,.mobileBackdrop{display:none}
+@media(max-width:900px){
+ body{--active-sidebar-w:0px!important;--active-terminal-w:0px!important}
+ .app{left:0!important;right:0!important;top:44px!important;bottom:48px!important;padding:14px 10px 82px!important}
+ .sidebar{
+  display:block!important;width:min(84vw,300px)!important;transform:translateX(-105%)!important;
+  transition:transform .22s ease!important;z-index:2147482000!important
+ }
+ .sidebar.mobileOpen{transform:translateX(0)!important}
+ .orderTerminal{
+  display:block!important;position:fixed!important;top:44px!important;bottom:48px!important;
+  right:0!important;width:min(94vw,420px)!important;max-width:94vw!important;
+  transform:translateX(105%)!important;transition:transform .22s ease!important;
+  z-index:2147482000!important;overflow-y:auto!important
+ }
+ .orderTerminal.mobileOpen{transform:translateX(0)!important}
+ .orderTerminal.collapsed{width:min(94vw,420px)!important;padding:12px!important}
+ .orderTerminal.collapsed .orderTerminalHead>div,
+ .orderTerminal.collapsed .orderTerminalTabs,
+ .orderTerminal.collapsed .orderTerminalPane{display:initial}
+ .mobileDock{
+  display:flex;position:fixed;left:50%;bottom:52px;transform:translateX(-50%);
+  z-index:2147482100;background:#0c1723;border:1px solid #2a4057;border-radius:14px;
+  padding:6px;gap:6px;box-shadow:0 8px 30px rgba(0,0,0,.45)
+ }
+ .mobileDock button{padding:9px 13px;font-size:10px}
+ .mobileBackdrop{
+  position:fixed;inset:0;background:rgba(1,7,13,.68);z-index:2147481900
+ }
+ body.mobileOverlayOpen .mobileBackdrop{display:block}
+ .cards.six,.modelKpiGrid,.modelFinanceGrid,.creditSettingsGrid,.viopBalanceGrid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important
+ }
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .span4{grid-column:1/-1!important}
+ .researchNav{overflow-x:auto;white-space:nowrap;justify-content:flex-start}
+ .researchMetricGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .researchHero,.askAiHero{grid-template-columns:1fr!important}
+ .askAiPromptGrid{grid-template-columns:1fr}
+ .researchHeader{padding:11px 12px!important}
+ .researchHeader h1{font-size:18px!important}
+ .researchScroll{padding:12px!important}
+ .researchTechnicalSection{min-height:640px}
+ .tradingViewResearchChart{height:590px!important}
+ .tableWrap{overflow-x:auto!important}
+ table{min-width:850px!important}
+ header{align-items:flex-start}
+ header h1{font-size:21px}
+}
+@media(max-width:560px){
+ .cards.six,.modelKpiGrid,.modelFinanceGrid,.creditSettingsGrid,.viopBalanceGrid,
+ .grid,.researchMetricGrid{grid-template-columns:1fr!important}
+ .app{padding-left:8px!important;padding-right:8px!important}
+ .researchMetric{min-height:84px}
+ .tvFallbackToolbar{gap:5px;padding:7px}
+ .tvFallbackButton,.tvExternalButton{padding:6px 7px}
+}
+
 </style>
-<meta name="portfolio-build" content="v6.9-fundamentals-viop-chart">
+<meta name="portfolio-build" content="v7.0-global-fundamentals-mobile">
 </head>
 <body>
 
@@ -882,6 +986,7 @@ body.terminalHidden .app{right:0!important}
       </div>
     </div>
     <button class="sideMain" data-side-tab="calendar"><span class="sideIcon">▣</span><span class="sideLabel">Calendar</span></button>
+    <button class="sideMain" data-side-tab="askai"><span class="sideIcon">✦</span><span class="sideLabel">Soru Sor</span></button>
   </nav>
 </aside>
 
@@ -897,6 +1002,11 @@ body.terminalHidden .app{right:0!important}
   <div id="generalOrderTerminal" class="orderTerminalPane active"></div>
   <div id="modelOrderTerminal" class="orderTerminalPane"></div>
 </aside>
+<div id="mobileBackdrop" class="mobileBackdrop"></div>
+<div class="mobileDock">
+ <button type="button" id="mobileMenuBtn" class="secondary">☰ Menü</button>
+ <button type="button" id="mobileOrderBtn">Emir Terminali</button>
+</div>
 
 
 <div id="researchModal" class="researchModal" aria-hidden="true">
@@ -929,7 +1039,7 @@ body.terminalHidden .app{right:0!important}
       </section>
 
       <section id="researchFundamentals" class="researchSection">
-        <div class="researchSectionTitle"><h2>Temel Veriler ve Oranlar</h2><span>Kaynak: OpenBB ODP</span></div>
+        <div class="researchSectionTitle"><h2>Temel Veriler ve Oranlar</h2><span>TradingView · SEC · Yahoo · OpenBB</span></div>
         <div id="researchFundamentalContent"></div>
       </section>
 
@@ -985,6 +1095,7 @@ body.terminalHidden .app{right:0!important}
   <button class="tabBtn" data-tab="model">Model Portföy</button>
   <button class="tabBtn" data-tab="markets">Markets</button>
   <button class="tabBtn" data-tab="calendar">Calendar</button>
+  <button class="tabBtn" data-tab="askai">Soru Sor</button>
 </div>
 
 
@@ -1109,6 +1220,7 @@ body.terminalHidden .app{right:0!important}
               <div class="viopMarginSummary">
                 <div><span>Seçilen Kontrat</span><strong id="gSelectedContract">-</strong></div>
                 <div><span>Vade Tarihi</span><strong id="gSelectedExpiry">-</strong></div>
+                <div><span>Toplam Pozisyon Büyüklüğü</span><strong id="gTotalNotional">0 TRY</strong></div>
                 <div><span>Toplam Başlangıç Teminatı</span><strong id="gTotalInitialMargin">0 TRY</strong></div>
                 <div><span>Toplam Sürdürme Teminatı</span><strong id="gTotalMaintenanceMargin">0 TRY</strong></div>
               </div>
@@ -1230,7 +1342,6 @@ body.terminalHidden .app{right:0!important}
         <div><label>Açılış Fiyatı *</label><input id="mEntry" type="number" step="any" required></div>
         <div><label>Miktar *</label><input id="mQty" type="number" step="any" value="1" required></div><input id="mDailyChange" type="hidden" value="0">
         <div><label>Açılış Tarihi ve Saati *</label><input id="mOpenDate" type="datetime-local" required></div>
-        <div><label>Pozisyona Ayrılan Sermaye</label><input id="mAllocated" type="number" step="any"></div>
         <div><label>Komisyon Birimi</label><select id="mCommissionUnit"><option value="binde">Binde</option><option value="onbinde" selected>Onbinde</option><option value="yuzbinde">Yüzbinde</option></select></div>
         <div><label>Komisyon Oranı</label><input id="mCommissionRate" type="number" min="0" step="0.01" value="0"></div>
         <div id="mViopFields" class="span4 hidden">
@@ -1413,6 +1524,37 @@ body.terminalHidden .app{right:0!important}
   </div>
 </section>
 
+<section id="askai" class="tab">
+ <div class="askAiShell">
+  <div class="askAiHero">
+   <div>
+    <div class="researchEyebrow">RESMÎ CHATGPT</div>
+    <h2>Finans ve piyasa sorularını ChatGPT’ye sor</h2>
+    <p class="muted">Sorun panoya kopyalanır ve resmî ChatGPT web uygulaması yeni sekmede açılır. ChatGPT Free kullanılabilir; oturum açma ve kullanım limitleri OpenAI hesabına bağlıdır.</p>
+    <div class="askAiNotice">Bu site ChatGPT’yi kendi içine gömmez ve konuşmaları saklamaz. Ücretsiz, sınırsız bir OpenAI API bağlantısı bulunmadığı için güvenli yönlendirme yöntemi kullanılır.</div>
+   </div>
+   <div class="askAiComposer">
+    <label>Sorun</label>
+    <textarea id="askAiPrompt" placeholder="Örnek: F/K ve FD/FAVÖK arasındaki farkı, yatırım danışmanı seviyesinde açıkla."></textarea>
+    <div class="askAiActions">
+     <button type="button" id="askChatGPTBtn">Soruyu Kopyala ve ChatGPT’yi Aç</button>
+     <button type="button" id="clearAskAi" class="secondary">Temizle</button>
+    </div>
+    <div id="askAiStatus" class="referenceStatus">Hazır.</div>
+   </div>
+  </div>
+  <div class="panel" style="margin-top:14px">
+   <h3>Hazır soru örnekleri</h3>
+   <div class="askAiPromptGrid">
+    <button class="askAiPrompt" data-ai-prompt="Bu şirketin F/K, PD/DD, FD/FAVÖK, ROE ve borçluluk oranlarını birlikte nasıl yorumlamalıyım?">Değerleme oranlarını birlikte yorumla</button>
+    <button class="askAiPrompt" data-ai-prompt="VİOP başlangıç teminatı, sürdürme teminatı ve kaldıraç ilişkisini örnekle açıkla.">VİOP teminat mantığını açıkla</button>
+    <button class="askAiPrompt" data-ai-prompt="Bu pozisyon için profesyonel bir risk yönetimi ve stop planı oluştururken hangi değişkenlere bakmalıyım?">Risk yönetimi planı</button>
+    <button class="askAiPrompt" data-ai-prompt="Bir hissenin temel analizi ile teknik analizini tek bir yatırım tezinde nasıl birleştirebilirim?">Temel ve teknik analizi birleştir</button>
+   </div>
+  </div>
+ </div>
+</section>
+
 <div class="note">Veriler Chrome tarayıcısının yerel hafızasında tutulur. Düzenli olarak “Yedek Al” butonunu kullanın.</div>
 </div>
 <div id="bottomTicker" class="fixedTicker bottom"><div id="bottomTickerTrack" class="tickerTrack"><span class="tickerItem">Emtia ve döviz verileri yükleniyor…</span></div></div>
@@ -1535,6 +1677,15 @@ function setOrderMode(mode){
  $("modelOrderTerminal").classList.toggle("active",mode==="model");
  $("orderTerminalTitle").textContent=mode==="general"?"Portfolio Pozisyonu":"Model Portföy Pozisyonu";
 }
+function syncMobileOverlay(){
+ const open=$("sidebar")?.classList.contains("mobileOpen")||$("orderTerminal")?.classList.contains("mobileOpen");
+ document.body.classList.toggle("mobileOverlayOpen",Boolean(open));
+}
+function closeMobilePanels(){
+ $("sidebar")?.classList.remove("mobileOpen");
+ $("orderTerminal")?.classList.remove("mobileOpen");
+ syncMobileOverlay();
+}
 function showMainTab(tabId){
  document.querySelectorAll(".tab").forEach(s=>{const on=s.id===tabId;s.classList.toggle("active",on);s.style.display=on?"block":"none"});
  document.querySelectorAll("[data-side-tab]").forEach(b=>b.classList.toggle("active",b.dataset.sideTab===tabId));
@@ -1543,6 +1694,7 @@ function showMainTab(tabId){
  document.body.classList.toggle("terminalHidden",!showTerminal);
  setOrderMode(tabId==="model"?"model":"general");
  if(tabId==="markets")setTimeout(()=>loadMarkets(activeMarketCategory||"all"),0);
+ if(window.innerWidth<=900)closeMobilePanels();
 }
 document.querySelectorAll("[data-order-mode]").forEach(b=>b.addEventListener("click",()=>setOrderMode(b.dataset.orderMode)));
 if(localStorage.getItem("sidebarClosed")==="1"){$("sidebar").classList.add("closed");document.body.classList.add("sidebarClosed")}
@@ -1550,6 +1702,13 @@ $("sidebarToggle").addEventListener("click",()=>{const c=$("sidebar").classList.
 if(localStorage.getItem("terminalCollapsed")==="1"){$("orderTerminal").classList.add("collapsed");document.body.classList.add("terminalCollapsed")}
 $("orderTerminalCollapse").addEventListener("click",()=>{const c=$("orderTerminal").classList.toggle("collapsed");document.body.classList.toggle("terminalCollapsed",c);localStorage.setItem("terminalCollapsed",c?"1":"0")});
 document.querySelectorAll("[data-side-tab]").forEach(b=>b.addEventListener("click",()=>{const tab=b.dataset.sideTab;if(tab==="markets"){const sm=$("marketsSubmenu");const open=!sm.classList.contains("open");sm.classList.toggle("open",open);b.classList.toggle("expanded",open)}showMainTab(tab)}));
+$("mobileMenuBtn")?.addEventListener("click",()=>{
+ $("sidebar").classList.toggle("mobileOpen");$("orderTerminal").classList.remove("mobileOpen");syncMobileOverlay();
+});
+$("mobileOrderBtn")?.addEventListener("click",()=>{
+ $("orderTerminal").classList.toggle("mobileOpen");$("sidebar").classList.remove("mobileOpen");syncMobileOverlay();
+});
+$("mobileBackdrop")?.addEventListener("click",closeMobilePanels);
 document.querySelectorAll("[data-market-target]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();const c=b.dataset.marketTarget;document.querySelectorAll("[data-market-target]").forEach(x=>x.classList.toggle("active",x.dataset.marketTarget===c));showMainTab("markets");loadMarkets(c)}));
 
 const n=v=>{const x=parseFloat(v);return Number.isFinite(x)?x:null};
@@ -1778,7 +1937,7 @@ function renderGeneralPie(){
 }
 function renderModelPie(){
   const active=model.filter(p=>p.status==="Aktif");
-  drawPie("modelPie","modelPieLegend",active.map(p=>({name:p.symbol,type:p.assetClass,value:Math.abs((p.allocated&&p.allocated>0)?p.allocated:(p.entry||0)*(p.qty||0))})));
+  drawPie("modelPie","modelPieLegend",active.map(p=>({name:p.symbol,type:p.assetClass,value:positionSize(p)})));
 }
 
 let generalDailyFilter="all",generalTotalFilter="all",modelDailyFilter="all",modelTotalFilter="all";
@@ -1881,11 +2040,30 @@ window.renderGeneral=function renderGeneral(){
  const q=$("activeSearch").value.toLowerCase(),tp=$("activeType").value,dr=$("activeDir").value;const fa=a.filter(p=>(!q||(`${p.symbol} ${p.optionType||""}`).toLowerCase().includes(q))&&(!tp||p.assetClass===tp)&&(!dr||p.direction===dr));
  $("activeTable").innerHTML=generalTable(fa,false);$("closedTable").innerHTML=generalTable(c,true);$("closeGeneralSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';renderGeneralPie();renderGeneralPerformance();renderActivities();
 }
-$("generalForm").addEventListener("submit",e=>{e.preventDefault();const vc=currentSelectedViopContract("general");const p={id:id(),status:"Aktif",assetClass:$("assetClass").value,optionType:isOptionType($("assetClass").value)?$("optionType").value:null,symbol:$("symbol").value.trim().toUpperCase(),yahooSymbol:$("yahooSymbol").value.trim().toUpperCase(),direction:$("direction").value,currency:$("currency").value,entry:n($("entry").value),currentPrice:n($("entry").value),dailyChange:n($("dailyChange").value)||0,qty:n($("qty").value)||1,stop:n($("stop").value),target:n($("target").value),openDateTime:$("openDate").value||nowLocal(),openDate:($("openDate").value||nowLocal()).slice(0,10),expiry:$("expiry").value,thesis:$("thesis").value,riskNote:$("riskNote").value,viopContract:$("gViopContract")?.value||"",contractSize:n($("gContractSize")?.value)||1,initialMargin:n($("gInitialMargin")?.value)||0,maintenanceMargin:n($("gMaintenanceMargin")?.value)||0,contractExpiry:vc?.expiryDate||vc?.maturityLabel||""};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}if(isViopPosition(p)&&!p.viopContract){alert("VİOP için dayanak varlık ve vade seçin.");return}general.unshift(p);save();e.target.reset();$("openDate").value=nowLocal();$("qty").value=1;syncModelViopVisibility();renderGeneral();alert("Pozisyon aktif pozisyonlara eklendi.")});
+$("generalForm").addEventListener("submit",e=>{e.preventDefault();const vc=currentSelectedViopContract("general");const p={id:id(),status:"Aktif",assetClass:$("assetClass").value,optionType:isOptionType($("assetClass").value)?$("optionType").value:null,symbol:$("symbol").value.trim().toUpperCase(),yahooSymbol:$("yahooSymbol").value.trim().toUpperCase(),direction:$("direction").value,currency:$("currency").value,entry:n($("entry").value),currentPrice:n($("entry").value),dailyChange:n($("dailyChange").value)||0,qty:n($("qty").value)||1,stop:n($("stop").value),target:n($("target").value),openDateTime:$("openDate").value||nowLocal(),openDate:($("openDate").value||nowLocal()).slice(0,10),expiry:$("expiry").value,thesis:$("thesis").value,riskNote:$("riskNote").value,viopContract:$("gViopContract")?.value||"",contractSize:n($("gContractSize")?.value)||1,initialMargin:n($("gInitialMargin")?.value)||0,maintenanceMargin:n($("gMaintenanceMargin")?.value)||0,contractExpiry:vc?.expiryDate||vc?.maturityLabel||""};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}if(isViopPosition(p)&&!p.viopContract){alert("VİOP için dayanak varlık ve vade seçin.");return}general.unshift(p);save();e.target.reset();document.querySelectorAll("[data-ai-prompt]").forEach(btn=>btn.addEventListener("click",()=>{
+ $("askAiPrompt").value=btn.dataset.aiPrompt||"";
+ $("askAiPrompt").focus();
+}));
+$("clearAskAi")?.addEventListener("click",()=>{$("askAiPrompt").value="";$("askAiStatus").textContent="Temizlendi."});
+$("askChatGPTBtn")?.addEventListener("click",async()=>{
+ const prompt=$("askAiPrompt").value.trim();
+ if(!prompt){$("askAiStatus").textContent="Önce bir soru yazın.";return}
+ let copied=false;
+ try{await navigator.clipboard.writeText(prompt);copied=true}catch{}
+ if(!copied){
+  $("askAiPrompt").select();
+  try{copied=document.execCommand("copy")}catch{}
+ }
+ $("askAiStatus").textContent=copied
+  ?"Soru panoya kopyalandı. ChatGPT açıldığında yapıştırın."
+  :"ChatGPT açılıyor. Soruyu bu kutudan kopyalayıp yapıştırın.";
+ window.open("https://chatgpt.com/","_blank","noopener,noreferrer");
+});
+$("openDate").value=nowLocal();$("qty").value=1;syncModelViopVisibility();renderGeneral();alert("Pozisyon aktif pozisyonlara eklendi.")});
 $("closeGeneralBtn").onclick=()=>{const p=general.find(x=>x.id===$("closeGeneralSelect").value),price=n($("closeGeneralPrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDateTime=$("closeGeneralDate").value||nowLocal();p.closeDate=p.closeDateTime.slice(0,10);save();$("closeGeneralPrice").value="";renderGeneral()};
 window.deleteGeneral=x=>{if(confirm("Kayıt silinsin mi?")){general=general.filter(p=>p.id!==x);save();renderGeneral()}};
 
-function mpnl(p){return netClosedPnl(p)}function mret(p){if(p.status!=="Kapalı")return null;const base=Number(p.allocated)||tradeNotional(p,p.entry);return base?(mpnl(p)||0)/base:0}
+function mpnl(p){return netClosedPnl(p)}function mret(p){if(p.status!=="Kapalı")return null;const base=tradeNotional(p,p.entry);return base?(mpnl(p)||0)/base:0}
 const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const sd=a=>a.length<2?0:Math.sqrt(a.reduce((s,x)=>s+(x-mean(a))**2,0)/(a.length-1));
 const variance=a=>sd(a)**2;
@@ -1909,18 +2087,18 @@ function modelTable(arr,closed){
  const wrapClass=closed?"tableWrap":"tableWrap compactPositions";
  return`<div class="${wrapClass}"><table><thead><tr>
  <th>Sembol</th><th>Ürün</th><th>Yön</th><th>Açılış</th><th>Güncel Fiyat</th><th>Güncel K/Z Tutarı</th><th>Güncel K/Z %</th><th>Pozisyon Büyüklüğü</th>
- <th>Miktar</th><th>Ayrılan Sermaye</th><th>Açılış Tarihi / Saati</th><th>Açılış Komisyonu</th><th>Kredi Maliyeti</th><th>VİOP Teminatı</th>
+ <th>Miktar</th><th>Açılış Tarihi / Saati</th><th>Açılış Komisyonu</th><th>Kredi Maliyeti</th><th>VİOP Teminatı</th>
  ${closed?'<th>Kapanış</th><th>Kapanış Tarihi / Saati</th><th>Net K/Z</th><th>Net Getiri %</th><th>Benchmark %</th>':''}<th>İşlem</th></tr></thead><tbody>
  ${arr.map(p=>{
   const net=closed?netClosedPnl(p):netLivePnl(p);
-  const base=Number(p.allocated)||tradeNotional(p,p.entry);
+  const base=tradeNotional(p,p.entry);
   const netPct=base?net/base*100:0;
   return`<tr><td><strong class="clickableSymbol" onclick="openPositionResearch('model','${p.id}')">${esc(p.viopContract||p.symbol)}</strong><div class="muted">${esc(isViopPosition(p)?p.symbol:(p.yahooSymbol||""))}</div></td>
  <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}${isViopPosition(p)?`<div><span class="viopPill">${esc(p.viopContract||"VİOP")}</span></div>`:""}</td><td>${esc(p.direction)}</td>
  <td>${f(p.entry,4)}</td><td>${f(p.currentPrice??p.entry,4)}</td>
  <td class="netPnl ${net>=0?"positive":"negative"}">${f(net,2)} ${esc(p.currency||"")}</td>
  <td class="${netPct>=0?"positive":"negative"}">${f(netPct,2)}%</td>
- <td class="positionSize">${f(positionSize(p),2)} ${esc(p.currency||"")}</td><td>${f(p.qty,2)}</td><td>${f(p.allocated,2)}</td>
+ <td class="positionSize">${f(positionSize(p),2)} ${esc(p.currency||"")}</td><td>${f(p.qty,2)}</td>
  <td class="dateTimeCell">${formatDateTime(p.openDateTime||p.openDate)}</td>
  <td class="costCell">${f(openCommissionValue(p),2)} ${esc(p.currency||"")}</td>
  <td class="costCell creditBadge">${f(financingCostValue(p),2)} ${esc(p.currency||"")}</td>
@@ -2020,6 +2198,7 @@ function updateViopMarginSummary(scope,c=currentSelectedViopContract(scope)){
  if(isGeneral){
   $("gSelectedContract").textContent=c?.code||"-";
   $("gSelectedExpiry").textContent=c?.expiryDate||c?.maturityLabel||"-";
+  if($("gTotalNotional"))$("gTotalNotional").textContent=f(price*qty*contractSize,2)+" TRY";
   $("gTotalInitialMargin").textContent=f(initial*qty,2)+" TRY";
   $("gTotalMaintenanceMargin").textContent=f(maintenance*qty,2)+" TRY";
  }
@@ -2107,7 +2286,7 @@ $("modelForm").addEventListener("submit",e=>{
   direction:$("mDirection").value,currency:$("mCurrency").value,entry:n($("mEntry").value),
   currentPrice:n($("mEntry").value),dailyChange:n($("mDailyChange").value)||0,qty:n($("mQty").value)||1,
   openDateTime:$("mOpenDate").value||nowLocal(),openDate:($("mOpenDate").value||nowLocal()).slice(0,10),
-  allocated:n($("mAllocated").value),stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value,
+  stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value,
   commissionUnit:$("mCommissionUnit").value,commissionRate:n($("mCommissionRate").value)||0,
   closeCommissionUnit:$("mCommissionUnit").value,closeCommissionRate:n($("mCommissionRate").value)||0,
   viopContract:$("mViopContract").value||"",contractSize:n($("mContractSize").value)||1,
@@ -2501,6 +2680,31 @@ async function loadFunds(){$("marketContent").className="";$("marketContent").in
 
 let currentResearchAsset=null;
 
+const FUNDAMENTAL_GUIDE={
+ "F/K":"Fiyatın hisse başına kâra oranıdır. Genel eğitim bandı: negatif değer zarar anlamına gelir; 0–10 düşük, 10–20 dengeli, 20–35 büyüme primi, 35 üzeri yüksek kabul edilebilir. Sektör büyümesi ve tek seferlik kârlar mutlaka kontrol edilmelidir.",
+ "İleri F/K":"Analistlerin gelecek dönem kâr tahminine göre F/K oranıdır. Mevcut F/K’dan düşük olması kâr artışı beklentisine işaret edebilir. 10–20 genel olarak dengeli, 30 üzeri yüksek büyüme beklentisi gerektirir.",
+ "PD/DD":"Piyasa değerinin özkaynaklara oranıdır. 1 altı defter değerinin altında, 1–3 çoğu sektör için makul, 3–5 primli, 5 üzeri yüksek kabul edilir. Banka ve finans şirketlerinde bu oran daha önemlidir; yüksek ROE yüksek PD/DD’yi haklı çıkarabilir.",
+ "FD/FAVÖK":"Firma değerinin faiz, vergi ve amortisman öncesi kâra oranıdır. Borcu da hesaba katar. 8 altı düşük, 8–12 dengeli, 12–15 primli, 15 üzeri pahalı sayılabilir. Bankalarda kullanılması uygun değildir.",
+ "F/S":"Piyasa değerinin satışlara oranıdır. 1 altı düşük, 1–3 dengeli, 3–5 primli, 5 üzeri yüksek kabul edilir. Düşük marjlı ve yüksek marjlı sektörler ayrı değerlendirilmelidir.",
+ "FD/Satış":"Firma değerinin satışlara oranıdır; borcu F/S’ye göre daha iyi yansıtır. 1 altı düşük, 1–3 dengeli, 3 üzeri yüksek olabilir. Net marj ve büyüme oranıyla birlikte okunmalıdır.",
+ "PEG":"F/K oranını beklenen kâr büyümesine böler. 1 altı görece cazip, 1–2 dengeli, 2 üzeri büyümeye göre pahalı kabul edilebilir. Büyüme tahminleri değişken olduğu için tek başına kullanılmamalıdır.",
+ "Temettü Verimi":"Yıllık temettünün hisse fiyatına oranıdır. %2–4 dengeli, %4 üzeri yüksek sayılabilir; ancak sürdürülebilir nakit akışı ve dağıtım oranı kontrol edilmelidir.",
+ "ROE":"Özkaynak kârlılığıdır. %8 altı zayıf, %8–15 orta, %15–25 güçlü, %25 üzeri çok güçlü olabilir. Çok yüksek borç ROE’yi yapay biçimde yükseltebilir.",
+ "ROA":"Varlıkların ne kadar verimli kâr ürettiğini gösterir. %3 altı düşük, %3–8 orta, %8 üzeri güçlü sayılabilir. Bankalarda daha düşük oranlar normaldir.",
+ "Brüt Marj":"Satışlardan direkt maliyetler çıktıktan sonra kalan paydır. Yüksek ve istikrarlı olması fiyatlama gücüne işaret eder. Ortalama tamamen sektöre bağlıdır.",
+ "Faaliyet Marjı":"Ana faaliyetlerden yaratılan kârın satışlara oranıdır. %5 altı düşük, %5–15 orta, %15 üzeri güçlü olabilir; sektör karşılaştırması şarttır.",
+ "Net Marj":"Satışların ne kadarının net kâra dönüştüğünü gösterir. %5 altı düşük, %5–15 orta, %15 üzeri güçlü kabul edilebilir; finans ve teknoloji sektörlerinde farklılaşır.",
+ "Borç/Özkaynak":"Toplam borcun özkaynaklara oranıdır. 0,5 altı düşük, 0,5–1,5 orta, 2 üzeri yüksek borçluluk olabilir. Banka ve finans şirketlerinde bu bantlar kullanılmaz.",
+ "Cari Oran":"Dönen varlıkların kısa vadeli yükümlülüklere oranıdır. 1 altı likidite riski, 1–2 dengeli, 2 üzeri güçlü likidite gösterebilir. Fazla yüksek değer verimsiz işletme sermayesine işaret edebilir.",
+ "Hızlı Oran":"Stokları hariç tutarak kısa vadeli ödeme gücünü ölçer. 1 civarı genellikle yeterli, 1 altı dikkat gerektirir; sektörün stok yapısı önemlidir.",
+ "Beta":"Hissenin piyasa hareketlerine duyarlılığıdır. 1 piyasa ile benzer, 1 altı daha düşük, 1 üzeri daha yüksek sistematik oynaklık demektir.",
+ "Hisse Başına Kâr":"Net kârın hisse sayısına bölünmüş halidir. Tek başına iyi/kötü eşiği yoktur; büyüme trendi ve fiyatla birlikte değerlendirilir.",
+ "Defter Değeri/Hisse":"Özkaynağın hisse başına düşen kısmıdır. Piyasa fiyatıyla karşılaştırılarak PD/DD hesaplanır.",
+ "Serbest Nakit Akışı":"Faaliyet nakit akışından yatırım harcamaları çıkarıldıktan sonra kalan nakittir. Pozitif ve büyüyen değer finansal esneklik açısından olumludur.",
+ "Toplam Gelir (TTM)":"Son on iki aylık satış geliridir. Nominal tutardan çok büyüme, marj ve enflasyona göre reel gelişim önemlidir.",
+ "Net Kâr (TTM)":"Son on iki aylık net kârdır. Tek seferlik gelir/giderler ve sürdürülebilirlik kontrol edilmelidir.",
+ "FAVÖK (TTM)":"Ana faaliyetlerin amortisman öncesi nakit yaratma kapasitesini yaklaşık gösterir. Borç ve yatırım ihtiyacını tek başına göstermez."
+};
 function researchValue(v,options={}){
  if(v===null||v===undefined||v==="")return"-";
  if(typeof v==="number"){
@@ -2511,7 +2715,9 @@ function researchValue(v,options={}){
  return esc(v);
 }
 function researchMetric(label,value,hint=""){
- return`<div class="researchMetric"><div class="researchMetricLabel">${esc(label)}</div><div class="researchMetricValue">${value}</div>${hint?`<div class="researchMetricHint">${esc(hint)}</div>`:""}</div>`;
+ const guide=FUNDAMENTAL_GUIDE[label];
+ const help=guide?`<span class="infoTip" tabindex="0" role="button" aria-label="${esc(label)} açıklaması" data-tip="${esc(guide)}">?</span>`:"";
+ return`<div class="researchMetric"><div class="researchMetricLabel">${esc(label)}${help}</div><div class="researchMetricValue">${value}</div>${hint?`<div class="researchMetricHint">${esc(hint)}</div>`:""}</div>`;
 }
 function firstRecord(data){
  if(Array.isArray(data))return data[0]||{};
@@ -2597,23 +2803,123 @@ function tradingViewSymbolFor(asset){
  return`NASDAQ:${plain}`;
 }
 function isTradingViewWidgetRestricted(asset){
- if(isViopResearchAsset(asset))return false;
+ if(isViopResearchAsset(asset))return true;
  const yahoo=String(asset.yahooSymbol||"").toUpperCase();
  return yahoo.endsWith(".IS")||String(asset.market||"").toUpperCase()==="BIST";
 }
 let fallbackTvChart=null;
+let fallbackCandleSeries=null;
 let fallbackResizeObserver=null;
+let fallbackOverlay=null;
+let fallbackDrawings=[];
+let fallbackDrawTool="cursor";
+let fallbackPendingPoint=null;
+let fallbackPreviewPoint=null;
+
+function tradingViewFullChartUrl(asset){
+ return`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tradingViewSymbolFor(asset))}`;
+}
+function resizeDrawingOverlay(){
+ if(!fallbackOverlay)return;
+ const rect=fallbackOverlay.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+ fallbackOverlay.width=Math.max(1,Math.round(rect.width*dpr));
+ fallbackOverlay.height=Math.max(1,Math.round(rect.height*dpr));
+ const ctx=fallbackOverlay.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);
+ redrawFallbackDrawings();
+}
+function pointToCoordinates(point){
+ if(!fallbackTvChart||!fallbackCandleSeries||!point)return null;
+ const x=fallbackTvChart.timeScale().timeToCoordinate(point.time);
+ const y=fallbackCandleSeries.priceToCoordinate(point.price);
+ return Number.isFinite(x)&&Number.isFinite(y)?{x,y}:null;
+}
+function drawStoredDrawing(ctx,drawing){
+ const a=pointToCoordinates(drawing.a),b=pointToCoordinates(drawing.b);
+ if(!a)return;
+ ctx.save();ctx.lineWidth=1.5;ctx.strokeStyle="#5fa4ff";ctx.fillStyle="#9bc6ff";ctx.font="10px Arial";
+ if(drawing.type==="hline"){
+  ctx.beginPath();ctx.moveTo(0,a.y);ctx.lineTo(fallbackOverlay.clientWidth,a.y);ctx.stroke();
+  ctx.fillText(Number(drawing.a.price).toLocaleString("tr-TR",{maximumFractionDigits:4}),6,a.y-5);
+ }else if(a&&b&&drawing.type==="trend"){
+  ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+ }else if(a&&b&&drawing.type==="fib"){
+  const levels=[0,.236,.382,.5,.618,.786,1],top=a.y,bottom=b.y;
+  levels.forEach(level=>{
+   const y=top+(bottom-top)*level;
+   ctx.globalAlpha=level===.5||level===.618?1:.65;
+   ctx.beginPath();ctx.moveTo(Math.min(a.x,b.x),y);ctx.lineTo(fallbackOverlay.clientWidth,y);ctx.stroke();
+   ctx.fillText(`${(level*100).toFixed(1)}%`,Math.min(a.x,b.x)+4,y-4);
+  });
+ }
+ ctx.restore();
+}
+function redrawFallbackDrawings(){
+ if(!fallbackOverlay)return;
+ const ctx=fallbackOverlay.getContext("2d"),rect=fallbackOverlay.getBoundingClientRect();
+ ctx.clearRect(0,0,rect.width,rect.height);
+ fallbackDrawings.forEach(d=>drawStoredDrawing(ctx,d));
+ if(fallbackPendingPoint&&fallbackPreviewPoint){
+  drawStoredDrawing(ctx,{type:fallbackDrawTool,a:fallbackPendingPoint,b:fallbackPreviewPoint});
+ }
+}
+function eventToChartPoint(event){
+ if(!fallbackOverlay||!fallbackTvChart||!fallbackCandleSeries)return null;
+ const rect=fallbackOverlay.getBoundingClientRect();
+ const x=event.clientX-rect.left,y=event.clientY-rect.top;
+ const time=fallbackTvChart.timeScale().coordinateToTime(x);
+ const price=fallbackCandleSeries.coordinateToPrice(y);
+ return time!==null&&Number.isFinite(Number(price))?{time,price:Number(price)}:null;
+}
+function setFallbackDrawTool(tool){
+ fallbackDrawTool=tool;fallbackPendingPoint=null;fallbackPreviewPoint=null;
+ document.querySelectorAll("[data-draw-tool]").forEach(b=>b.classList.toggle("active",b.dataset.drawTool===tool));
+ if(fallbackOverlay)fallbackOverlay.classList.toggle("drawing",tool!=="cursor");
+ redrawFallbackDrawings();
+}
+function bindFallbackDrawingTools(){
+ document.querySelectorAll("[data-draw-tool]").forEach(btn=>btn.addEventListener("click",()=>setFallbackDrawTool(btn.dataset.drawTool)));
+ $("fallbackUndo")?.addEventListener("click",()=>{fallbackDrawings.pop();redrawFallbackDrawings()});
+ $("fallbackClear")?.addEventListener("click",()=>{fallbackDrawings=[];fallbackPendingPoint=null;redrawFallbackDrawings()});
+ if(!fallbackOverlay)return;
+ fallbackOverlay.addEventListener("pointerdown",event=>{
+  if(fallbackDrawTool==="cursor")return;
+  const point=eventToChartPoint(event);if(!point)return;
+  if(fallbackDrawTool==="hline"){
+   fallbackDrawings.push({type:"hline",a:point});redrawFallbackDrawings();return;
+  }
+  if(!fallbackPendingPoint){fallbackPendingPoint=point;fallbackPreviewPoint=point;redrawFallbackDrawings();return}
+  fallbackDrawings.push({type:fallbackDrawTool,a:fallbackPendingPoint,b:point});
+  fallbackPendingPoint=null;fallbackPreviewPoint=null;redrawFallbackDrawings();
+ });
+ fallbackOverlay.addEventListener("pointermove",event=>{
+  if(!fallbackPendingPoint||fallbackDrawTool==="cursor")return;
+  fallbackPreviewPoint=eventToChartPoint(event);redrawFallbackDrawings();
+ });
+}
 async function mountDelayedFallbackChart(asset,range="1y",interval="1d"){
  const container=$("tradingViewResearchChart");
  if(fallbackResizeObserver){fallbackResizeObserver.disconnect();fallbackResizeObserver=null}
  if(fallbackTvChart){try{fallbackTvChart.remove()}catch{} fallbackTvChart=null}
- const yahooSymbol=asset.yahooSymbol||(String(asset.symbol).endsWith(".IS")?asset.symbol:`${asset.symbol}.IS`);
+ fallbackCandleSeries=null;fallbackOverlay=null;fallbackDrawings=[];fallbackPendingPoint=null;
+ const isViop=isViopResearchAsset(asset);
+ const fundamental=fundamentalSymbolForAsset(asset);
+ const yahooSymbol=isViop
+  ?(fundamental.endsWith(".IS")?fundamental:`${String(asset.underlying||asset.symbol).replace(/^F_/,"")}.IS`)
+  :(asset.yahooSymbol||(String(asset.symbol).endsWith(".IS")?asset.symbol:`${asset.symbol}.IS`));
+ const exactTv=tradingViewSymbolFor(asset);
  container.innerHTML=`<div class="tvFallbackWrap">
   <div class="tvFallbackToolbar">
-   <span class="tvFallbackSymbol">${esc(asset.symbol)} · Gecikmeli Teknik Grafik</span>
+   <span class="tvFallbackSymbol">${esc(isViop?(asset.viopContract||asset.symbol):asset.symbol)} · ${isViop?"Dayanak Spot Proxy Grafik":"Gecikmeli Teknik Grafik"}</span>
    ${[["1mo","1A"],["3mo","3A"],["6mo","6A"],["1y","1Y"],["5y","5Y"]].map(([r,l])=>`<button class="tvFallbackButton ${r===range?"active":""}" data-fallback-range="${r}">${l}</button>`).join("")}
-   <span class="tvFallbackNote">TradingView Lightweight Charts · fiyat verisi Yahoo/OpenBB</span>
+   <button class="tvFallbackButton active" data-draw-tool="cursor">İmleç</button>
+   <button class="tvFallbackButton" data-draw-tool="trend">Trend</button>
+   <button class="tvFallbackButton" data-draw-tool="hline">Yatay</button>
+   <button class="tvFallbackButton" data-draw-tool="fib">Fibo</button>
+   <button class="tvFallbackButton" id="fallbackUndo">Geri Al</button>
+   <button class="tvFallbackButton" id="fallbackClear">Temizle</button>
+   ${isViop?`<a class="tvExternalButton" target="_blank" rel="noopener" href="${esc(tradingViewFullChartUrl(asset))}">Gerçek VİOP Grafiğini TradingView’de Aç ↗</a>`:""}
   </div>
+  ${isViop?`<div class="tvProxyWarning">TradingView, bu VİOP sözleşmesini haricî widget içinde göstermiyor. Aşağıdaki çizilebilir grafik ${esc(yahooSymbol)} dayanak spot verisidir; gerçek ${esc(exactTv)} sözleşmesi üstteki düğmeyle TradingView’de açılır.</div>`:""}
   <div id="tvFallbackCanvas" class="tvFallbackCanvas"><div class="tvFallbackLoading">Grafik yükleniyor…</div></div>
  </div>`;
  container.querySelectorAll("[data-fallback-range]").forEach(btn=>btn.addEventListener("click",()=>mountDelayedFallbackChart(asset,btn.dataset.fallbackRange,interval)));
@@ -2621,9 +2927,8 @@ async function mountDelayedFallbackChart(asset,range="1y",interval="1d"){
   const response=await fetch(`/api/chart/history?symbol=${encodeURIComponent(yahooSymbol)}&range=${encodeURIComponent(range)}&interval=${encodeURIComponent(interval)}`);
   const payload=await response.json();
   if(!response.ok)throw new Error(payload.error||"Grafik verisi alınamadı");
-  const canvas=$("tvFallbackCanvas");
-  canvas.innerHTML="";
-  if(!window.LightweightCharts)throw new Error("TradingView grafik kütüphanesi yüklenemedi");
+  const canvas=$("tvFallbackCanvas");canvas.innerHTML="";
+  if(!window.LightweightCharts)throw new Error("TradingView Lightweight Charts kütüphanesi yüklenemedi");
   fallbackTvChart=LightweightCharts.createChart(canvas,{
    width:canvas.clientWidth,height:canvas.clientHeight,
    layout:{background:{color:"#050b11"},textColor:"#879bad"},
@@ -2633,21 +2938,29 @@ async function mountDelayedFallbackChart(asset,range="1y",interval="1d"){
    crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
    localization:{locale:"tr-TR"}
   });
-  const candle=fallbackTvChart.addCandlestickSeries({
+  fallbackCandleSeries=fallbackTvChart.addCandlestickSeries({
    upColor:"#26a69a",downColor:"#ef5350",borderVisible:false,wickUpColor:"#26a69a",wickDownColor:"#ef5350"
   });
-  candle.setData(payload.candles||[]);
+  fallbackCandleSeries.setData(payload.candles||[]);
   if(payload.volume?.length){
    const vol=fallbackTvChart.addHistogramSeries({priceFormat:{type:"volume"},priceScaleId:""});
    vol.priceScale().applyOptions({scaleMargins:{top:.78,bottom:0}});
    vol.setData(payload.volume);
   }
+  fallbackOverlay=document.createElement("canvas");
+  fallbackOverlay.className="tvDrawingOverlay";
+  canvas.appendChild(fallbackOverlay);
   fallbackTvChart.timeScale().fitContent();
+  fallbackTvChart.timeScale().subscribeVisibleTimeRangeChange(redrawFallbackDrawings);
   fallbackResizeObserver=new ResizeObserver(entries=>{
    const rect=entries[0]?.contentRect;
-   if(rect&&fallbackTvChart)fallbackTvChart.applyOptions({width:rect.width,height:rect.height});
+   if(rect&&fallbackTvChart){
+    fallbackTvChart.applyOptions({width:rect.width,height:rect.height});
+    resizeDrawingOverlay();
+   }
   });
   fallbackResizeObserver.observe(canvas);
+  resizeDrawingOverlay();bindFallbackDrawingTools();setFallbackDrawTool("cursor");
  }catch(error){
   $("tvFallbackCanvas").innerHTML=`<div class="tvFallbackLoading">${esc(error.message)}</div>`;
  }
@@ -2721,31 +3034,32 @@ function renderResearchFundamentals(data){
  const r=firstRecord(data.ratios);
  const y=data.yahoo_details||{};
  const tv=data.tradingview_fundamentals||{};
+ const sec=data.sec_fundamentals?.metrics||{};
  const pick=(...values)=>values.find(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v)));
  const values=[
-  ["F/K",pick(tv.price_earnings_ttm,m.pe_ratio,m.price_earnings_ratio,r.price_earnings_ratio,y.trailingPE),"number","TradingView / Yahoo"],
+  ["F/K",pick(tv.price_earnings_ttm,sec.pe_ratio,m.pe_ratio,m.price_earnings_ratio,r.price_earnings_ratio,y.trailingPE),"number","TradingView / Yahoo"],
   ["İleri F/K",pick(tv.price_earnings_forward,m.forward_pe,r.forward_pe_ratio),"number","TradingView / OpenBB"],
-  ["PD/DD",pick(tv.price_book_fq,m.price_to_book,r.price_to_book_ratio,y.priceToBook),"number","TradingView / Yahoo"],
-  ["FD/FAVÖK",pick(tv.enterprise_value_ebitda_ttm,m.enterprise_value_over_ebitda,m.ev_to_ebitda,r.enterprise_value_ebitda_ratio,y.enterpriseToEbitda),"number","TradingView / Yahoo"],
-  ["F/S",pick(tv.price_sales_current,m.price_to_sales),"number","TradingView"],
-  ["FD/Satış",pick(tv.enterprise_value_revenue_ttm,m.enterprise_value_over_revenue,r.enterprise_value_revenue_ratio),"number","TradingView / OpenBB"],
+  ["PD/DD",pick(tv.price_book_fq,sec.price_to_book,m.price_to_book,r.price_to_book_ratio,y.priceToBook),"number","TradingView / Yahoo"],
+  ["FD/FAVÖK",pick(tv.enterprise_value_ebitda_ttm,sec.enterprise_value_over_ebitda,m.enterprise_value_over_ebitda,m.ev_to_ebitda,r.enterprise_value_ebitda_ratio,y.enterpriseToEbitda),"number","TradingView / Yahoo"],
+  ["F/S",pick(tv.price_sales_current,sec.price_to_sales,m.price_to_sales),"number","TradingView"],
+  ["FD/Satış",pick(tv.enterprise_value_revenue_ttm,sec.enterprise_value_over_revenue,m.enterprise_value_over_revenue,r.enterprise_value_revenue_ratio),"number","TradingView / OpenBB"],
   ["PEG",pick(tv.price_earnings_growth_ttm,m.peg_ratio,r.peg_ratio),"number","TradingView / OpenBB"],
   ["Temettü Verimi",pick(tv.dividends_yield_current,m.dividend_yield,r.dividend_yield,y.dividendYield),"percent","TradingView / Yahoo"],
-  ["ROE",pick(tv.return_on_equity_fq,m.return_on_equity,r.return_on_equity,y.returnOnEquity),"percent","TradingView / Yahoo"],
-  ["ROA",pick(tv.return_on_assets_fq,m.return_on_assets,r.return_on_assets,y.returnOnAssets),"percent","TradingView / Yahoo"],
+  ["ROE",pick(tv.return_on_equity_fq,sec.return_on_equity,m.return_on_equity,r.return_on_equity,y.returnOnEquity),"percent","TradingView / Yahoo"],
+  ["ROA",pick(tv.return_on_assets_fq,sec.return_on_assets,m.return_on_assets,r.return_on_assets,y.returnOnAssets),"percent","TradingView / Yahoo"],
   ["Brüt Marj",pick(tv.gross_margin_ttm,m.gross_margin,r.gross_profit_margin),"percent","TradingView / OpenBB"],
-  ["Faaliyet Marjı",pick(tv.operating_margin_ttm,m.operating_margin,r.operating_profit_margin),"percent","TradingView / OpenBB"],
-  ["Net Marj",pick(tv.net_margin_ttm,m.net_profit_margin,r.net_profit_margin,y.netMargin),"percent","TradingView / Yahoo"],
-  ["Borç/Özkaynak",pick(tv.debt_to_equity_fq,m.debt_to_equity,r.debt_to_equity,y.debtToEquityComputed),"number","TradingView / Yahoo"],
-  ["Cari Oran",pick(tv.current_ratio_fq,m.current_ratio,r.current_ratio,y.currentRatio),"number","TradingView / Yahoo"],
+  ["Faaliyet Marjı",pick(tv.operating_margin_ttm,sec.operating_margin,m.operating_margin,r.operating_profit_margin),"percent","TradingView / OpenBB"],
+  ["Net Marj",pick(tv.net_margin_ttm,sec.net_profit_margin,m.net_profit_margin,r.net_profit_margin,y.netMargin),"percent","TradingView / Yahoo"],
+  ["Borç/Özkaynak",pick(tv.debt_to_equity_fq,sec.debt_to_equity,m.debt_to_equity,r.debt_to_equity,y.debtToEquityComputed),"number","TradingView / Yahoo"],
+  ["Cari Oran",pick(tv.current_ratio_fq,sec.current_ratio,m.current_ratio,r.current_ratio,y.currentRatio),"number","TradingView / Yahoo"],
   ["Hızlı Oran",pick(tv.quick_ratio_fq,m.quick_ratio,r.quick_ratio),"number","TradingView / OpenBB"],
   ["Beta",pick(tv.beta_1_year,m.beta,y.beta),"number","TradingView / Yahoo"],
-  ["Hisse Başına Kâr",pick(tv.earnings_per_share_diluted_ttm,m.earnings_per_share,m.eps,y.trailingEps),"money","TradingView / Yahoo"],
-  ["Defter Değeri/Hisse",pick(tv.book_value_per_share_fq,m.book_value_per_share,y.bookValue),"money","TradingView / Yahoo"],
-  ["Serbest Nakit Akışı",pick(tv.free_cash_flow_ttm,m.free_cash_flow),"money","TradingView / OpenBB"],
-  ["Toplam Gelir (TTM)",pick(tv.total_revenue_ttm),"money","TradingView"],
-  ["Net Kâr (TTM)",pick(tv.net_income_ttm),"money","TradingView"],
-  ["FAVÖK (TTM)",pick(tv.ebitda_ttm),"money","TradingView"],
+  ["Hisse Başına Kâr",pick(tv.earnings_per_share_diluted_ttm,sec.earnings_per_share,m.earnings_per_share,m.eps,y.trailingEps),"money","TradingView / Yahoo"],
+  ["Defter Değeri/Hisse",pick(tv.book_value_per_share_fq,sec.book_value_per_share,m.book_value_per_share,y.bookValue),"money","TradingView / Yahoo"],
+  ["Serbest Nakit Akışı",pick(tv.free_cash_flow_ttm,sec.free_cash_flow,m.free_cash_flow),"money","TradingView / OpenBB"],
+  ["Toplam Gelir (TTM)",pick(tv.total_revenue_ttm,sec.total_revenue_ttm),"money","TradingView"],
+  ["Net Kâr (TTM)",pick(tv.net_income_ttm,sec.net_income_ttm),"money","TradingView"],
+  ["FAVÖK (TTM)",pick(tv.ebitda_ttm,sec.ebitda_ttm),"money","TradingView"],
   ["Önceki Kapanış",pick(y.previousClose),"money","Yahoo"],
   ["Gün Açılış",pick(y.open),"money","Yahoo"],
   ["Gün İçi Yüksek",pick(y.dayHigh),"money","Yahoo"],
@@ -2756,10 +3070,11 @@ function renderResearchFundamentals(data){
   ["SMA 50",pick(y.sma50),"money","Yahoo"],
   ["SMA 200",pick(y.sma200),"money","Yahoo"],
   ["20 Gün Volatilite",pick(y.volatility20d),"percent","Yahoo"],
-  ["Net Borç",pick(m.net_debt,tv.net_debt,y.netCash==null?null:-y.netCash),"money","TradingView / OpenBB / Yahoo"]
+  ["Net Borç",pick(m.net_debt,tv.net_debt,sec.net_debt,y.netCash==null?null:-y.netCash),"money","TradingView / OpenBB / Yahoo"]
  ];
  const sourceBadges=[
   ["TradingView Screener",data.diagnostics?.tradingview_ok,"primary"],
+  ["SEC Company Facts",data.diagnostics?.sec_ok,"ok"],
   ["Yahoo Finance",data.diagnostics?.yahoo_ok,"ok"],
   ["OpenBB",data.openbb_configured&&data.diagnostics?.openbb_sections_with_data>0,data.openbb_configured?"ok":"warn"]
  ];
@@ -2992,7 +3307,7 @@ $("creditReferenceMonthly").value=settings.creditReferenceMonthly??3.11;$("credi
 $("creditSpread").value=settings.creditSpread??10;$("creditDays").value=settings.creditDays??2;
 $("referenceRateStatus").textContent=`Kayıtlı referans: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
 ["mAssetClass","mEntry","mQty","mCurrency","mCommissionUnit","mCommissionRate","mContractSize","mInitialMargin","mMaintenanceMargin"].forEach(k=>$(k)?.addEventListener("input",()=>{syncModelViopVisibility();updateModelTradePreview()}));
-["qty","gContractSize","gInitialMargin","gMaintenanceMargin"].forEach(k=>$(k)?.addEventListener("input",()=>updateViopMarginSummary("general")));
+["qty","entry","gContractSize","gInitialMargin","gMaintenanceMargin"].forEach(k=>$(k)?.addEventListener("input",()=>updateViopMarginSummary("general")));
 $("mViopContract")?.addEventListener("change",()=>applyViopContract("model"));
 $("gViopContract")?.addEventListener("change",()=>applyViopContract("general"));
 document.querySelectorAll("[data-model-anchor]").forEach(btn=>btn.addEventListener("click",()=>{
