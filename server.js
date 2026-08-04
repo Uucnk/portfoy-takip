@@ -1163,6 +1163,7 @@ app.get("/api/fundamentals",async(req,res)=>{
 const TCMB_REFERENCE_URL="https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Uye+Isyerlerine+Uygulanacak+Azami+Komisyon+Oranlari";
 const ALNUS_VIOP_URL="https://www.alnusyatirim.com/viop";
 const OYAK_VIOP_MARGIN_URL="https://www.oyakyatirim.com.tr/viop/baslangic-teminatlari-kaldirac-oranlari";
+const DENIZ_VIOP_PSR_URL="https://www.denizyatirim.com/Teminatlar";
 
 function decodeBasicHtml(value=""){
  return String(value)
@@ -1237,6 +1238,65 @@ function normalizeUnderlyingName(value){
  return decodeBasicHtml(value).toUpperCase()
   .replace(/İ/g,"I").replace(/Ş/g,"S").replace(/Ğ/g,"G").replace(/Ü/g,"U").replace(/Ö/g,"O").replace(/Ç/g,"C")
   .replace(/[^A-Z0-9]/g,"");
+}
+const VIOP_PSR_FALLBACK={
+ AEFES:14.1,AKBNK:15.7,AKSEN:14.3,ALARK:13.4,ARCLK:13.1,ASELS:15.8,ASTOR:16.1,
+ BIMAS:12.7,BRSAN:15.5,CIMSA:13.4,DOAS:15.1,DOHOL:14.1,EKGYO:16.1,ENJSA:13.4,
+ ENKAI:13.8,EREGL:14.0,KCHOL:14.0,KOZAL:15.0,PGSUS:16.0,SAHOL:14.0,SASA:18.0,
+ SISE:14.0,TCELL:14.0,THYAO:15.0,TOASO:14.0,TUPRS:15.0,VAKBN:15.5,VESTL:17.0,
+ YKBNK:15.5,XU030:10.0,USDTRY:10.0,EURTRY:10.4,XAUTRY:12.0
+};
+function parseDenizPsrRates(html){
+ const rates=new Map(),rows=[...String(html||"").matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
+ for(const row of rows){
+  const cells=[...row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x=>decodeBasicHtml(x[1]));
+  if(cells.length<2)continue;
+  const symbol=normalizeUnderlyingName(cells[0]).replace(/^F_/,"");
+  const percentCell=cells.find((x,i)=>i>0&&/%/.test(x))||cells.find((x,i)=>i>0&&/^\d{1,2}[,.]\d+$/.test(x.trim()));
+  const rate=trNumber(percentCell);
+  if(symbol&&rate!=null&&rate>0&&rate<100)rates.set(symbol,rate);
+ }
+ if(!rates.size){
+  const text=decodeBasicHtml(html);
+  for(const match of text.matchAll(/\b([A-ZÇĞİÖŞÜ]{3,12})\s+(\d{1,2}[,.]\d+)\s*%?/g)){
+   const symbol=normalizeUnderlyingName(match[1]),rate=trNumber(match[2]);
+   if(symbol&&rate>0&&rate<100)rates.set(symbol,rate);
+  }
+ }
+ return rates;
+}
+async function viopReferencePrices(underlyings){
+ const result=new Map();
+ await Promise.all([...new Set(underlyings)].map(async underlying=>{
+  const u=String(underlying||"").toUpperCase();
+  const yahoo=u==="USDTRY"?"USDTRY=X":u==="EURTRY"?"EURTRY=X":u==="XAUTRY"?"GC=F":u==="XU030"?"^XU030":`${u}.IS`;
+  try{
+   const quote=await fetchYahooChart(yahoo);
+   if(Number.isFinite(quote.price))result.set(u,{price:quote.price,yahooSymbol:yahoo});
+  }catch{}
+ }));
+ return result;
+}
+function enrichViopMargins(contracts,psrRates,prices,fixedMargins){
+ return contracts.map(contract=>{
+  const underlying=normalizeUnderlyingName(contract.underlying);
+  const fixed=fixedMargins.get(underlying);
+  const psr=psrRates.get(underlying)??VIOP_PSR_FALLBACK[underlying]??null;
+  const ref=prices.get(underlying);
+  const size=Number(contract.contractSize)||contractSizeForUnderlying(underlying);
+  let initial=Number(fixed??contract.initialMargin)||0;
+  let marginSource=fixed?"Oyak sabit teminat":contract.initialMargin?"Alnus başlangıç teminatı":"";
+  if(initial<=0&&psr&&ref?.price){
+   initial=ref.price*size*psr/100;
+   marginSource=psrRates.has(underlying)?"Deniz PSR + Yahoo referans fiyat":"Yedek PSR + Yahoo referans fiyat";
+  }
+  return{
+   ...contract,underlying,contractSize:size,initialMargin:initial||null,
+   maintenanceMargin:initial>0?initial*.75:null,marginRate:psr,
+   referencePrice:ref?.price??null,yahooSymbol:ref?.yahooSymbol??contract.yahooSymbol??null,
+   marginSource:marginSource||"Manuel teminat gerekli"
+  };
+ });
 }
 function parseOyakViopMargins(html){
  const margins=new Map();
@@ -1349,19 +1409,31 @@ function viopUnderlyingRows(contracts){
 }
 async function getViopContracts(force=false){
  if(!force&&viopContractCache.contracts.length&&Date.now()-viopContractCache.at<15*60*1000)return viopContractCache;
- let contracts=[],live=false,error=null,marginLive=false,marginError=null,margins=new Map();
+ let contracts=[],live=false,error=null,marginError=null,fixedMargins=new Map(),psrRates=new Map();
  try{
   const html=await fetchPublicText(ALNUS_VIOP_URL,30000);
   contracts=parseAlnusViopRows(html);live=contracts.length>0;
  }catch(err){error=err.message}
  try{
   const marginHtml=await fetchPublicText(OYAK_VIOP_MARGIN_URL,30000);
-  margins=parseOyakViopMargins(marginHtml);marginLive=margins.size>0;
+  fixedMargins=parseOyakViopMargins(marginHtml);
  }catch(err){marginError=err.message}
- if(contracts.length&&margins.size)contracts=mergeOyakMargins(contracts,margins);
- if(!contracts.length&&margins.size)contracts=generatedContractsFromMargins(margins);
- if(!contracts.length)contracts=VIOP_FALLBACK_CONTRACTS.map(x=>({...x,isActive:true,sortDate:x.expiryDate||"9999-12-31",contractSize:x.contractSize||contractSizeForUnderlying(x.underlying)}));
- viopContractCache={at:Date.now(),contracts,live:live||marginLive,error:[error,marginError].filter(Boolean).join(" | "),marginLive};
+ try{
+  const psrHtml=await fetchPublicText(DENIZ_VIOP_PSR_URL,30000);
+  psrRates=parseDenizPsrRates(psrHtml);
+ }catch(err){marginError=[marginError,err.message].filter(Boolean).join(" | ")}
+ if(!contracts.length){
+  const universe=new Map([...fixedMargins.keys(),...psrRates.keys(),...Object.keys(VIOP_PSR_FALLBACK)].map(x=>[x,fixedMargins.get(x)||0]));
+  contracts=generatedContractsFromMargins(universe);
+ }
+ if(!contracts.length)contracts=VIOP_FALLBACK_CONTRACTS.map(x=>({...x,isActive:true,sortDate:x.expiryDate||"9999-12-31"}));
+ const prices=await viopReferencePrices(contracts.map(x=>x.underlying));
+ contracts=enrichViopMargins(contracts,psrRates,prices,fixedMargins);
+ viopContractCache={
+  at:Date.now(),contracts,live:live||psrRates.size>0||fixedMargins.size>0,
+  error:[error,marginError].filter(Boolean).join(" | "),
+  psrCount:psrRates.size,fixedCount:fixedMargins.size,pricedCount:prices.size
+ };
  return viopContractCache;
 }
 app.get("/api/viop/contracts",async(req,res)=>{
@@ -1369,10 +1441,10 @@ app.get("/api/viop/contracts",async(req,res)=>{
  res.set("Cache-Control","public, max-age=300, s-maxage=300");
  res.json({
   contracts:cache.contracts,underlyings:viopUnderlyingRows(cache.contracts),
-  live:cache.live,error:cache.error,sourceLabel:"Alnus vade listesi + Oyak güncel teminat tablosu",
+  live:cache.live,error:cache.error,sourceLabel:"Alnus vade + Deniz PSR + Yahoo referans fiyat + Oyak yedek",
   sourceUrl:ALNUS_VIOP_URL,
-  marginSourceUrl:OYAK_VIOP_MARGIN_URL,asOf:new Date(cache.at).toISOString(),
-  warning:"Vade listesi Alnus, güncel başlangıç teminatı Oyak tablosundan alınır. Sürdürme teminatı eğitim amaçlı olarak başlangıç teminatının %75’i hesaplanır; kurum ekranı işlem öncesi teyit edilmelidir."
+  marginSourceUrl:OYAK_VIOP_MARGIN_URL,psrSourceUrl:DENIZ_VIOP_PSR_URL,asOf:new Date(cache.at).toISOString(),
+  warning:"Pay VİOP başlangıç teminatı sabit tutar bulunamazsa güncel referans fiyat × kontrat büyüklüğü × PSR oranı ile hesaplanır. Sürdürme teminatı %75 olarak gösterilir; işlem öncesi kurum ekranı teyit edilmelidir."
  });
 });
 app.get("/api/viop/search",async(req,res)=>{
@@ -1384,6 +1456,111 @@ app.get("/api/viop/search",async(req,res)=>{
   .slice(0,50);
  res.set("Cache-Control","public, max-age=60, s-maxage=60");
  res.json({query:q,count:items.length,items,live:cache.live,source:"Alnus Yatırım"});
+});
+
+
+const AMP_FUTURES_MARGIN_URL="https://www.ampfutures.com/trading-info/margins";
+const GLOBAL_FUTURES_CATALOG=[
+ {id:"GC",code:"GC",name:"Gold Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"GC=F",tradingViewSymbol:"COMEX:GC1!",multiplier:100,marginRate:9,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"MGC",code:"MGC",name:"Micro Gold Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"MGC=F",tradingViewSymbol:"COMEX:MGC1!",multiplier:10,marginRate:9,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"SI",code:"SI",name:"Silver Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"SI=F",tradingViewSymbol:"COMEX:SI1!",multiplier:5000,marginRate:18,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"SIL",code:"SIL",name:"Micro Silver Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"SIL=F",tradingViewSymbol:"COMEX:SIL1!",multiplier:1000,marginRate:18,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"HG",code:"HG",name:"Copper Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"HG=F",tradingViewSymbol:"COMEX:HG1!",multiplier:25000,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"PL",code:"PL",name:"Platinum Futures",group:"Metals",exchange:"NYMEX",yahooSymbol:"PL=F",tradingViewSymbol:"NYMEX:PL1!",multiplier:50,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"PA",code:"PA",name:"Palladium Futures",group:"Metals",exchange:"NYMEX",yahooSymbol:"PA=F",tradingViewSymbol:"NYMEX:PA1!",multiplier:100,marginRate:14,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"CL",code:"CL",name:"WTI Crude Oil Futures",group:"Energy",exchange:"NYMEX",yahooSymbol:"CL=F",tradingViewSymbol:"NYMEX:CL1!",multiplier:1000,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"MCL",code:"MCL",name:"Micro WTI Crude Oil Futures",group:"Energy",exchange:"NYMEX",yahooSymbol:"MCL=F",tradingViewSymbol:"NYMEX:MCL1!",multiplier:100,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"BZ",code:"BZ",name:"Brent Crude Oil Futures",group:"Energy",exchange:"NYMEX",yahooSymbol:"BZ=F",tradingViewSymbol:"NYMEX:BB1!",multiplier:1000,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"NG",code:"NG",name:"Natural Gas Futures",group:"Energy",exchange:"NYMEX",yahooSymbol:"NG=F",tradingViewSymbol:"NYMEX:NG1!",multiplier:10000,marginRate:15,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"QG",code:"QG",name:"E-mini Natural Gas Futures",group:"Energy",exchange:"NYMEX",yahooSymbol:"QG=F",tradingViewSymbol:"NYMEX:QG1!",multiplier:2500,marginRate:15,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"RB",code:"RB",name:"RBOB Gasoline Futures",group:"Energy",exchange:"NYMEX",yahooSymbol:"RB=F",tradingViewSymbol:"NYMEX:RB1!",multiplier:42000,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"HO",code:"HO",name:"Heating Oil Futures",group:"Energy",exchange:"NYMEX",yahooSymbol:"HO=F",tradingViewSymbol:"NYMEX:HO1!",multiplier:42000,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZC",code:"ZC",name:"Corn Futures",group:"Grains",exchange:"CBOT",yahooSymbol:"ZC=F",tradingViewSymbol:"CBOT:ZC1!",multiplier:50,marginRate:10,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZW",code:"ZW",name:"Chicago Wheat Futures",group:"Grains",exchange:"CBOT",yahooSymbol:"ZW=F",tradingViewSymbol:"CBOT:ZW1!",multiplier:50,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"KE",code:"KE",name:"KC HRW Wheat Futures",group:"Grains",exchange:"CBOT",yahooSymbol:"KE=F",tradingViewSymbol:"CBOT:KE1!",multiplier:50,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZS",code:"ZS",name:"Soybean Futures",group:"Grains",exchange:"CBOT",yahooSymbol:"ZS=F",tradingViewSymbol:"CBOT:ZS1!",multiplier:50,marginRate:10,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZM",code:"ZM",name:"Soybean Meal Futures",group:"Grains",exchange:"CBOT",yahooSymbol:"ZM=F",tradingViewSymbol:"CBOT:ZM1!",multiplier:100,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZL",code:"ZL",name:"Soybean Oil Futures",group:"Grains",exchange:"CBOT",yahooSymbol:"ZL=F",tradingViewSymbol:"CBOT:ZL1!",multiplier:600,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"KC",code:"KC",name:"Coffee C Futures",group:"Softs",exchange:"ICE US",yahooSymbol:"KC=F",tradingViewSymbol:"ICEUS:KC1!",multiplier:375,marginRate:15,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"SB",code:"SB",name:"Sugar No. 11 Futures",group:"Softs",exchange:"ICE US",yahooSymbol:"SB=F",tradingViewSymbol:"ICEUS:SB1!",multiplier:1120,marginRate:15,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"CC",code:"CC",name:"Cocoa Futures",group:"Softs",exchange:"ICE US",yahooSymbol:"CC=F",tradingViewSymbol:"ICEUS:CC1!",multiplier:10,marginRate:18,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"CT",code:"CT",name:"Cotton No. 2 Futures",group:"Softs",exchange:"ICE US",yahooSymbol:"CT=F",tradingViewSymbol:"ICEUS:CT1!",multiplier:500,marginRate:15,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"OJ",code:"OJ",name:"Orange Juice Futures",group:"Softs",exchange:"ICE US",yahooSymbol:"OJ=F",tradingViewSymbol:"ICEUS:OJ1!",multiplier:150,marginRate:18,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"LBR",code:"LBR",name:"Lumber Futures",group:"Forest",exchange:"CME",yahooSymbol:"LBR=F",tradingViewSymbol:"CME:LBR1!",multiplier:27.5,marginRate:18,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"LE",code:"LE",name:"Live Cattle Futures",group:"Livestock",exchange:"CME",yahooSymbol:"LE=F",tradingViewSymbol:"CME:LE1!",multiplier:400,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"HE",code:"HE",name:"Lean Hogs Futures",group:"Livestock",exchange:"CME",yahooSymbol:"HE=F",tradingViewSymbol:"CME:HE1!",multiplier:400,marginRate:15,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"GF",code:"GF",name:"Feeder Cattle Futures",group:"Livestock",exchange:"CME",yahooSymbol:"GF=F",tradingViewSymbol:"CME:GF1!",multiplier:500,marginRate:15,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ES",code:"ES",name:"E-mini S&P 500 Futures",group:"Equity Index",exchange:"CME",yahooSymbol:"ES=F",tradingViewSymbol:"CME_MINI:ES1!",multiplier:50,marginRate:8,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"MES",code:"MES",name:"Micro E-mini S&P 500 Futures",group:"Equity Index",exchange:"CME",yahooSymbol:"MES=F",tradingViewSymbol:"CME_MINI:MES1!",multiplier:5,marginRate:8,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"NQ",code:"NQ",name:"E-mini Nasdaq-100 Futures",group:"Equity Index",exchange:"CME",yahooSymbol:"NQ=F",tradingViewSymbol:"CME_MINI:NQ1!",multiplier:20,marginRate:10,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"MNQ",code:"MNQ",name:"Micro E-mini Nasdaq-100 Futures",group:"Equity Index",exchange:"CME",yahooSymbol:"MNQ=F",tradingViewSymbol:"CME_MINI:MNQ1!",multiplier:2,marginRate:10,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"YM",code:"YM",name:"E-mini Dow Futures",group:"Equity Index",exchange:"CBOT",yahooSymbol:"YM=F",tradingViewSymbol:"CBOT_MINI:YM1!",multiplier:5,marginRate:8,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"RTY",code:"RTY",name:"E-mini Russell 2000 Futures",group:"Equity Index",exchange:"CME",yahooSymbol:"RTY=F",tradingViewSymbol:"CME_MINI:RTY1!",multiplier:50,marginRate:10,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZB",code:"ZB",name:"30-Year U.S. Treasury Bond Futures",group:"Rates",exchange:"CBOT",yahooSymbol:"ZB=F",tradingViewSymbol:"CBOT:ZB1!",multiplier:1000,marginRate:4,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZN",code:"ZN",name:"10-Year U.S. Treasury Note Futures",group:"Rates",exchange:"CBOT",yahooSymbol:"ZN=F",tradingViewSymbol:"CBOT:ZN1!",multiplier:1000,marginRate:3,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZF",code:"ZF",name:"5-Year U.S. Treasury Note Futures",group:"Rates",exchange:"CBOT",yahooSymbol:"ZF=F",tradingViewSymbol:"CBOT:ZF1!",multiplier:1000,marginRate:3,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ZT",code:"ZT",name:"2-Year U.S. Treasury Note Futures",group:"Rates",exchange:"CBOT",yahooSymbol:"ZT=F",tradingViewSymbol:"CBOT:ZT1!",multiplier:2000,marginRate:2,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"BTC",code:"BTC",name:"CME Bitcoin Futures",group:"Crypto",exchange:"CME",yahooSymbol:"BTC=F",tradingViewSymbol:"CME:BTC1!",multiplier:5,marginRate:35,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"MBT",code:"MBT",name:"Micro Bitcoin Futures",group:"Crypto",exchange:"CME",yahooSymbol:"MBT=F",tradingViewSymbol:"CME:MBT1!",multiplier:.1,marginRate:35,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"ETH",code:"ETH",name:"CME Ether Futures",group:"Crypto",exchange:"CME",yahooSymbol:"ETH=F",tradingViewSymbol:"CME:ETH1!",multiplier:50,marginRate:35,quoteCurrency:"USD",marginCurrency:"USD"}
+];
+let globalFuturesCache={at:0,contracts:[],live:false,error:null};
+
+function parseAmpMarginRows(html){
+ const map=new Map();
+ for(const row of String(html||"").matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)){
+  const cells=[...row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x=>decodeBasicHtml(x[1]));
+  if(cells.length<3)continue;
+  const upper=cells.map(x=>x.toUpperCase());
+  const catalog=GLOBAL_FUTURES_CATALOG.find(item=>upper.some(x=>x===item.code||x===`/${item.code}`||x.includes(` ${item.code} `)));
+  if(!catalog)continue;
+  const nums=cells.map(trNumber).filter(x=>x!=null&&x>0);
+  if(!nums.length)continue;
+  const maintenance=nums.at(-1);
+  const initial=maintenance*1.1;
+  map.set(catalog.id,{initial,maintenance,source:"AMP maintenance × 1,10",estimated:true});
+ }
+ return map;
+}
+async function getGlobalFutures(force=false){
+ if(!force&&globalFuturesCache.contracts.length&&Date.now()-globalFuturesCache.at<10*60*1000)return globalFuturesCache;
+ let ampMargins=new Map(),error=null;
+ try{ampMargins=parseAmpMarginRows(await fetchPublicText(AMP_FUTURES_MARGIN_URL,30000))}catch(err){error=err.message}
+ const settled=await Promise.allSettled(GLOBAL_FUTURES_CATALOG.map(item=>fetchYahooChart(item.yahooSymbol)));
+ const contracts=GLOBAL_FUTURES_CATALOG.map((item,index)=>{
+  const quote=settled[index].status==="fulfilled"?settled[index].value:null;
+  const price=quote?.price??null,amp=ampMargins.get(item.id);
+  const calculated=price!=null?Math.abs(price*item.multiplier*item.marginRate/100):null;
+  const initial=amp?.initial??calculated;
+  const maintenance=amp?.maintenance??(initial!=null?initial*.9:null);
+  return{
+   ...item,price,changePercent:quote?.changePercent??null,delayed:true,
+   initialMargin:initial,maintenanceMargin:maintenance,
+   marginSource:amp?.source??`Notional × %${item.marginRate} risk tahmini`,
+   marginEstimated:!amp,priceTime:quote?.marketTime??null
+  };
+ });
+ globalFuturesCache={at:Date.now(),contracts,live:contracts.some(x=>x.price!=null),error,ampCount:ampMargins.size};
+ return globalFuturesCache;
+}
+app.get("/api/global-futures/contracts",async(req,res)=>{
+ const cache=await getGlobalFutures(req.query.refresh==="1");
+ res.set("Cache-Control","public, max-age=120, s-maxage=120");
+ res.json({
+  contracts:cache.contracts,live:cache.live,error:cache.error,
+  sourceLabel:`Yahoo gecikmeli fiyat + ${cache.ampCount?"AMP maintenance":"CME tarzı risk oranı tahmini"}`,
+  sourceUrl:AMP_FUTURES_MARGIN_URL,asOf:new Date(cache.at).toISOString()
+ });
+});
+app.get("/api/global-futures/search",async(req,res)=>{
+ const q=String(req.query.q||"").trim().toUpperCase();
+ const cache=await getGlobalFutures(false);
+ const items=cache.contracts.filter(x=>!q||x.code.startsWith(q)||x.name.toUpperCase().includes(q)||x.group.toUpperCase().includes(q)).slice(0,60)
+  .map(x=>({
+   ...x,symbol:x.code,yahooSymbol:x.yahooSymbol,type:`Yurtdışı Futures · ${x.group}`,
+   exchange:x.exchange,source:"Yahoo + AMP/CME",globalFutureId:x.id,futuresContract:x.code
+  }));
+ res.json({query:q,count:items.length,items,live:cache.live});
 });
 
 app.get("/api/data-diagnostic",async(req,res)=>{
@@ -1428,6 +1605,91 @@ app.get("/api/openbb/status",async(req,res)=>{
   result.error=error.message;
  }
  res.json(result);
+});
+
+
+function extractResponseText(payload){
+ if(typeof payload?.output_text==="string")return payload.output_text;
+ const parts=[];
+ for(const item of payload?.output||[]){
+  for(const content of item?.content||[]){
+   if(typeof content?.text==="string")parts.push(content.text);
+  }
+ }
+ return parts.join("\n").trim();
+}
+function financialLocalAnswer(question,context){
+ const q=String(question||"").toLocaleLowerCase("tr-TR");
+ const positions=Array.isArray(context?.positions)?context.positions:[];
+ const found=positions.find(p=>q.includes(String(p.symbol||"").toLocaleLowerCase("tr-TR")));
+ const positionText=found
+  ?`\n\nPortföy bağlamı: ${found.symbol} ${found.direction}, açılış ${found.entry}, güncel ${found.currentPrice??"-"}, K/Z ${Number(found.pnlAmount||0).toLocaleString("tr-TR",{maximumFractionDigits:2})} ${found.currency||""}.`
+  :"";
+ const rules=[
+  [["pd/dd","pd dd","defter değeri"],"PD/DD, piyasa değerini özkaynaklara böler. 1 altı defter değerinin altında fiyatlama gösterebilir; ancak düşük ROE, varlık kalitesi veya bilanço riski nedeniyle düşük kalabilir. Bankalarda ROE ve sermaye yeterliliğiyle, sanayi şirketlerinde varlıkların ekonomik değeriyle birlikte okunmalıdır."],
+  [["f/k","fiyat kazanç"],"F/K, fiyatın hisse başına kâra oranıdır. Negatif değer zarar anlamına gelir. 10–20 genel olarak dengeli sayılabilse de büyüme, kâr kalitesi, döngüsellik ve sektör medyanı belirleyicidir."],
+  [["fd/favök","favök"],"FD/FAVÖK borcu da firma değerine dahil ettiği için sermaye yapıları farklı şirketleri karşılaştırmada faydalıdır. 8 altı düşük, 8–12 dengeli, 12 üzeri primli olabilir; bankalarda uygun değildir."],
+  [["viop","başlangıç teminatı","sürdürme teminatı"],"Başlangıç teminatı pozisyonu açmak için gereken tutardır. Sürdürme teminatı hesabın altına düşmemesi gereken eşiktir. Teminat azalırsa tamamlama çağrısı oluşabilir. Gerçek risk, teminat değil kontratın toplam pozisyon büyüklüğüdür."],
+  [["stop","risk yönetimi"],"Profesyonel risk planı; teknik geçersizlik seviyesi, pozisyon büyüklüğü, portföy korelasyonu ve maksimum kabul edilen para kaybını birlikte belirler. Önce stop mesafesi, sonra risk bütçesi, en son kontrat/adet hesaplanmalıdır."],
+  [["roe","özsermaye kârlılığı"],"ROE özkaynağın kâr üretme gücünü ölçer. %15 üzeri genellikle güçlüdür; fakat yüksek kaldıraç ROE’yi yapay biçimde yükseltebilir. Borç/özsermaye ve nakit akışıyla birlikte okunmalıdır."],
+  [["teknik analiz","trend"],"Teknik analizde önce piyasa rejimi ve ana trend, sonra destek/direnç, hacim ve volatilite incelenmelidir. Tek bir indikatör yerine fiyat yapısı ile risk seviyesi birlikte kullanılmalıdır."]
+ ];
+ for(const [keys,answer] of rules)if(keys.some(k=>q.includes(k)))return answer+positionText;
+ if(found)return`${found.symbol} için mevcut portföy verisine göre pozisyon büyüklüğü, stop mesafesi ve toplam portföy korelasyonunu birlikte kontrol etmelisiniz. Güncel K/Z tek başına karar ölçütü değildir.${positionText}`;
+ return"Bu soruyu yerel Warren AI Lite yanıtlıyor. Daha kapsamlı doğal dil analizi için Render ortamına OPENAI_API_KEY ekleyebilirsiniz. Soruyu sembol, dönem ve istediğiniz analiz türüyle daha net yazın; örneğin “KCHOL PD/DD ve ROE karşılaştırması” veya “GC futures teminat ve kaldıraç analizi”.";
+}
+app.get("/api/ai/status",(_req,res)=>{
+ const openai=Boolean(process.env.OPENAI_API_KEY);
+ const compatible=!openai&&Boolean(process.env.AI_API_KEY&&process.env.AI_BASE_URL);
+ res.json({
+  provider:openai?"openai":compatible?"compatible":"local",
+  model:openai?(process.env.OPENAI_MODEL||"gpt-5.6"):compatible?(process.env.AI_MODEL||"configured"):"Warren AI Lite"
+ });
+});
+app.post("/api/ai/chat",express.json({limit:"200kb"}),async(req,res)=>{
+ const messages=Array.isArray(req.body?.messages)?req.body.messages.slice(-20):[];
+ const context=req.body?.context||null;
+ const last=messages.filter(x=>x.role==="user").at(-1)?.content;
+ if(!last)return res.status(400).json({error:"Soru gereklidir"});
+ const systemInstruction="Sen Warren AI adlı finansal eğitim asistanısın. Türkçe cevap ver. Piyasa verisi verilmediyse güncel fiyat uydurma. Değerleme, risk, teknik analiz ve portföy yönetiminde net ve profesyonel ol. Kişiselleştirilmiş kesin al/sat emri verme; varsayımları belirt.";
+ try{
+  if(process.env.OPENAI_API_KEY){
+   const response=await fetch("https://api.openai.com/v1/responses",{
+    method:"POST",
+    headers:{"Authorization":`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
+    body:JSON.stringify({
+     model:process.env.OPENAI_MODEL||"gpt-5.6",
+     instructions:systemInstruction,
+     input:[
+      ...messages.map(m=>({role:m.role==="assistant"?"assistant":"user",content:String(m.content||"")})),
+      ...(context?[{role:"user",content:`Portföy bağlamı JSON: ${JSON.stringify(context)}`}]:[])
+     ]
+    }),
+    signal:AbortSignal.timeout(90000)
+   });
+   const payload=await response.json();
+   if(!response.ok)throw new Error(payload?.error?.message||`OpenAI HTTP ${response.status}`);
+   return res.json({answer:extractResponseText(payload)||"Yanıt üretilemedi.",provider:"openai",providerLabel:`OpenAI · ${process.env.OPENAI_MODEL||"gpt-5.6"}`});
+  }
+  if(process.env.AI_API_KEY&&process.env.AI_BASE_URL){
+   const endpoint=String(process.env.AI_BASE_URL).replace(/\/$/,"")+"/chat/completions";
+   const response=await fetch(endpoint,{
+    method:"POST",
+    headers:{"Authorization":`Bearer ${process.env.AI_API_KEY}`,"Content-Type":"application/json"},
+    body:JSON.stringify({
+     model:process.env.AI_MODEL||"default",
+     messages:[{role:"system",content:systemInstruction},...messages,...(context?[{role:"user",content:`Portföy bağlamı JSON: ${JSON.stringify(context)}`}]:[])]
+    }),
+    signal:AbortSignal.timeout(90000)
+   });
+   const payload=await response.json();
+   if(!response.ok)throw new Error(payload?.error?.message||`AI HTTP ${response.status}`);
+   return res.json({answer:payload?.choices?.[0]?.message?.content||"Yanıt üretilemedi.",provider:"compatible",providerLabel:`AI · ${process.env.AI_MODEL||"configured"}`});
+  }
+  return res.json({answer:financialLocalAnswer(last,context),provider:"local",providerLabel:"Warren AI Lite"});
+ }catch(error){
+  return res.status(502).json({error:error.message});
+ }
 });
 
 app.get("/api/health", (_req, res) => {
