@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pozisyon ve Model Portföy Takip · v6.7</title>
+<title>Pozisyon ve Model Portföy Takip · v6.9</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -806,8 +806,55 @@ body.terminalHidden .app{right:0!important}
  .tradePreview{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
+
+/* v6.8 smart VIOP order flow */
+.viopAutoFields{
+ display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:9px;
+ padding:11px;border:1px solid #294663;background:#0a1723;border-radius:9px
+}
+.viopAutoFields .spanAll{grid-column:1/-1}
+.viopAutoBadge{
+ display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:12px;
+ background:#143154;border:1px solid #31619c;color:#b7d7ff;font-size:9px;margin-left:5px
+}
+.viopSearchMeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.viopSearchMeta span{
+ display:inline-flex;padding:3px 6px;border-radius:10px;background:#11273c;border:1px solid #284965;
+ color:#9fc1e4;font-size:8px
+}
+.viopMarginSummary{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px
+}
+.viopMarginSummary>div{
+ padding:9px;background:#0e1d2b;border:1px solid #294056;border-radius:8px
+}
+.viopMarginSummary span{display:block;color:#829ab2;font-size:8px;text-transform:uppercase}
+.viopMarginSummary strong{display:block;color:#f4f8fc;font-size:13px;margin-top:5px}
+.viopSourceLive{color:#47d4a0}.viopSourceFallback{color:#ffc96b}
+@media(max-width:850px){
+ .viopAutoFields{grid-template-columns:repeat(2,minmax(130px,1fr))}
+ .viopMarginSummary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+
+/* v6.9 direct fundamentals and VIOP TradingView mapping */
+.researchSourceBar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+.researchSourceBadge{
+ display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:13px;
+ border:1px solid #31506e;background:#10243a;color:#b6d4f2;font-size:9px
+}
+.researchSourceBadge.primary{border-color:#3567a5;background:#17335a;color:#d4e8ff}
+.researchSourceBadge.ok{border-color:#28765d;background:#10382d;color:#8ce3be}
+.researchSourceBadge.warn{border-color:#786129;background:#382f12;color:#f1d27b}
+.researchValueSource{display:block;margin-top:3px;color:#6f89a2;font-size:8px}
+.viopChartIdentity{
+ display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 11px;
+ background:#0b1723;border-bottom:1px solid #263a4d;color:#9fb6cd;font-size:9px
+}
+.viopChartIdentity strong{color:#eef5fc;font-size:11px}
+
 </style>
-<meta name="portfolio-build" content="v6.7-model-portfolio-pro">
+<meta name="portfolio-build" content="v6.9-fundamentals-viop-chart">
 </head>
 <body>
 
@@ -1051,6 +1098,23 @@ body.terminalHidden .app{right:0!important}
         <div><label>Para Birimi</label><select id="currency"><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
         <div><label>Açılış Fiyatı *</label><input id="entry" type="number" step="any" required></div>
         <div><label>Miktar *</label><input id="qty" type="number" step="any" value="1" required></div><input id="dailyChange" type="hidden" value="0">
+        <div id="gViopFields" class="span4 hidden">
+          <div class="viopAutoFields">
+            <div><label>VİOP Vadesi</label><select id="gViopContract"><option value="">Önce dayanak varlık seçin</option></select></div>
+            <div><label>Sözleşme Büyüklüğü</label><input id="gContractSize" type="number" min="0" step="any" value="1"></div>
+            <div><label>Başlangıç Teminatı / Kontrat</label><input id="gInitialMargin" type="number" min="0" step="any"></div>
+            <div><label>Sürdürme Teminatı / Kontrat</label><input id="gMaintenanceMargin" type="number" min="0" step="any"></div>
+            <div class="spanAll">
+              <div id="gViopSourceStatus" class="viopSource">VİOP dayanak varlığı arayın; yakın vade otomatik seçilecektir.</div>
+              <div class="viopMarginSummary">
+                <div><span>Seçilen Kontrat</span><strong id="gSelectedContract">-</strong></div>
+                <div><span>Vade Tarihi</span><strong id="gSelectedExpiry">-</strong></div>
+                <div><span>Toplam Başlangıç Teminatı</span><strong id="gTotalInitialMargin">0 TRY</strong></div>
+                <div><span>Toplam Sürdürme Teminatı</span><strong id="gTotalMaintenanceMargin">0 TRY</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div><label>Stop</label><input id="stop" type="number" step="any"></div>
         <div><label>Kâr Al</label><input id="target" type="number" step="any"></div>
         <div><label>Açılış Tarihi ve Saati *</label><input id="openDate" type="datetime-local" required></div>
@@ -1171,19 +1235,22 @@ body.terminalHidden .app{right:0!important}
         <div><label>Komisyon Oranı</label><input id="mCommissionRate" type="number" min="0" step="0.01" value="0"></div>
         <div id="mViopFields" class="span4 hidden">
           <div class="grid">
-            <div><label>VİOP Kontratı</label><select id="mViopContract"><option value="">Kontrat seçin</option></select></div>
+            <div><label>VİOP Vadesi</label><select id="mViopContract"><option value="">Önce dayanak varlık seçin</option></select></div>
             <div><label>Kontrat Büyüklüğü</label><input id="mContractSize" type="number" min="0" step="any" value="1"></div>
-            <div><label>Teminat Yöntemi</label><select id="mMarginMode"><option value="fixed">Kontrat Başına Sabit Teminat</option><option value="rate">Pozisyon Büyüklüğü Üzerinden Oran</option></select></div>
-            <div><label>Kontrat Başına Başlangıç Teminatı</label><input id="mInitialMargin" type="number" min="0" step="any"></div>
-            <div><label>Başlangıç Teminat Oranı (%)</label><input id="mMarginRate" type="number" min="0" step="0.01"></div>
-            <div style="display:flex;align-items:end"><button type="button" id="refreshViopContracts" class="secondary" style="width:100%">İş Yatırım’dan Yenile</button></div>
+            <div><label>Başlangıç Teminatı / Kontrat</label><input id="mInitialMargin" type="number" min="0" step="any"></div>
+            <div><label>Sürdürme Teminatı / Kontrat</label><input id="mMaintenanceMargin" type="number" min="0" step="any"></div>
+            <div><label>Vade Tarihi</label><input id="mContractExpiry" type="text" readonly></div>
+            <div style="display:flex;align-items:end"><button type="button" id="refreshViopContracts" class="secondary" style="width:100%">Alnus’tan Yenile</button></div>
+            <input id="mMarginMode" type="hidden" value="fixed">
+            <input id="mMarginRate" type="hidden" value="">
           </div>
-          <div id="mViopSourceStatus" class="viopSource">İş Yatırım kontrat tablosu henüz yüklenmedi. Teminatlar işlem sırasında ve saatlik risk parametresi güncellemeleriyle değişebilir.</div>
+          <div id="mViopSourceStatus" class="viopSource">Alnus Yatırım kontrat tablosu henüz yüklenmedi. Dayanak seçildiğinde yakın vade otomatik seçilecektir.</div>
         </div>
         <div id="mTradePreview" class="tradePreview">
           <div><span>Pozisyon Büyüklüğü</span><strong id="mPreviewNotional">0 TRY</strong></div>
           <div><span>Açılış Komisyonu</span><strong id="mPreviewCommission">0 TRY</strong></div>
           <div><span>Başlangıç Teminatı</span><strong id="mPreviewMargin">0 TRY</strong></div>
+          <div><span>Sürdürme Teminatı</span><strong id="mPreviewMaintenance">0 TRY</strong></div>
           <div><span>Tahmini Yeni Kredi</span><strong id="mPreviewCredit">0 TRY</strong></div>
         </div>
         <div><label>Stop</label><input id="mStop" type="number" step="any"></div>
@@ -1256,7 +1323,7 @@ body.terminalHidden .app{right:0!important}
       </div>
       <div class="researchPanel">
         <h3>Kaynak ve Risk Notu</h3>
-        <div id="viopWorkspaceSource" class="viopSource">Kaynak: İş Yatırım — İşlem Gören Kontratlar. Başlangıç teminatları işlem kanalı, dayanak varlık ve saatlik risk parametresi güncellemelerine göre değişebilir; işlem öncesi kurum ekranından teyit edilmelidir.</div>
+        <div id="viopWorkspaceSource" class="viopSource">Kaynak: Alnus Yatırım — İşlem Gören VİOP Kontratları. Başlangıç teminatları işlem kanalı, dayanak varlık ve saatlik risk parametresi güncellemelerine göre değişebilir; işlem öncesi kurum ekranından teyit edilmelidir.</div>
       </div>
     </div>
     <div class="panel" style="margin:14px 0 0">
@@ -1607,6 +1674,7 @@ function inferYahooSymbol(position){
   if(position.yahooSymbol)return position.yahooSymbol.trim().toUpperCase();
   const symbol=(position.symbol||"").trim().toUpperCase();
   if(!symbol)return"";
+  if(isViopPosition(position))return"";
   if(position.assetClass==="Yurtiçi Hisse"||position.assetClass==="Yurtiçi Opsiyon")return symbol.endsWith(".IS")?symbol:symbol+".IS";
   return symbol;
 }
@@ -1660,7 +1728,7 @@ function generalTable(arr,closed){
  <th>Miktar</th><th>Açılış Tarihi / Saati</th><th>Stop</th><th>Kâr Al</th>
  ${closed?'<th>Kapanış</th><th>K/Z</th><th>K/Z %</th>':''}<th>İşlem</th></tr></thead><tbody>
  ${arr.map(p=>`<tr>
- <td><strong class="clickableSymbol" onclick="openSecurityDetails(\'${esc(inferYahooSymbol(p))}\',\'${esc(p.symbol)}\')">${esc(p.symbol)}</strong><div class="muted">${esc(p.yahooSymbol||"")}</div></td>
+ <td><strong class="clickableSymbol" onclick="openPositionResearch('general','${p.id}')">${esc(p.viopContract||p.symbol)}</strong><div class="muted">${esc(isViopPosition(p)?p.symbol:(p.yahooSymbol||""))}</div></td>
  <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}</td>
  <td><span class="badge">${esc(p.direction)}</span></td>
  <td>${f(p.entry,4)}</td>
@@ -1813,7 +1881,7 @@ window.renderGeneral=function renderGeneral(){
  const q=$("activeSearch").value.toLowerCase(),tp=$("activeType").value,dr=$("activeDir").value;const fa=a.filter(p=>(!q||(`${p.symbol} ${p.optionType||""}`).toLowerCase().includes(q))&&(!tp||p.assetClass===tp)&&(!dr||p.direction===dr));
  $("activeTable").innerHTML=generalTable(fa,false);$("closedTable").innerHTML=generalTable(c,true);$("closeGeneralSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';renderGeneralPie();renderGeneralPerformance();renderActivities();
 }
-$("generalForm").addEventListener("submit",e=>{e.preventDefault();const p={id:id(),status:"Aktif",assetClass:$("assetClass").value,optionType:isOptionType($("assetClass").value)?$("optionType").value:null,symbol:$("symbol").value.trim().toUpperCase(),yahooSymbol:$("yahooSymbol").value.trim().toUpperCase(),direction:$("direction").value,currency:$("currency").value,entry:n($("entry").value),currentPrice:n($("entry").value),dailyChange:n($("dailyChange").value)||0,qty:n($("qty").value)||1,stop:n($("stop").value),target:n($("target").value),openDateTime:$("openDate").value||nowLocal(),openDate:($("openDate").value||nowLocal()).slice(0,10),expiry:$("expiry").value,thesis:$("thesis").value,riskNote:$("riskNote").value};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}general.unshift(p);save();e.target.reset();$("openDate").value=nowLocal();$("qty").value=1;renderGeneral();alert("Pozisyon aktif pozisyonlara eklendi.")});
+$("generalForm").addEventListener("submit",e=>{e.preventDefault();const vc=currentSelectedViopContract("general");const p={id:id(),status:"Aktif",assetClass:$("assetClass").value,optionType:isOptionType($("assetClass").value)?$("optionType").value:null,symbol:$("symbol").value.trim().toUpperCase(),yahooSymbol:$("yahooSymbol").value.trim().toUpperCase(),direction:$("direction").value,currency:$("currency").value,entry:n($("entry").value),currentPrice:n($("entry").value),dailyChange:n($("dailyChange").value)||0,qty:n($("qty").value)||1,stop:n($("stop").value),target:n($("target").value),openDateTime:$("openDate").value||nowLocal(),openDate:($("openDate").value||nowLocal()).slice(0,10),expiry:$("expiry").value,thesis:$("thesis").value,riskNote:$("riskNote").value,viopContract:$("gViopContract")?.value||"",contractSize:n($("gContractSize")?.value)||1,initialMargin:n($("gInitialMargin")?.value)||0,maintenanceMargin:n($("gMaintenanceMargin")?.value)||0,contractExpiry:vc?.expiryDate||vc?.maturityLabel||""};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}if(isViopPosition(p)&&!p.viopContract){alert("VİOP için dayanak varlık ve vade seçin.");return}general.unshift(p);save();e.target.reset();$("openDate").value=nowLocal();$("qty").value=1;syncModelViopVisibility();renderGeneral();alert("Pozisyon aktif pozisyonlara eklendi.")});
 $("closeGeneralBtn").onclick=()=>{const p=general.find(x=>x.id===$("closeGeneralSelect").value),price=n($("closeGeneralPrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDateTime=$("closeGeneralDate").value||nowLocal();p.closeDate=p.closeDateTime.slice(0,10);save();$("closeGeneralPrice").value="";renderGeneral()};
 window.deleteGeneral=x=>{if(confirm("Kayıt silinsin mi?")){general=general.filter(p=>p.id!==x);save();renderGeneral()}};
 
@@ -1847,7 +1915,7 @@ function modelTable(arr,closed){
   const net=closed?netClosedPnl(p):netLivePnl(p);
   const base=Number(p.allocated)||tradeNotional(p,p.entry);
   const netPct=base?net/base*100:0;
-  return`<tr><td><strong class="clickableSymbol" onclick="openSecurityDetails('${esc(inferYahooSymbol(p))}','${esc(p.symbol)}')">${esc(p.symbol)}</strong><div class="muted">${esc(p.yahooSymbol||"")}</div></td>
+  return`<tr><td><strong class="clickableSymbol" onclick="openPositionResearch('model','${p.id}')">${esc(p.viopContract||p.symbol)}</strong><div class="muted">${esc(isViopPosition(p)?p.symbol:(p.yahooSymbol||""))}</div></td>
  <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}${isViopPosition(p)?`<div><span class="viopPill">${esc(p.viopContract||"VİOP")}</span></div>`:""}</td><td>${esc(p.direction)}</td>
  <td>${f(p.entry,4)}</td><td>${f(p.currentPrice??p.entry,4)}</td>
  <td class="netPnl ${net>=0?"positive":"negative"}">${f(net,2)} ${esc(p.currency||"")}</td>
@@ -1892,60 +1960,136 @@ window.renderModel=function renderModel(){
  renderModelPie();renderModelPerformance();renderActivities();updateModelTradePreview();
 }
 let viopContracts=[];
-function currentSelectedViopContract(){return viopContracts.find(x=>x.id===$("mViopContract")?.value)||null}
+let viopUnderlyings=[];
+function contractsForUnderlying(underlying){
+ return viopContracts.filter(x=>String(x.underlying||"").toUpperCase()===String(underlying||"").toUpperCase())
+  .sort((a,b)=>String(a.sortDate||a.expiryDate||"9999").localeCompare(String(b.sortDate||b.expiryDate||"9999")));
+}
+function nearestContractForUnderlying(underlying){
+ const rows=contractsForUnderlying(underlying);
+ return rows.find(x=>x.isActive!==false)||rows[0]||null;
+}
+function currentSelectedViopContract(scope="model"){
+ const id=scope==="general"?$("gViopContract")?.value:$("mViopContract")?.value;
+ return viopContracts.find(x=>x.id===id)||null;
+}
+function populateViopExpirySelect(scope,underlying,selectedId=null){
+ const select=scope==="general"?$("gViopContract"):$("mViopContract");
+ const rows=contractsForUnderlying(underlying);
+ if(!select)return null;
+ select.innerHTML=rows.length
+  ?rows.map((c,i)=>`<option value="${esc(c.id)}" ${(selectedId?c.id===selectedId:i===0)?"selected":""}>${esc(c.code)} · ${esc(c.maturityLabel||c.expiryDate||"Vade")}${i===0?" · Yakın Vade":""}</option>`).join("")
+  :'<option value="">Kontrat bulunamadı / manuel giriş</option>';
+ return currentSelectedViopContract(scope);
+}
+function applyContractFields(scope,c){
+ if(!c)return;
+ const isGeneral=scope==="general";
+ const size=$(isGeneral?"gContractSize":"mContractSize");
+ const initial=$(isGeneral?"gInitialMargin":"mInitialMargin");
+ const maintenance=$(isGeneral?"gMaintenanceMargin":"mMaintenanceMargin");
+ if(size)size.value=c.contractSize??1;
+ if(initial)initial.value=c.initialMargin??"";
+ if(maintenance)maintenance.value=c.maintenanceMargin??((Number(c.initialMargin)||0)*.75||"");
+ if(!isGeneral){
+  $("mContractExpiry").value=c.expiryDate||c.maturityLabel||"";
+  $("mMarginMode").value="fixed";
+  $("mMarginRate").value="";
+ }
+ updateViopMarginSummary(scope,c);
+ updateModelTradePreview();
+}
+function applyViopUnderlying(scope,item){
+ const underlying=String(item.underlying||item.symbol||"").toUpperCase();
+ const near=item.nearestContract||nearestContractForUnderlying(underlying);
+ if(scope==="general"){
+  $("symbol").value=underlying;$("yahooSymbol").value="";
+  populateViopExpirySelect("general",underlying,near?.id);
+  applyContractFields("general",currentSelectedViopContract("general")||near);
+ }else{
+  $("mSymbol").value=underlying;$("mYahooSymbol").value="";
+  populateViopExpirySelect("model",underlying,near?.id);
+  applyContractFields("model",currentSelectedViopContract("model")||near);
+ }
+}
+function updateViopMarginSummary(scope,c=currentSelectedViopContract(scope)){
+ const isGeneral=scope==="general";
+ const qty=Number($(isGeneral?"qty":"mQty")?.value)||0;
+ const initial=Number($(isGeneral?"gInitialMargin":"mInitialMargin")?.value)||0;
+ const maintenance=Number($(isGeneral?"gMaintenanceMargin":"mMaintenanceMargin")?.value)||0;
+ if(isGeneral){
+  $("gSelectedContract").textContent=c?.code||"-";
+  $("gSelectedExpiry").textContent=c?.expiryDate||c?.maturityLabel||"-";
+  $("gTotalInitialMargin").textContent=f(initial*qty,2)+" TRY";
+  $("gTotalMaintenanceMargin").textContent=f(maintenance*qty,2)+" TRY";
+ }
+}
 function syncModelViopVisibility(){
- const active=$("mAssetClass")?.value==="Türev (VİOP/Vadeli)";
- $("mViopFields")?.classList.toggle("hidden",!active);
+ const generalActive=$("assetClass")?.value==="Türev (VİOP/Vadeli)";
+ const modelActive=$("mAssetClass")?.value==="Türev (VİOP/Vadeli)";
+ $("gViopFields")?.classList.toggle("hidden",!generalActive);
+ $("mViopFields")?.classList.toggle("hidden",!modelActive);
+ if(generalActive&&$("symbol")?.value)ensureViopSelection("general",$("symbol").value);
+ if(modelActive&&$("mSymbol")?.value)ensureViopSelection("model",$("mSymbol").value);
+ updateViopMarginSummary("general");
  updateModelTradePreview();
 }
 function parseNullableNumber(v){const x=Number(v);return Number.isFinite(x)?x:null}
-async function loadViopContracts(){
- const status=$("mViopSourceStatus"),workspace=$("viopWorkspaceSource");
- if(status)status.textContent="İş Yatırım kontrat ve teminat tablosu kontrol ediliyor…";
+async function loadViopContracts(force=false){
+ const statuses=[$("mViopSourceStatus"),$("gViopSourceStatus"),$("viopWorkspaceSource")].filter(Boolean);
+ statuses.forEach(x=>x.textContent="Alnus Yatırım kontrat ve teminat tablosu kontrol ediliyor…");
  try{
-  const response=await fetch("/api/viop/contracts");
+  const response=await fetch("/api/viop/contracts"+(force?"?refresh=1":""));
   const payload=await response.json();
   if(!response.ok)throw new Error(payload.error||"VİOP kontratları alınamadı");
   viopContracts=Array.isArray(payload.contracts)?payload.contracts:[];
-  $("mViopContract").innerHTML='<option value="">Kontrat seçin / manuel giriş</option>'+viopContracts.map(c=>`<option value="${esc(c.id)}">${esc(c.code||c.id)} · ${esc(c.name||"")}</option>`).join("");
-  const msg=`Kaynak: ${payload.sourceLabel||"İş Yatırım"} · ${payload.live?"Canlı tablo ayrıştırıldı":"Kaynak erişimi denendi; eksik alanlarda manuel giriş kullanılmalı"} · ${payload.asOf||new Date().toLocaleDateString("tr-TR")}`;
-  if(status)status.textContent=msg;if(workspace)workspace.textContent=msg+" Başlangıç teminatları saatlik risk parametreleriyle değişebilir.";
+  viopUnderlyings=Array.isArray(payload.underlyings)?payload.underlyings:[];
+  const tone=payload.live?"viopSourceLive":"viopSourceFallback";
+  const msg=`Kaynak: ${payload.sourceLabel||"Alnus Yatırım"} · ${payload.live?"Canlı kontrat tablosu":"Yedek sözleşme kataloğu"} · ${payload.asOf?new Date(payload.asOf).toLocaleString("tr-TR"):""}`;
+  statuses.forEach(x=>{x.classList.remove("viopSourceLive","viopSourceFallback");x.classList.add(tone);x.textContent=msg+" · Dayanak seçildiğinde yakın vade otomatik uygulanır.";});
+  if($("symbol")?.value&&$("assetClass")?.value==="Türev (VİOP/Vadeli)")ensureViopSelection("general",$("symbol").value);
+  if($("mSymbol")?.value&&$("mAssetClass")?.value==="Türev (VİOP/Vadeli)")ensureViopSelection("model",$("mSymbol").value);
  }catch(error){
-  if(status)status.textContent="Kontrat kaynağı alınamadı: "+error.message+" Manuel kontrat büyüklüğü ve teminat girebilirsiniz.";
+  statuses.forEach(x=>x.textContent="Alnus VİOP verisi alınamadı: "+error.message+" Manuel teminat girişi kullanılabilir.");
  }
  updateModelTradePreview();
 }
-function applyViopContract(){
- const c=currentSelectedViopContract();if(!c)return;
- $("mContractSize").value=c.contractSize??1;
- $("mMarginMode").value=c.marginMode||((c.marginRate??null)!==null?"rate":"fixed");
- $("mInitialMargin").value=c.initialMargin??"";
- $("mMarginRate").value=c.marginRate??"";
- if(!$("mSymbol").value)$("mSymbol").value=c.code||c.id;
- updateModelTradePreview();
+function ensureViopSelection(scope,underlying){
+ const rows=contractsForUnderlying(underlying);
+ if(!rows.length)return;
+ const current=currentSelectedViopContract(scope);
+ const chosen=current&&current.underlying===underlying?current:rows[0];
+ populateViopExpirySelect(scope,underlying,chosen.id);
+ applyContractFields(scope,currentSelectedViopContract(scope)||chosen);
+}
+function applyViopContract(scope="model"){
+ const c=currentSelectedViopContract(scope);if(!c)return;
+ applyContractFields(scope,c);
 }
 function draftModelPosition(){
  return{
   assetClass:$("mAssetClass")?.value||"",entry:Number($("mEntry")?.value)||0,qty:Number($("mQty")?.value)||0,
   currency:$("mCurrency")?.value||"TRY",commissionUnit:$("mCommissionUnit")?.value||"onbinde",
   commissionRate:Number($("mCommissionRate")?.value)||0,contractSize:Number($("mContractSize")?.value)||1,
-  viopContract:$("mViopContract")?.value||"",marginMode:$("mMarginMode")?.value||"fixed",
-  initialMargin:Number($("mInitialMargin")?.value)||0,marginRate:Number($("mMarginRate")?.value)||0
+  viopContract:$("mViopContract")?.value||"",marginMode:"fixed",
+  initialMargin:Number($("mInitialMargin")?.value)||0,
+  maintenanceMargin:Number($("mMaintenanceMargin")?.value)||0,marginRate:0
  };
 }
 function updateModelTradePreview(){
  const p=draftModelPosition(),notional=tradeNotional(p,p.entry),commission=commissionAmount(notional,p.commissionUnit,p.commissionRate);
  p.openCommission=commission;
- const margin=viopInitialMargin(p),incCredit=isViopPosition(p)?0:incrementalCreditFor(p);
+ const margin=viopInitialMargin(p),maintenance=Math.abs(Number(p.qty)||0)*(Number(p.maintenanceMargin)||0),incCredit=isViopPosition(p)?0:incrementalCreditFor(p);
  if($("mPreviewNotional"))$("mPreviewNotional").textContent=f(notional,2)+" "+p.currency;
  if($("mPreviewCommission"))$("mPreviewCommission").textContent=f(commission,2)+" "+p.currency;
  if($("mPreviewMargin"))$("mPreviewMargin").textContent=f(margin,2)+" TRY";
+ if($("mPreviewMaintenance"))$("mPreviewMaintenance").textContent=f(maintenance,2)+" TRY";
  if($("mPreviewCredit"))$("mPreviewCredit").textContent=f(incCredit,2)+" TRY";
 }
 function renderViopOpenPositions(rows){
  if(!rows.length)return'<div class="muted" style="padding:20px;text-align:center">Açık VİOP pozisyonu bulunmuyor.</div>';
- return`<div class="tableWrap"><table><thead><tr><th>Sembol</th><th>Kontrat</th><th>Adet</th><th>Kontrat Büyüklüğü</th><th>Pozisyon Büyüklüğü</th><th>Başlangıç Teminatı</th><th>Güncel Net K/Z</th></tr></thead>
- <tbody>${rows.map(p=>`<tr><td><strong>${esc(p.symbol)}</strong></td><td>${esc(p.viopContract||"-")}</td><td>${f(p.qty,0)}</td><td>${f(p.contractSize,2)}</td><td>${f(positionSize(p),2)} TRY</td><td>${f(viopInitialMargin(p),2)} TRY</td><td class="${netLivePnl(p)>=0?"positive":"negative"}">${f(netLivePnl(p),2)} TRY</td></tr>`).join("")}</tbody></table></div>`;
+ return`<div class="tableWrap"><table><thead><tr><th>Sembol</th><th>Kontrat</th><th>Vade</th><th>Adet</th><th>Kontrat Büyüklüğü</th><th>Pozisyon Büyüklüğü</th><th>Başlangıç Teminatı</th><th>Sürdürme Teminatı</th><th>Güncel Net K/Z</th></tr></thead>
+ <tbody>${rows.map(p=>`<tr><td><strong>${esc(p.symbol)}</strong></td><td>${esc(p.viopContract||"-")}</td><td>${esc(p.contractExpiry||"-")}</td><td>${f(p.qty,0)}</td><td>${f(p.contractSize,2)}</td><td>${f(positionSize(p),2)} TRY</td><td>${f(viopInitialMargin(p),2)} TRY</td><td>${f((Number(p.maintenanceMargin)||0)*Math.abs(Number(p.qty)||0),2)} TRY</td><td class="${netLivePnl(p)>=0?"positive":"negative"}">${f(netLivePnl(p),2)} TRY</td></tr>`).join("")}</tbody></table></div>`;
 }
 function renderViopTransferHistory(){
  const rows=[...(settings.viopTransfers||[])].sort((a,b)=>String(b.dateTime).localeCompare(String(a.dateTime)));
@@ -1967,7 +2111,9 @@ $("modelForm").addEventListener("submit",e=>{
   commissionUnit:$("mCommissionUnit").value,commissionRate:n($("mCommissionRate").value)||0,
   closeCommissionUnit:$("mCommissionUnit").value,closeCommissionRate:n($("mCommissionRate").value)||0,
   viopContract:$("mViopContract").value||"",contractSize:n($("mContractSize").value)||1,
-  marginMode:$("mMarginMode").value,initialMargin:n($("mInitialMargin").value)||0,marginRate:n($("mMarginRate").value)||0
+  marginMode:"fixed",initialMargin:n($("mInitialMargin").value)||0,
+  maintenanceMargin:n($("mMaintenanceMargin").value)||0,
+  contractExpiry:currentSelectedViopContract("model")?.expiryDate||$("mContractExpiry").value||"",marginRate:0
  };
  if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}
  p.openCommission=commissionAmount(tradeNotional(p,p.entry),p.commissionUnit,p.commissionRate);
@@ -2031,8 +2177,8 @@ $("viopTransferBtn").onclick=()=>{
  settings.viopTransfers.unshift({id:id(),direction,amount,dateTime:nowLocal(),balanceAfter:settings.viopCollateral});
  save();$("viopTransferAmount").value="";renderModel();
 };
-$("refreshViopWorkspace").onclick=loadViopContracts;
-$("refreshViopContracts").onclick=loadViopContracts;
+$("refreshViopWorkspace").onclick=()=>loadViopContracts(true);
+$("refreshViopContracts").onclick=()=>loadViopContracts(true);
 
 window.deleteModel=x=>{if(confirm("Kayıt silinsin mi?")){model=model.filter(p=>p.id!==x);save();renderModel()}};
 
@@ -2123,7 +2269,29 @@ window.openSecurityDetails=async(symbol,name)=>{
  openResearchModal({
   symbol:String(symbol||"").replace(".IS",""),
   yahooSymbol:symbol,
-  name:name||symbol
+  fundamentalSymbol:symbol,
+  name:name||symbol,
+  market:String(symbol||"").endsWith(".IS")?"BIST":""
+ });
+};
+window.openPositionResearch=(scope,positionId)=>{
+ const source=scope==="model"?model:general;
+ const p=source.find(x=>x.id===positionId);
+ if(!p)return;
+ const viop=isViopPosition(p);
+ const underlying=String(p.symbol||"").replace(/\.IS$/i,"").toUpperCase();
+ const fundamental=viop?`${underlying}.IS`:(inferYahooSymbol(p)||p.yahooSymbol||p.symbol);
+ openResearchModal({
+  symbol:viop?(p.viopContract||p.symbol):p.symbol,
+  chartSymbol:viop?(p.viopContract||p.symbol):undefined,
+  viopContract:viop?(p.viopContract||""):undefined,
+  underlying,
+  yahooSymbol:fundamental,
+  fundamentalSymbol:fundamental,
+  openbbSymbol:fundamental,
+  assetClass:p.assetClass,
+  market:viop?"VIOP":(String(fundamental).endsWith(".IS")?"BIST":""),
+  name:viop?`${p.viopContract||p.symbol} · ${underlying}`:p.symbol
  });
 };
 
@@ -2192,8 +2360,12 @@ function normalizeSearchResult(item){
  const symbol=String(item.symbol||item.code||"").toUpperCase();
  const yahooSymbol=String(item.yahooSymbol||item.symbol||item.code||"").toUpperCase();
  return{
+  ...item,
   symbol,
   yahooSymbol,
+  underlying:String(item.underlying||symbol).toUpperCase(),
+  nearestContract:item.nearestContract||null,
+  contracts:Array.isArray(item.contracts)?item.contracts:[],
   name:item.name||item.shortname||item.longname||symbol,
   type:item.type||item.quoteType||item.kind||"Ürün",
   exchange:item.exchange||item.exchDisp||"",
@@ -2233,13 +2405,14 @@ function openSearchResult(item){
   openResearchModal({symbol:x.symbol,yahooSymbol:x.yahooSymbol,name:x.name,exchange:x.exchange});
  }
 }
-async function fetchSymbolSearch(query){
- const r=await fetch("/api/search?q="+encodeURIComponent(query));
+async function fetchSymbolSearch(query,mode="spot"){
+ const endpoint=mode==="viop"?"/api/viop/search?q=":"/api/search?q=";
+ const r=await fetch(endpoint+encodeURIComponent(query));
  const data=await r.json();
  if(!r.ok)throw new Error(data.error||"Arama yapılamadı");
  return(Array.isArray(data.items)?data.items:[]).map(normalizeSearchResult);
 }
-function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false}){
+function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,assetClassId=null,scope=null}){
  const input=$(inputId),box=$(boxId),yahooInput=yahooInputId?$(yahooInputId):null;
  if(!input||!box)return;
  let results=[],active=-1,requestNo=0;
@@ -2252,7 +2425,7 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false})
   }
   box.innerHTML=results.map((x,i)=>`<div class="searchResultRow ${i===active?"active":""}" data-result-index="${i}">
    <span class="searchResultSymbol">${esc(x.symbol)}</span>
-   <span class="searchResultMeta"><span class="searchResultName">${esc(x.name)}</span><span class="searchResultType">${esc([x.type,x.exchange].filter(Boolean).join(" · "))}</span></span>
+   <span class="searchResultMeta"><span class="searchResultName">${esc(x.name)}</span><span class="searchResultType">${esc([x.type,x.exchange].filter(Boolean).join(" · "))}</span>${x.nearestContract?`<span class="viopSearchMeta"><span>${esc(x.nearestContract.code)}</span><span>${esc(x.nearestContract.maturityLabel||x.nearestContract.expiryDate||"Yakın Vade")}</span><span>Teminat ${fundNumber(x.nearestContract.initialMargin,2)} TRY</span></span>`:""}</span>
    ${allowAdd?`<button type="button" class="searchAddButton" data-add-index="${i}" title="Açık listeye ekle">+</button>`:""}
   </div>`).join("");
   box.classList.add("open");
@@ -2262,7 +2435,8 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false})
    const item=results[Number(row.dataset.resultIndex)];
    if(yahooInput){
     input.value=item.symbol;
-    yahooInput.value=item.yahooSymbol;
+    yahooInput.value=item.mode==="viop"?"":item.yahooSymbol;
+    if(item.mode==="viop")applyViopUnderlying(scope,item);
     close();
    }else openSearchResult(item);
   }));
@@ -2280,7 +2454,9 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false})
   clearTimeout(marketSearchTimer);
   marketSearchTimer=setTimeout(async()=>{
    try{
-    const found=await fetchSymbolSearch(q);
+    const mode=assetClassId&&$(assetClassId)?.value==="Türev (VİOP/Vadeli)"?"viop":"spot";
+    const found=await fetchSymbolSearch(q,mode);
+    found.forEach(x=>x.mode=mode);
     if(myRequest!==requestNo)return;
     // Prefix matches first; only products beginning with typed letters remain.
     results=found.filter(x=>x.symbol.toLocaleUpperCase("tr-TR").startsWith(q))
@@ -2303,8 +2479,11 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false})
   else if(event.key==="Enter"&&active>=0){
    event.preventDefault();
    const item=results[active];
-   if(yahooInput){input.value=item.symbol;yahooInput.value=item.yahooSymbol;close()}
-   else openSearchResult(item);
+   if(yahooInput){
+    input.value=item.symbol;yahooInput.value=item.mode==="viop"?"":item.yahooSymbol;
+    if(item.mode==="viop")applyViopUnderlying(scope,item);
+    close();
+   }else openSearchResult(item);
   }else if(event.key==="Escape")close();
  });
  document.addEventListener("mousedown",event=>{
@@ -2312,8 +2491,8 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false})
  });
 }
 setupLiveSymbolSearch({inputId:"globalSymbolSearch",boxId:"globalSymbolSuggestions",allowAdd:true});
-setupLiveSymbolSearch({inputId:"symbol",boxId:"symbolSuggestions",yahooInputId:"yahooSymbol"});
-setupLiveSymbolSearch({inputId:"mSymbol",boxId:"mSymbolSuggestions",yahooInputId:"mYahooSymbol"});
+setupLiveSymbolSearch({inputId:"symbol",boxId:"symbolSuggestions",yahooInputId:"yahooSymbol",assetClassId:"assetClass",scope:"general"});
+setupLiveSymbolSearch({inputId:"mSymbol",boxId:"mSymbolSuggestions",yahooInputId:"mYahooSymbol",assetClassId:"mAssetClass",scope:"model"});
 
 function fundCategoryButtons(){return FUND_CATEGORIES.map(c=>`<button class="fundCategoryBtn ${fundCategory===c.id?"active":""}" data-fund-category="${c.id}">${c.label}</button>`).join("")}
 function filterFunds(){const q=($("fundSearch")?.value||"").trim().toLocaleUpperCase("tr-TR");return fundDataCache.filter(f=>{const cat=classifyFund(f.name||"");return(fundCategory==="all"||cat===fundCategory)&&(!q||`${f.code} ${f.name} ${f.manager||""}`.toLocaleUpperCase("tr-TR").includes(q))})}
@@ -2363,7 +2542,43 @@ function renderStatementTable(rows){
  return`<div class="statementTableWrap"><table class="statementTable"><thead><tr><th>Kalem</th>${periods.map(x=>`<th>${esc(periodLabel(x))}</th>`).join("")}</tr></thead><tbody>${keys.map(k=>`<tr><td>${esc(humanKey(k))}</td>${periods.map(x=>`<td>${statementValue(x[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
+const VIOP_MONTH_CODES={1:"F",2:"G",3:"H",4:"J",5:"K",6:"M",7:"N",8:"Q",9:"U",10:"V",11:"X",12:"Z"};
+const VIOP_TV_BASE_MAP={XU030:"XU030D",XU100:"XU100",USDTRY:"USDTRY",EURTRY:"EURTRY",EURUSD:"EURUSD",XAUTRY:"XAUTRY",XAUUSD:"XAUUSD"};
+function isViopResearchAsset(asset){
+ const raw=String(asset?.viopContract||asset?.chartSymbol||asset?.symbol||"").toUpperCase();
+ return String(asset?.assetClass||"").includes("VİOP")||String(asset?.market||"").toUpperCase()==="VIOP"||/^F_/.test(raw);
+}
+function parseViopTradingViewSymbol(rawValue,underlyingHint=""){
+ let raw=String(rawValue||"").trim().toUpperCase().replace(/^BIST:/,"");
+ if(raw.endsWith("1!")||/^[A-Z0-9]+[FGHJKMNQUVXZ]\d{4}$/.test(raw))return`BIST:${raw}`;
+ raw=raw.replace(/^F_/,"").replace(/[^A-Z0-9]/g,"");
+ let underlying=String(underlyingHint||"").toUpperCase().replace(/\.IS$/,"").replace(/^F_/,"").replace(/[^A-Z0-9]/g,"");
+ let month=null,year=null;
+ let match=raw.match(/^([A-Z0-9]+?)(0[1-9]|1[0-2])(20\d{2})$/);
+ if(match){underlying=match[1];month=Number(match[2]);year=Number(match[3])}
+ if(!match){
+  match=raw.match(/^([A-Z0-9]+?)(0[1-9]|1[0-2])(\d{2})$/);
+  if(match){underlying=match[1];month=Number(match[2]);year=2000+Number(match[3])}
+ }
+ if(!underlying){
+  const generic=raw.match(/^([A-Z0-9]+?)(?:\d{4}|\d{6})?$/);
+  underlying=generic?.[1]||raw;
+ }
+ const tvBase=VIOP_TV_BASE_MAP[underlying]||underlying;
+ if(month&&year&&VIOP_MONTH_CODES[month])return`BIST:${tvBase}${VIOP_MONTH_CODES[month]}${year}`;
+ return`BIST:${tvBase}1!`;
+}
+function fundamentalSymbolForAsset(asset){
+ if(isViopResearchAsset(asset)){
+  const underlying=String(asset.underlying||asset.fundamentalSymbol||asset.symbol||"").replace(/^F_/,"").replace(/\.IS$/i,"").toUpperCase();
+  return underlying?`${underlying}.IS`:String(asset.yahooSymbol||"");
+ }
+ return String(asset.fundamentalSymbol||asset.openbbSymbol||asset.yahooSymbol||asset.symbol||"").toUpperCase();
+}
 function tradingViewSymbolFor(asset){
+ if(isViopResearchAsset(asset)){
+  return parseViopTradingViewSymbol(asset.viopContract||asset.chartSymbol||asset.symbol,asset.underlying);
+ }
  const yahoo=String(asset.yahooSymbol||asset.symbol||"").trim().toUpperCase();
  const plain=String(asset.symbol||"").replace(/\.IS$/i,"").trim().toUpperCase();
  if(yahoo.endsWith(".IS")||asset.market==="BIST")return`BIST:${plain}`;
@@ -2382,6 +2597,7 @@ function tradingViewSymbolFor(asset){
  return`NASDAQ:${plain}`;
 }
 function isTradingViewWidgetRestricted(asset){
+ if(isViopResearchAsset(asset))return false;
  const yahoo=String(asset.yahooSymbol||"").toUpperCase();
  return yahoo.endsWith(".IS")||String(asset.market||"").toUpperCase()==="BIST";
 }
@@ -2445,9 +2661,15 @@ function mountTradingViewResearch(asset){
  if(fallbackResizeObserver){fallbackResizeObserver.disconnect();fallbackResizeObserver=null}
  if(fallbackTvChart){try{fallbackTvChart.remove()}catch{} fallbackTvChart=null}
  container.innerHTML="";
+ if(isViopResearchAsset(asset)){
+  const identity=document.createElement("div");
+  identity.className="viopChartIdentity";
+  identity.innerHTML=`<strong>${esc(asset.viopContract||asset.chartSymbol||asset.symbol)}</strong><span>TradingView:</span><span>${esc(tradingViewSymbolFor(asset))}</span><span>Temel veriler: ${esc(fundamentalSymbolForAsset(asset))}</span>`;
+  container.appendChild(identity);
+ }
  const widget=document.createElement("div");
  widget.className="tradingview-widget-container";
- widget.style.height="100%";
+ widget.style.height=isViopResearchAsset(asset)?"calc(100% - 39px)":"100%";
  widget.style.width="100%";
  widget.innerHTML='<div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>';
  const script=document.createElement("script");
@@ -2469,7 +2691,8 @@ function renderResearchOverview(data,asset){
  const info=firstRecord(data.info);
  const quote=firstRecord(data.quote);
  const metrics=firstRecord(data.metrics);
- const companyName=info.name||info.company_name||quote.name||asset.name||asset.symbol;
+ const tv=data.tradingview_fundamentals||{};
+ const companyName=info.name||info.company_name||quote.name||tv.description||asset.name||asset.symbol;
  $("researchTitle").textContent=`${asset.symbol} · ${companyName}`;
  $("researchSubtitle").textContent=[info.exchange,info.sector,info.industry].filter(Boolean).join(" · ")||"OpenBB temel analiz ve haber terminali";
  const description=info.long_business_summary||info.description||info.business_summary||"Şirket açıklaması OpenBB sağlayıcısı tarafından gönderilmedi.";
@@ -2477,7 +2700,7 @@ function renderResearchOverview(data,asset){
   <div class="researchCompanyCard">
    <div class="researchMetricGrid">
     ${researchMetric("Son Fiyat",researchValue(quote.price??quote.last_price??quote.close,{money:true,currency:quote.currency||info.currency||"USD"}))}
-    ${researchMetric("Piyasa Değeri",researchValue(metrics.market_cap??quote.market_cap,{money:true,currency:quote.currency||info.currency||"USD"}))}
+    ${researchMetric("Piyasa Değeri",researchValue(metrics.market_cap??quote.market_cap??tv.market_cap_basic,{money:true,currency:quote.currency||info.currency||tv.currency||"USD"}))}
     ${researchMetric("52H Yüksek",researchValue(quote.year_high??quote.fifty_two_week_high,{money:true,currency:quote.currency||"USD"}))}
     ${researchMetric("52H Düşük",researchValue(quote.year_low??quote.fifty_two_week_low,{money:true,currency:quote.currency||"USD"}))}
    </div>
@@ -2497,40 +2720,51 @@ function renderResearchFundamentals(data){
  const m=firstRecord(data.metrics);
  const r=firstRecord(data.ratios);
  const y=data.yahoo_details||{};
+ const tv=data.tradingview_fundamentals||{};
+ const pick=(...values)=>values.find(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v)));
  const values=[
-  ["F/K",m.pe_ratio??m.price_earnings_ratio??r.price_earnings_ratio??y.trailingPE],
-  ["İleri F/K",m.forward_pe??r.forward_pe_ratio],
-  ["PD/DD",m.price_to_book??r.price_to_book_ratio??y.priceToBook],
-  ["FD/FAVÖK",m.enterprise_value_over_ebitda??m.ev_to_ebitda??r.enterprise_value_ebitda_ratio??y.enterpriseToEbitda],
-  ["FD/Satış",m.enterprise_value_over_revenue??r.enterprise_value_revenue_ratio],
-  ["Temettü Verimi",m.dividend_yield??r.dividend_yield??y.dividendYield,"percent"],
-  ["ROE",m.return_on_equity??r.return_on_equity??y.returnOnEquity,"percent"],
-  ["ROA",m.return_on_assets??r.return_on_assets??y.returnOnAssets,"percent"],
-  ["Net Marj",m.net_profit_margin??r.net_profit_margin??y.netMargin,"percent"],
-  ["Borç/Özkaynak",m.debt_to_equity??r.debt_to_equity??y.debtToEquityComputed],
-  ["Cari Oran",m.current_ratio??r.current_ratio??y.currentRatio],
-  ["Beta",m.beta??y.beta],
-  ["Hisse Başına Kâr",m.earnings_per_share??m.eps??y.trailingEps],
-  ["Defter Değeri/Hisse",m.book_value_per_share??y.bookValue],
-  ["Önceki Kapanış",y.previousClose,"money"],
-  ["Gün Açılış",y.open,"money"],
-  ["Gün İçi Yüksek",y.dayHigh,"money"],
-  ["Gün İçi Düşük",y.dayLow,"money"],
-  ["Günlük Değişim",y.changePercent,"percent"],
-  ["Günlük Aralık",y.dailyRangePercent,"percent"],
-  ["Hacim",y.volume],
-  ["Ortalama Hacim",y.averageVolume],
-  ["SMA 50",y.sma50,"money"],
-  ["SMA 200",y.sma200,"money"],
-  ["SMA 50 Uzaklık",y.distanceFromSma50,"percent"],
-  ["SMA 200 Uzaklık",y.distanceFromSma200,"percent"],
-  ["20 Gün Momentum",y.momentum20d,"percent"],
-  ["50 Gün Momentum",y.momentum50d,"percent"],
-  ["20 Gün Volatilite",y.volatility20d,"percent"],
-  ["100 Gün Volatilite",y.historicalVolatility100d,"percent"],
-  ["Net Borç",m.net_debt??(y.netCash==null?null:-y.netCash),"money"]
+  ["F/K",pick(tv.price_earnings_ttm,m.pe_ratio,m.price_earnings_ratio,r.price_earnings_ratio,y.trailingPE),"number","TradingView / Yahoo"],
+  ["İleri F/K",pick(tv.price_earnings_forward,m.forward_pe,r.forward_pe_ratio),"number","TradingView / OpenBB"],
+  ["PD/DD",pick(tv.price_book_fq,m.price_to_book,r.price_to_book_ratio,y.priceToBook),"number","TradingView / Yahoo"],
+  ["FD/FAVÖK",pick(tv.enterprise_value_ebitda_ttm,m.enterprise_value_over_ebitda,m.ev_to_ebitda,r.enterprise_value_ebitda_ratio,y.enterpriseToEbitda),"number","TradingView / Yahoo"],
+  ["F/S",pick(tv.price_sales_current,m.price_to_sales),"number","TradingView"],
+  ["FD/Satış",pick(tv.enterprise_value_revenue_ttm,m.enterprise_value_over_revenue,r.enterprise_value_revenue_ratio),"number","TradingView / OpenBB"],
+  ["PEG",pick(tv.price_earnings_growth_ttm,m.peg_ratio,r.peg_ratio),"number","TradingView / OpenBB"],
+  ["Temettü Verimi",pick(tv.dividends_yield_current,m.dividend_yield,r.dividend_yield,y.dividendYield),"percent","TradingView / Yahoo"],
+  ["ROE",pick(tv.return_on_equity_fq,m.return_on_equity,r.return_on_equity,y.returnOnEquity),"percent","TradingView / Yahoo"],
+  ["ROA",pick(tv.return_on_assets_fq,m.return_on_assets,r.return_on_assets,y.returnOnAssets),"percent","TradingView / Yahoo"],
+  ["Brüt Marj",pick(tv.gross_margin_ttm,m.gross_margin,r.gross_profit_margin),"percent","TradingView / OpenBB"],
+  ["Faaliyet Marjı",pick(tv.operating_margin_ttm,m.operating_margin,r.operating_profit_margin),"percent","TradingView / OpenBB"],
+  ["Net Marj",pick(tv.net_margin_ttm,m.net_profit_margin,r.net_profit_margin,y.netMargin),"percent","TradingView / Yahoo"],
+  ["Borç/Özkaynak",pick(tv.debt_to_equity_fq,m.debt_to_equity,r.debt_to_equity,y.debtToEquityComputed),"number","TradingView / Yahoo"],
+  ["Cari Oran",pick(tv.current_ratio_fq,m.current_ratio,r.current_ratio,y.currentRatio),"number","TradingView / Yahoo"],
+  ["Hızlı Oran",pick(tv.quick_ratio_fq,m.quick_ratio,r.quick_ratio),"number","TradingView / OpenBB"],
+  ["Beta",pick(tv.beta_1_year,m.beta,y.beta),"number","TradingView / Yahoo"],
+  ["Hisse Başına Kâr",pick(tv.earnings_per_share_diluted_ttm,m.earnings_per_share,m.eps,y.trailingEps),"money","TradingView / Yahoo"],
+  ["Defter Değeri/Hisse",pick(tv.book_value_per_share_fq,m.book_value_per_share,y.bookValue),"money","TradingView / Yahoo"],
+  ["Serbest Nakit Akışı",pick(tv.free_cash_flow_ttm,m.free_cash_flow),"money","TradingView / OpenBB"],
+  ["Toplam Gelir (TTM)",pick(tv.total_revenue_ttm),"money","TradingView"],
+  ["Net Kâr (TTM)",pick(tv.net_income_ttm),"money","TradingView"],
+  ["FAVÖK (TTM)",pick(tv.ebitda_ttm),"money","TradingView"],
+  ["Önceki Kapanış",pick(y.previousClose),"money","Yahoo"],
+  ["Gün Açılış",pick(y.open),"money","Yahoo"],
+  ["Gün İçi Yüksek",pick(y.dayHigh),"money","Yahoo"],
+  ["Gün İçi Düşük",pick(y.dayLow),"money","Yahoo"],
+  ["Günlük Değişim",pick(y.changePercent,tv.change),"percent","Yahoo / TradingView"],
+  ["Hacim",pick(y.volume),"number","Yahoo"],
+  ["Ortalama Hacim",pick(y.averageVolume),"number","Yahoo"],
+  ["SMA 50",pick(y.sma50),"money","Yahoo"],
+  ["SMA 200",pick(y.sma200),"money","Yahoo"],
+  ["20 Gün Volatilite",pick(y.volatility20d),"percent","Yahoo"],
+  ["Net Borç",pick(m.net_debt,tv.net_debt,y.netCash==null?null:-y.netCash),"money","TradingView / OpenBB / Yahoo"]
  ];
- $("researchFundamentalContent").innerHTML=`<div class="researchMetricGrid">${values.map(([l,v,t])=>researchMetric(l,researchValue(v,{percent:t==="percent",money:t==="money"}))).join("")}</div>`;
+ const sourceBadges=[
+  ["TradingView Screener",data.diagnostics?.tradingview_ok,"primary"],
+  ["Yahoo Finance",data.diagnostics?.yahoo_ok,"ok"],
+  ["OpenBB",data.openbb_configured&&data.diagnostics?.openbb_sections_with_data>0,data.openbb_configured?"ok":"warn"]
+ ];
+ $("researchFundamentalContent").innerHTML=`<div class="researchSourceBar">${sourceBadges.map(([label,ok,tone])=>`<span class="researchSourceBadge ${tone}">${ok?"●":"○"} ${esc(label)}</span>`).join("")}</div>
+ <div class="researchMetricGrid">${values.map(([l,v,t,s])=>researchMetric(l,researchValue(v,{percent:t==="percent",money:t==="money"}),s)).join("")}</div>`;
 }
 function renderResearchStatements(data){
  const statements={
@@ -2579,10 +2813,11 @@ async function loadOpenBBResearch(asset,force=false){
  ["researchOverviewContent","researchFundamentalContent","researchStatementContent","researchAnalystContent","researchNewsContent"].forEach(id=>$(id).innerHTML='<div class="researchEmpty">Yükleniyor…</div>');
  mountTradingViewResearch(asset);
  try{
-  const query=new URLSearchParams({symbol:asset.openbbSymbol||asset.yahooSymbol||asset.symbol,provider:asset.provider||"",force:force?"1":"0"});
+  const researchSymbol=fundamentalSymbolForAsset(asset);
+  const query=new URLSearchParams({symbol:researchSymbol,provider:asset.provider||"",force:force?"1":"0"});
   const [openbbResponse,yahooResponse]=await Promise.all([
    fetch("/api/openbb/research?"+query.toString()),
-   fetch("/api/details?symbol="+encodeURIComponent(asset.yahooSymbol||asset.openbbSymbol||asset.symbol)).catch(()=>null)
+   fetch("/api/details?symbol="+encodeURIComponent(researchSymbol)).catch(()=>null)
   ]);
   const data=await openbbResponse.json();
   if(!openbbResponse.ok)throw new Error(data.error||"OpenBB verileri alınamadı");
@@ -2626,11 +2861,16 @@ async function loadOpenBBResearch(asset,force=false){
 }
 window.openResearchModal=(asset)=>{
  const normalized={
+  ...asset,
   symbol:String(asset.symbol||asset.s||"").replace(".IS","").toUpperCase(),
-  yahooSymbol:String(asset.yahooSymbol||asset.s||asset.symbol||"").toUpperCase(),
+  chartSymbol:String(asset.chartSymbol||asset.viopContract||asset.symbol||asset.s||"").toUpperCase(),
+  viopContract:String(asset.viopContract||"").toUpperCase(),
+  underlying:String(asset.underlying||asset.symbol||asset.s||"").replace(".IS","").toUpperCase(),
+  yahooSymbol:String(asset.yahooSymbol||asset.fundamentalSymbol||asset.s||asset.symbol||"").toUpperCase(),
+  fundamentalSymbol:String(asset.fundamentalSymbol||asset.openbbSymbol||asset.yahooSymbol||asset.s||asset.symbol||"").toUpperCase(),
   name:asset.name||asset.n||asset.symbol||asset.s,
   exchange:asset.exchange||"",
-  openbbSymbol:asset.openbbSymbol||String(asset.yahooSymbol||asset.s||asset.symbol||"").toUpperCase()
+  openbbSymbol:String(asset.openbbSymbol||asset.fundamentalSymbol||asset.yahooSymbol||asset.s||asset.symbol||"").toUpperCase()
  };
  $("researchModal").classList.add("open");
  $("researchModal").setAttribute("aria-hidden","false");
@@ -2743,16 +2983,18 @@ fillTypes();populateEditTypes();
 
 showMainTab("general");
 
-$("assetClass").addEventListener("change",syncOptionVisibility);
-$("mAssetClass").addEventListener("change",syncOptionVisibility);
+$("assetClass").addEventListener("change",()=>{syncOptionVisibility();syncModelViopVisibility()});
+$("mAssetClass").addEventListener("change",()=>{syncOptionVisibility();syncModelViopVisibility()});
 syncOptionVisibility();
 $("openDate").value=nowLocal();$("closeGeneralDate").value=nowLocal();$("mOpenDate").value=nowLocal();$("mCloseDate").value=nowLocal();
 $("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.startDate||today;$("riskFree").value=settings.riskFree||0;
 $("creditReferenceMonthly").value=settings.creditReferenceMonthly??3.11;$("creditReferenceAnnual").value=settings.creditReferenceAnnual??45.15;
 $("creditSpread").value=settings.creditSpread??10;$("creditDays").value=settings.creditDays??2;
 $("referenceRateStatus").textContent=`Kayıtlı referans: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
-["mAssetClass","mEntry","mQty","mCurrency","mCommissionUnit","mCommissionRate","mContractSize","mMarginMode","mInitialMargin","mMarginRate"].forEach(k=>$(k)?.addEventListener("input",()=>{syncModelViopVisibility();updateModelTradePreview()}));
-$("mViopContract")?.addEventListener("change",applyViopContract);
+["mAssetClass","mEntry","mQty","mCurrency","mCommissionUnit","mCommissionRate","mContractSize","mInitialMargin","mMaintenanceMargin"].forEach(k=>$(k)?.addEventListener("input",()=>{syncModelViopVisibility();updateModelTradePreview()}));
+["qty","gContractSize","gInitialMargin","gMaintenanceMargin"].forEach(k=>$(k)?.addEventListener("input",()=>updateViopMarginSummary("general")));
+$("mViopContract")?.addEventListener("change",()=>applyViopContract("model"));
+$("gViopContract")?.addEventListener("change",()=>applyViopContract("general"));
 document.querySelectorAll("[data-model-anchor]").forEach(btn=>btn.addEventListener("click",()=>{
  document.querySelectorAll("[data-model-anchor]").forEach(x=>x.classList.toggle("active",x===btn));
  $(btn.dataset.modelAnchor)?.scrollIntoView({behavior:"smooth",block:"start"});
