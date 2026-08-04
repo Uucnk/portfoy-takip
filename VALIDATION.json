@@ -1,20 +1,18 @@
 {
-  "version": "6.9",
+  "version": "7.0",
   "validated": true,
-  "includes_v6_8": true,
+  "includes_v6_8_and_v6_9": true,
   "features": [
-    "TradingView screener fundamentals",
-    "Yahoo statistics HTML fallback",
-    "OpenBB optional enrichment",
-    "BIST valuation metrics",
-    "exact VIOP TradingView contract mapping",
-    "underlying fundamentals with futures chart"
+    "global TradingView screener",
+    "SEC Company Facts fundamentals",
+    "valuation help tooltips",
+    "custom drawing tools",
+    "VIOP exact TradingView handoff",
+    "Oyak margin fallback",
+    "removed allocated capital",
+    "Ask ChatGPT handoff",
+    "mobile responsive shell"
   ],
-  "examples": {
-    "F_KCHOL082026": "BIST:KCHOLQ2026",
-    "F_KCHOL0826": "BIST:KCHOLQ2026",
-    "KCHOL_continuous": "BIST:KCHOL1!"
-  },
-  "app_sha256": "2ef1c5565dd14c4edf0713a70684cc1a1c180fa2540dbafb8d6a3662176f0f87",
-  "server_sha256": "9c264604125f54c037515de4b15f012efe75b4c36f6091c3ff06dc6c55c57779"
+  "app_sha256": "395d6d21b82828eb302146860efc287a617887f85d1ebf52eb47430685046f56",
+  "server_sha256": "71efa23e5774a83e1c582760cb4cd66744d6a1ad8562d621a837092ff4519dec"
 }
