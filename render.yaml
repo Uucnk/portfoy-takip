@@ -12,6 +12,16 @@ services:
         sync: false
       - key: OPENBB_PROVIDER
         value: fmp
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-5.6
+      - key: AI_BASE_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        sync: false
 
   - type: web
     name: portfolio-openbb2
