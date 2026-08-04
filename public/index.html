@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pozisyon ve Model Portföy Takip · v7.0</title>
+<title>Pozisyon ve Model Portföy Takip · v7.1</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -957,8 +957,140 @@ body.terminalHidden .app{right:0!important}
  .tvFallbackButton,.tvExternalButton{padding:6px 7px}
 }
 
+
+/* v7.1 margin engine, global futures and Warren AI */
+.marketGrid{
+ grid-template-columns:repeat(auto-fit,minmax(225px,1fr))!important;
+ gap:9px!important
+}
+.marketCard{
+ grid-template-columns:minmax(0,1.22fr) minmax(68px,.58fr) 82px!important;
+ gap:8px!important;padding:10px 11px!important;min-height:76px!important;
+ overflow:hidden!important
+}
+.marketCard>div{min-width:0!important}
+.marketName{
+ font-size:11px!important;line-height:1.16!important;font-weight:800!important;
+ display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+ overflow-wrap:anywhere
+}
+.marketSub{
+ font-size:8.5px!important;line-height:1.25!important;margin-top:3px!important;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.marketPrice{font-size:12px!important;line-height:1.1!important;white-space:nowrap}
+.marketChange{font-size:11px!important;line-height:1.1!important;margin-top:4px!important;white-space:nowrap}
+.spark{width:82px!important;height:34px!important;max-width:82px!important;overflow:hidden!important}
+.favoriteBtn{font-size:15px!important;right:6px!important;top:4px!important}
+
+.globalFuturesFields{
+ display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:9px;
+ padding:11px;border:1px solid #2b4b68;background:#091724;border-radius:9px
+}
+.globalFuturesFields .spanAll{grid-column:1/-1}
+.futuresSummary{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:8px
+}
+.futuresSummary>div{
+ padding:9px;background:#0d1c2a;border:1px solid #2a4259;border-radius:8px;min-width:0
+}
+.futuresSummary span{
+ display:block;color:#819ab1;font-size:8px;text-transform:uppercase;line-height:1.25
+}
+.futuresSummary strong{
+ display:block;color:#f1f6fc;font-size:12px;line-height:1.25;margin-top:5px;
+ white-space:normal;overflow-wrap:anywhere
+}
+.sourceLive{color:#42dda5}.sourceEstimated{color:#ffd071}.sourceFallback{color:#ff9d79}
+
+.aiWorkspace{
+ display:grid;grid-template-columns:250px minmax(0,1fr);height:calc(100vh - 150px);
+ min-height:620px;border:1px solid #29435c;border-radius:13px;overflow:hidden;background:#08131e
+}
+.aiHistoryPane{
+ border-right:1px solid #24394e;background:#0b1723;padding:12px;overflow-y:auto
+}
+.aiNewChat{width:100%;margin-bottom:10px}
+.aiHistoryItem{
+ width:100%;text-align:left;padding:10px 9px;margin-bottom:6px;background:#101e2d;
+ border:1px solid #263d53;border-radius:8px;color:#b9cbe0;font-size:10px;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.aiHistoryItem.active{background:#173c6e;border-color:#3977bc;color:#fff}
+.aiMain{display:grid;grid-template-rows:auto 1fr auto;min-width:0}
+.aiTopBar{
+ display:flex;justify-content:space-between;align-items:center;gap:10px;
+ padding:11px 14px;border-bottom:1px solid #24394e;background:#0d1a27
+}
+.aiProviderBadge{
+ display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:13px;
+ background:#113254;border:1px solid #326399;color:#cce3ff;font-size:9px
+}
+.aiMessages{padding:18px;overflow-y:auto}
+.aiMessage{display:flex;margin-bottom:14px}
+.aiMessage.user{justify-content:flex-end}
+.aiBubble{
+ max-width:min(760px,86%);padding:11px 13px;border-radius:12px;font-size:12px;
+ line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere
+}
+.aiMessage.user .aiBubble{background:#2869dc;color:#fff;border-bottom-right-radius:4px}
+.aiMessage.assistant .aiBubble{
+ background:#101f2d;border:1px solid #2a4258;color:#e7f0fa;border-bottom-left-radius:4px
+}
+.aiMessageMeta{font-size:8px;color:#7f96ad;margin-top:5px}
+.aiComposer{
+ border-top:1px solid #24394e;padding:12px;background:#0c1824
+}
+.aiComposerRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.aiComposer textarea{min-height:74px;max-height:190px;resize:vertical;font-size:12px}
+.aiQuickPrompts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.aiQuickPrompts button{
+ padding:6px 8px;font-size:8.5px;background:#111f2e;border:1px solid #2b435a;color:#aac1d8
+}
+.aiDisclosure{
+ padding:7px 10px;border-bottom:1px solid #4d4320;background:#28220d;
+ color:#ddc875;font-size:9px;line-height:1.45
+}
+.aiEmpty{
+ height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ text-align:center;color:#8098af;padding:28px
+}
+.aiEmpty strong{font-size:24px;color:#eff6fd;margin-bottom:8px}
+.aiThinking{display:inline-flex;gap:4px}
+.aiThinking span{width:5px;height:5px;border-radius:50%;background:#7aaee8;animation:aiDot 1.1s infinite}
+.aiThinking span:nth-child(2){animation-delay:.15s}.aiThinking span:nth-child(3){animation-delay:.3s}
+@keyframes aiDot{0%,70%,100%{opacity:.25;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}
+
+.tvContractLinks{display:flex;gap:6px;flex-wrap:wrap}
+.tvContractLinks a{
+ padding:6px 8px;border-radius:6px;border:1px solid #35649b;background:#12345b;
+ color:#d6eaff;text-decoration:none;font-size:9px
+}
+
+@media(max-width:900px){
+ .marketGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .marketCard{grid-template-columns:minmax(0,1fr) 72px!important}
+ .marketCard .spark{grid-column:1/-1;width:100%!important;max-width:none!important;height:30px!important}
+ .globalFuturesFields{grid-template-columns:repeat(2,minmax(120px,1fr))}
+ .futuresSummary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .aiWorkspace{grid-template-columns:1fr;height:calc(100vh - 160px)}
+ .aiHistoryPane{
+  display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;border-right:0;border-bottom:1px solid #24394e;
+  padding:8px
+ }
+ .aiNewChat{width:auto;white-space:nowrap;margin:0}
+ .aiHistoryItem{width:150px;min-width:150px;margin:0}
+}
+@media(max-width:560px){
+ .marketGrid{grid-template-columns:1fr!important}
+ .globalFuturesFields,.futuresSummary{grid-template-columns:1fr}
+ .aiMessages{padding:11px}
+ .aiBubble{max-width:94%;font-size:11px}
+ .aiComposerRow{grid-template-columns:1fr}
+}
+
 </style>
-<meta name="portfolio-build" content="v7.0-global-fundamentals-mobile">
+<meta name="portfolio-build" content="v7.1-margin-futures-warren-ai">
 </head>
 <body>
 
@@ -1209,12 +1341,34 @@ body.terminalHidden .app{right:0!important}
         <div><label>Para Birimi</label><select id="currency"><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
         <div><label>Açılış Fiyatı *</label><input id="entry" type="number" step="any" required></div>
         <div><label>Miktar *</label><input id="qty" type="number" step="any" value="1" required></div><input id="dailyChange" type="hidden" value="0">
+        <div id="gGlobalFuturesFields" class="span4 hidden">
+          <div class="globalFuturesFields">
+            <div><label>Yurtdışı Futures Kontratı</label><select id="gGlobalFutureContract"><option value="">Ürün seçin</option></select></div>
+            <div><label>Borsa</label><input id="gGlobalFutureExchange" readonly></div>
+            <div><label>Yahoo Fiyat Kodu</label><input id="gGlobalFutureYahoo" readonly></div>
+            <div><label>TradingView Kodu</label><input id="gGlobalFutureTradingView" readonly></div>
+            <div><label>Kontrat Çarpanı</label><input id="gGlobalFutureMultiplier" type="number" min="0" step="any"></div>
+            <div><label>Başlangıç Teminatı / Kontrat</label><input id="gGlobalFutureInitial" type="number" min="0" step="any"></div>
+            <div><label>Sürdürme Teminatı / Kontrat</label><input id="gGlobalFutureMaintenance" type="number" min="0" step="any"></div>
+            <div><label>Teminat Para Birimi</label><input id="gGlobalFutureCurrency" readonly value="USD"></div>
+            <div class="spanAll">
+              <div id="gGlobalFutureStatus" class="viopSource">Yurtdışı Futures seçildiğinde emtia ve global vadeli ürün kataloğu yüklenir.</div>
+              <div class="futuresSummary">
+                <div><span>Gecikmeli Fiyat</span><strong id="gGlobalFuturePrice">-</strong></div>
+                <div><span>Toplam Pozisyon Büyüklüğü</span><strong id="gGlobalFutureNotional">0 USD</strong></div>
+                <div><span>Toplam Başlangıç Teminatı</span><strong id="gGlobalFutureTotalInitial">0 USD</strong></div>
+                <div><span>Toplam Sürdürme Teminatı</span><strong id="gGlobalFutureTotalMaintenance">0 USD</strong></div>
+                <div><span>Teminat Kaynağı</span><strong id="gGlobalFutureMarginSource">-</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div id="gViopFields" class="span4 hidden">
           <div class="viopAutoFields">
             <div><label>VİOP Vadesi</label><select id="gViopContract"><option value="">Önce dayanak varlık seçin</option></select></div>
             <div><label>Sözleşme Büyüklüğü</label><input id="gContractSize" type="number" min="0" step="any" value="1"></div>
             <div><label>Başlangıç Teminatı / Kontrat</label><input id="gInitialMargin" type="number" min="0" step="any"></div>
-            <div><label>Sürdürme Teminatı / Kontrat</label><input id="gMaintenanceMargin" type="number" min="0" step="any"></div>
+            <div><label>Sürdürme Teminatı / Kontrat</label><input id="gMaintenanceMargin" type="number" min="0" step="any"></div><input id="gViopMarginRate" type="hidden"><input id="gViopReferencePrice" type="hidden">
             <div class="spanAll">
               <div id="gViopSourceStatus" class="viopSource">VİOP dayanak varlığı arayın; yakın vade otomatik seçilecektir.</div>
               <div class="viopMarginSummary">
@@ -1344,12 +1498,34 @@ body.terminalHidden .app{right:0!important}
         <div><label>Açılış Tarihi ve Saati *</label><input id="mOpenDate" type="datetime-local" required></div>
         <div><label>Komisyon Birimi</label><select id="mCommissionUnit"><option value="binde">Binde</option><option value="onbinde" selected>Onbinde</option><option value="yuzbinde">Yüzbinde</option></select></div>
         <div><label>Komisyon Oranı</label><input id="mCommissionRate" type="number" min="0" step="0.01" value="0"></div>
+        <div id="mGlobalFuturesFields" class="span4 hidden">
+          <div class="globalFuturesFields">
+            <div><label>Yurtdışı Futures Kontratı</label><select id="mGlobalFutureContract"><option value="">Ürün seçin</option></select></div>
+            <div><label>Borsa</label><input id="mGlobalFutureExchange" readonly></div>
+            <div><label>Yahoo Fiyat Kodu</label><input id="mGlobalFutureYahoo" readonly></div>
+            <div><label>TradingView Kodu</label><input id="mGlobalFutureTradingView" readonly></div>
+            <div><label>Kontrat Çarpanı</label><input id="mGlobalFutureMultiplier" type="number" min="0" step="any"></div>
+            <div><label>Başlangıç Teminatı / Kontrat</label><input id="mGlobalFutureInitial" type="number" min="0" step="any"></div>
+            <div><label>Sürdürme Teminatı / Kontrat</label><input id="mGlobalFutureMaintenance" type="number" min="0" step="any"></div>
+            <div><label>Teminat Para Birimi</label><input id="mGlobalFutureCurrency" readonly value="USD"></div>
+            <div class="spanAll">
+              <div id="mGlobalFutureStatus" class="viopSource">Yurtdışı Futures seçildiğinde emtia ve global vadeli ürün kataloğu yüklenir.</div>
+              <div class="futuresSummary">
+                <div><span>Gecikmeli Fiyat</span><strong id="mGlobalFuturePrice">-</strong></div>
+                <div><span>Toplam Pozisyon Büyüklüğü</span><strong id="mGlobalFutureNotional">0 USD</strong></div>
+                <div><span>Toplam Başlangıç Teminatı</span><strong id="mGlobalFutureTotalInitial">0 USD</strong></div>
+                <div><span>Toplam Sürdürme Teminatı</span><strong id="mGlobalFutureTotalMaintenance">0 USD</strong></div>
+                <div><span>Teminat Kaynağı</span><strong id="mGlobalFutureMarginSource">-</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div id="mViopFields" class="span4 hidden">
           <div class="grid">
             <div><label>VİOP Vadesi</label><select id="mViopContract"><option value="">Önce dayanak varlık seçin</option></select></div>
             <div><label>Kontrat Büyüklüğü</label><input id="mContractSize" type="number" min="0" step="any" value="1"></div>
             <div><label>Başlangıç Teminatı / Kontrat</label><input id="mInitialMargin" type="number" min="0" step="any"></div>
-            <div><label>Sürdürme Teminatı / Kontrat</label><input id="mMaintenanceMargin" type="number" min="0" step="any"></div>
+            <div><label>Sürdürme Teminatı / Kontrat</label><input id="mMaintenanceMargin" type="number" min="0" step="any"></div><input id="mViopMarginRate" type="hidden"><input id="mViopReferencePrice" type="hidden">
             <div><label>Vade Tarihi</label><input id="mContractExpiry" type="text" readonly></div>
             <div style="display:flex;align-items:end"><button type="button" id="refreshViopContracts" class="secondary" style="width:100%">Alnus’tan Yenile</button></div>
             <input id="mMarginMode" type="hidden" value="fixed">
@@ -1525,31 +1701,36 @@ body.terminalHidden .app{right:0!important}
 </section>
 
 <section id="askai" class="tab">
- <div class="askAiShell">
-  <div class="askAiHero">
+ <div class="aiWorkspace">
+  <aside class="aiHistoryPane">
+   <button type="button" id="aiNewChat" class="aiNewChat">＋ Yeni Sohbet</button>
+   <div id="aiHistoryList"></div>
+  </aside>
+  <div class="aiMain">
    <div>
-    <div class="researchEyebrow">RESMÎ CHATGPT</div>
-    <h2>Finans ve piyasa sorularını ChatGPT’ye sor</h2>
-    <p class="muted">Sorun panoya kopyalanır ve resmî ChatGPT web uygulaması yeni sekmede açılır. ChatGPT Free kullanılabilir; oturum açma ve kullanım limitleri OpenAI hesabına bağlıdır.</p>
-    <div class="askAiNotice">Bu site ChatGPT’yi kendi içine gömmez ve konuşmaları saklamaz. Ücretsiz, sınırsız bir OpenAI API bağlantısı bulunmadığı için güvenli yönlendirme yöntemi kullanılır.</div>
-   </div>
-   <div class="askAiComposer">
-    <label>Sorun</label>
-    <textarea id="askAiPrompt" placeholder="Örnek: F/K ve FD/FAVÖK arasındaki farkı, yatırım danışmanı seviyesinde açıkla."></textarea>
-    <div class="askAiActions">
-     <button type="button" id="askChatGPTBtn">Soruyu Kopyala ve ChatGPT’yi Aç</button>
-     <button type="button" id="clearAskAi" class="secondary">Temizle</button>
+    <div class="aiTopBar">
+     <div><strong>Warren AI</strong><div class="muted">Piyasa, temel analiz, teknik analiz ve portföy soruları</div></div>
+     <span id="aiProviderBadge" class="aiProviderBadge">Bağlantı kontrol ediliyor…</span>
     </div>
-    <div id="askAiStatus" class="referenceStatus">Hazır.</div>
+    <div id="aiDisclosure" class="aiDisclosure">Portföy bağlamını gönder seçeneği açıksa aktif pozisyonların özet bilgileri sunucuya ve yapılandırılmışsa AI sağlayıcısına gönderilir. Yanıtlar eğitim amaçlıdır.</div>
    </div>
-  </div>
-  <div class="panel" style="margin-top:14px">
-   <h3>Hazır soru örnekleri</h3>
-   <div class="askAiPromptGrid">
-    <button class="askAiPrompt" data-ai-prompt="Bu şirketin F/K, PD/DD, FD/FAVÖK, ROE ve borçluluk oranlarını birlikte nasıl yorumlamalıyım?">Değerleme oranlarını birlikte yorumla</button>
-    <button class="askAiPrompt" data-ai-prompt="VİOP başlangıç teminatı, sürdürme teminatı ve kaldıraç ilişkisini örnekle açıkla.">VİOP teminat mantığını açıkla</button>
-    <button class="askAiPrompt" data-ai-prompt="Bu pozisyon için profesyonel bir risk yönetimi ve stop planı oluştururken hangi değişkenlere bakmalıyım?">Risk yönetimi planı</button>
-    <button class="askAiPrompt" data-ai-prompt="Bir hissenin temel analizi ile teknik analizini tek bir yatırım tezinde nasıl birleştirebilirim?">Temel ve teknik analizi birleştir</button>
+   <div id="aiMessages" class="aiMessages">
+    <div class="aiEmpty"><strong>Warren AI</strong><span>Piyasa hakkında sorunuzu yazın. API anahtarı yoksa yerel finans asistanı cevap verir.</span></div>
+   </div>
+   <div class="aiComposer">
+    <div class="aiComposerRow">
+     <textarea id="aiPrompt" placeholder="Örnek: KCHOL için PD/DD, ROE ve borçluluğu birlikte nasıl yorumlamalıyım?"></textarea>
+     <button type="button" id="aiSendBtn">Gönder</button>
+    </div>
+    <label style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:9px;color:#8ca4bc">
+     <input id="aiIncludePortfolio" type="checkbox" checked style="width:auto"> Aktif portföy özetini bağlama ekle
+    </label>
+    <div class="aiQuickPrompts">
+     <button type="button" data-ai-quick="F/K, PD/DD ve FD/FAVÖK oranlarını birlikte nasıl yorumlamalıyım?">Değerleme oranları</button>
+     <button type="button" data-ai-quick="VİOP başlangıç teminatı, sürdürme teminatı ve kaldıraç ilişkisini açıkla.">VİOP teminatı</button>
+     <button type="button" data-ai-quick="Bir pozisyonda stop ve hedef belirlemek için profesyonel risk çerçevesi oluştur.">Risk yönetimi</button>
+     <button type="button" data-ai-quick="Temel analiz ile teknik analizi aynı yatırım tezinde nasıl birleştirebilirim?">Temel + teknik</button>
+    </div>
    </div>
   </div>
  </div>
@@ -1723,7 +1904,9 @@ function commissionAmount(notional,unit,rate){
  return nv*r/d;
 }
 function isViopPosition(p){return p?.assetClass==="Türev (VİOP/Vadeli)"||Boolean(p?.viopContract)}
-function contractMultiplier(p){return isViopPosition(p)?(Number(p.contractSize)||1):1}
+function isGlobalFuturesPosition(p){return p?.assetClass==="Yurtdışı Futures"||Boolean(p?.globalFutureId||p?.futuresContract)}
+function isFuturesPosition(p){return isViopPosition(p)||isGlobalFuturesPosition(p)}
+function contractMultiplier(p){return isFuturesPosition(p)?(Number(p.contractSize)||1):1}
 function tradeNotional(p,price){
  const px=Number(price??p?.entry)||0,qty=Number(p?.qty)||0;
  return Math.abs(px*qty*contractMultiplier(p));
@@ -1833,7 +2016,7 @@ function inferYahooSymbol(position){
   if(position.yahooSymbol)return position.yahooSymbol.trim().toUpperCase();
   const symbol=(position.symbol||"").trim().toUpperCase();
   if(!symbol)return"";
-  if(isViopPosition(position))return"";
+  if(isFuturesPosition(position))return position.yahooSymbol||"";
   if(position.assetClass==="Yurtiçi Hisse"||position.assetClass==="Yurtiçi Opsiyon")return symbol.endsWith(".IS")?symbol:symbol+".IS";
   return symbol;
 }
@@ -2040,25 +2223,89 @@ window.renderGeneral=function renderGeneral(){
  const q=$("activeSearch").value.toLowerCase(),tp=$("activeType").value,dr=$("activeDir").value;const fa=a.filter(p=>(!q||(`${p.symbol} ${p.optionType||""}`).toLowerCase().includes(q))&&(!tp||p.assetClass===tp)&&(!dr||p.direction===dr));
  $("activeTable").innerHTML=generalTable(fa,false);$("closedTable").innerHTML=generalTable(c,true);$("closeGeneralSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';renderGeneralPie();renderGeneralPerformance();renderActivities();
 }
-$("generalForm").addEventListener("submit",e=>{e.preventDefault();const vc=currentSelectedViopContract("general");const p={id:id(),status:"Aktif",assetClass:$("assetClass").value,optionType:isOptionType($("assetClass").value)?$("optionType").value:null,symbol:$("symbol").value.trim().toUpperCase(),yahooSymbol:$("yahooSymbol").value.trim().toUpperCase(),direction:$("direction").value,currency:$("currency").value,entry:n($("entry").value),currentPrice:n($("entry").value),dailyChange:n($("dailyChange").value)||0,qty:n($("qty").value)||1,stop:n($("stop").value),target:n($("target").value),openDateTime:$("openDate").value||nowLocal(),openDate:($("openDate").value||nowLocal()).slice(0,10),expiry:$("expiry").value,thesis:$("thesis").value,riskNote:$("riskNote").value,viopContract:$("gViopContract")?.value||"",contractSize:n($("gContractSize")?.value)||1,initialMargin:n($("gInitialMargin")?.value)||0,maintenanceMargin:n($("gMaintenanceMargin")?.value)||0,contractExpiry:vc?.expiryDate||vc?.maturityLabel||""};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}if(isViopPosition(p)&&!p.viopContract){alert("VİOP için dayanak varlık ve vade seçin.");return}general.unshift(p);save();e.target.reset();document.querySelectorAll("[data-ai-prompt]").forEach(btn=>btn.addEventListener("click",()=>{
- $("askAiPrompt").value=btn.dataset.aiPrompt||"";
- $("askAiPrompt").focus();
-}));
-$("clearAskAi")?.addEventListener("click",()=>{$("askAiPrompt").value="";$("askAiStatus").textContent="Temizlendi."});
-$("askChatGPTBtn")?.addEventListener("click",async()=>{
- const prompt=$("askAiPrompt").value.trim();
- if(!prompt){$("askAiStatus").textContent="Önce bir soru yazın.";return}
- let copied=false;
- try{await navigator.clipboard.writeText(prompt);copied=true}catch{}
- if(!copied){
-  $("askAiPrompt").select();
-  try{copied=document.execCommand("copy")}catch{}
+$("generalForm").addEventListener("submit",e=>{e.preventDefault();const vc=currentSelectedViopContract("general");const p={id:id(),status:"Aktif",assetClass:$("assetClass").value,optionType:isOptionType($("assetClass").value)?$("optionType").value:null,symbol:$("symbol").value.trim().toUpperCase(),yahooSymbol:$("yahooSymbol").value.trim().toUpperCase(),direction:$("direction").value,currency:$("currency").value,entry:n($("entry").value),currentPrice:n($("entry").value),dailyChange:n($("dailyChange").value)||0,qty:n($("qty").value)||1,stop:n($("stop").value),target:n($("target").value),openDateTime:$("openDate").value||nowLocal(),openDate:($("openDate").value||nowLocal()).slice(0,10),expiry:$("expiry").value,thesis:$("thesis").value,riskNote:$("riskNote").value,viopContract:$("gViopContract")?.value||"",contractSize:n($("gContractSize")?.value)||1,initialMargin:n($("gInitialMargin")?.value)||0,maintenanceMargin:n($("gMaintenanceMargin")?.value)||0,contractExpiry:vc?.expiryDate||vc?.maturityLabel||"",
+globalFutureId:currentGlobalFuture("general")?.id||"",futuresContract:currentGlobalFuture("general")?.code||"",
+tradingViewSymbol:currentGlobalFuture("general")?.tradingViewSymbol||"",
+contractSize:$("assetClass").value==="Yurtdışı Futures"?(n($("gGlobalFutureMultiplier")?.value)||1):(n($("gContractSize")?.value)||1),
+initialMargin:$("assetClass").value==="Yurtdışı Futures"?(n($("gGlobalFutureInitial")?.value)||0):(n($("gInitialMargin")?.value)||0),
+maintenanceMargin:$("assetClass").value==="Yurtdışı Futures"?(n($("gGlobalFutureMaintenance")?.value)||0):(n($("gMaintenanceMargin")?.value)||0)};if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}if(isViopPosition(p)&&!p.viopContract){alert("VİOP için dayanak varlık ve vade seçin.");return}if(isGlobalFuturesPosition(p)&&!p.globalFutureId){alert("Yurtdışı Futures kontratı seçin.");return}general.unshift(p);save();e.target.reset();
+
+const AI_STORAGE_KEY="portfolio_warren_ai_sessions_v1";
+let aiSessions=JSON.parse(localStorage.getItem(AI_STORAGE_KEY)||"[]");
+let activeAiSessionId=aiSessions[0]?.id||null;
+function saveAiSessions(){localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(aiSessions.slice(0,30)))}
+function activeAiSession(){return aiSessions.find(x=>x.id===activeAiSessionId)||null}
+function newAiSession(){
+ const session={id:id(),title:"Yeni sohbet",createdAt:new Date().toISOString(),messages:[]};
+ aiSessions.unshift(session);activeAiSessionId=session.id;saveAiSessions();renderAiWorkspace();
+ return session;
+}
+function renderAiHistory(){
+ const box=$("aiHistoryList");if(!box)return;
+ box.innerHTML=aiSessions.map(s=>`<button class="aiHistoryItem ${s.id===activeAiSessionId?"active":""}" data-ai-session="${s.id}" title="${esc(s.title)}">${esc(s.title)}</button>`).join("");
+ box.querySelectorAll("[data-ai-session]").forEach(btn=>btn.addEventListener("click",()=>{activeAiSessionId=btn.dataset.aiSession;renderAiWorkspace()}));
+}
+function renderAiMessages(){
+ const box=$("aiMessages"),session=activeAiSession();if(!box)return;
+ if(!session||!session.messages.length){
+  box.innerHTML='<div class="aiEmpty"><strong>Warren AI</strong><span>Piyasa, oranlar, teknik analiz veya portföyünüz hakkında soru sorun.</span></div>';return;
  }
- $("askAiStatus").textContent=copied
-  ?"Soru panoya kopyalandı. ChatGPT açıldığında yapıştırın."
-  :"ChatGPT açılıyor. Soruyu bu kutudan kopyalayıp yapıştırın.";
- window.open("https://chatgpt.com/","_blank","noopener,noreferrer");
-});
+ box.innerHTML=session.messages.map(m=>`<div class="aiMessage ${m.role}"><div><div class="aiBubble">${esc(m.content)}</div><div class="aiMessageMeta">${m.role==="user"?"Siz":m.provider||"Warren AI"} · ${formatDateTime(m.time)}</div></div></div>`).join("");
+ box.scrollTop=box.scrollHeight;
+}
+function renderAiWorkspace(){renderAiHistory();renderAiMessages()}
+function portfolioAiContext(){
+ if(!$("aiIncludePortfolio")?.checked)return null;
+ const active=[...general,...model].filter(p=>p.status==="Aktif").slice(0,30);
+ return{
+  portfolioSettings:{modelCapital:Number(settings.capital)||0,currency:"TRY"},
+  positions:active.map(p=>({
+   symbol:p.symbol,assetClass:p.assetClass,direction:p.direction,entry:p.entry,
+   currentPrice:p.currentPrice,quantity:p.qty,currency:p.currency,
+   pnlAmount:netLivePnl(p),pnlPercent:liveReturn(p),
+   contract:p.viopContract||p.futuresContract||null,
+   initialMargin:p.initialMargin||null,maintenanceMargin:p.maintenanceMargin||null
+  }))
+ };
+}
+async function refreshAiStatus(){
+ try{
+  const r=await fetch("/api/ai/status"),p=await r.json();
+  $("aiProviderBadge").textContent=p.provider==="openai"?`OpenAI · ${p.model}`:p.provider==="compatible"?`AI · ${p.model}`:"Warren AI Lite · Yerel";
+ }catch{$("aiProviderBadge").textContent="Warren AI Lite · Yerel"}
+}
+async function sendAiMessage(){
+ const prompt=$("aiPrompt").value.trim();if(!prompt)return;
+ let session=activeAiSession()||newAiSession();
+ session.messages.push({role:"user",content:prompt,time:new Date().toISOString()});
+ if(session.messages.filter(x=>x.role==="user").length===1)session.title=prompt.slice(0,52);
+ $("aiPrompt").value="";saveAiSessions();renderAiWorkspace();
+ const box=$("aiMessages");
+ const thinking=document.createElement("div");thinking.className="aiMessage assistant";
+ thinking.innerHTML='<div class="aiBubble"><span class="aiThinking"><span></span><span></span><span></span></span></div>';
+ box.appendChild(thinking);box.scrollTop=box.scrollHeight;
+ try{
+  const response=await fetch("/api/ai/chat",{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    messages:session.messages.slice(-16).map(x=>({role:x.role,content:x.content})),
+    context:portfolioAiContext()
+   })
+  });
+  const payload=await response.json();
+  if(!response.ok)throw new Error(payload.error||"AI yanıtı alınamadı");
+  session.messages.push({role:"assistant",content:payload.answer,provider:payload.providerLabel||payload.provider||"Warren AI",time:new Date().toISOString()});
+ }catch(error){
+  session.messages.push({role:"assistant",content:"Yanıt oluşturulamadı: "+error.message,provider:"Sistem",time:new Date().toISOString()});
+ }
+ saveAiSessions();renderAiWorkspace();refreshAiStatus();
+}
+$("aiNewChat")?.addEventListener("click",newAiSession);
+$("aiSendBtn")?.addEventListener("click",sendAiMessage);
+$("aiPrompt")?.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();sendAiMessage()}});
+document.querySelectorAll("[data-ai-quick]").forEach(btn=>btn.addEventListener("click",()=>{$("aiPrompt").value=btn.dataset.aiQuick||"";$("aiPrompt").focus()}));
+if(!activeAiSessionId)newAiSession();else renderAiWorkspace();
+refreshAiStatus();
 $("openDate").value=nowLocal();$("qty").value=1;syncModelViopVisibility();renderGeneral();alert("Pozisyon aktif pozisyonlara eklendi.")});
 $("closeGeneralBtn").onclick=()=>{const p=general.find(x=>x.id===$("closeGeneralSelect").value),price=n($("closeGeneralPrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDateTime=$("closeGeneralDate").value||nowLocal();p.closeDate=p.closeDateTime.slice(0,10);save();$("closeGeneralPrice").value="";renderGeneral()};
 window.deleteGeneral=x=>{if(confirm("Kayıt silinsin mi?")){general=general.filter(p=>p.id!==x);save();renderGeneral()}};
@@ -2094,7 +2341,7 @@ function modelTable(arr,closed){
   const base=tradeNotional(p,p.entry);
   const netPct=base?net/base*100:0;
   return`<tr><td><strong class="clickableSymbol" onclick="openPositionResearch('model','${p.id}')">${esc(p.viopContract||p.symbol)}</strong><div class="muted">${esc(isViopPosition(p)?p.symbol:(p.yahooSymbol||""))}</div></td>
- <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}${isViopPosition(p)?`<div><span class="viopPill">${esc(p.viopContract||"VİOP")}</span></div>`:""}</td><td>${esc(p.direction)}</td>
+ <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}${isViopPosition(p)?`<div><span class="viopPill">${esc(p.viopContract||"VİOP")}</span></div>`:isGlobalFuturesPosition(p)?`<div><span class="viopPill">${esc(p.futuresContract||"Futures")}</span></div>`:""}</td><td>${esc(p.direction)}</td>
  <td>${f(p.entry,4)}</td><td>${f(p.currentPrice??p.entry,4)}</td>
  <td class="netPnl ${net>=0?"positive":"negative"}">${f(net,2)} ${esc(p.currency||"")}</td>
  <td class="${netPct>=0?"positive":"negative"}">${f(netPct,2)}%</td>
@@ -2139,6 +2386,33 @@ window.renderModel=function renderModel(){
 }
 let viopContracts=[];
 let viopUnderlyings=[];
+let globalFutures=[];
+let globalFuturesLoaded=false;
+function viopCalculatedMargin(scope,c){
+ const isGeneral=scope==="general";
+ const rate=Number($(isGeneral?"gViopMarginRate":"mViopMarginRate")?.value||c?.marginRate)||0;
+ const reference=Number($(isGeneral?"gViopReferencePrice":"mViopReferencePrice")?.value||c?.referencePrice)||0;
+ const entry=Number($(isGeneral?"entry":"mEntry")?.value)||0;
+ const size=Number($(isGeneral?"gContractSize":"mContractSize")?.value||c?.contractSize)||1;
+ const fixed=Number(c?.initialMargin)||0;
+ const price=reference||entry;
+ const initial=fixed>0?fixed:(price>0&&rate>0?price*size*rate/100:0);
+ return{initial,maintenance:initial>0?initial*.75:0,rate,reference:price,size};
+}
+async function hydrateViopReference(scope,c){
+ if(!c)return;
+ const underlying=String(c.underlying||"").toUpperCase();
+ const yahoo=c.yahooSymbol||(["XU030","USDTRY","EURTRY","EURUSD","XAUTRY","XAUUSD"].includes(underlying)?"":`${underlying}.IS`);
+ if(!yahoo)return;
+ try{
+  const quotes=await fetchYahooQuotes([yahoo]),q=quotes[yahoo];
+  if(!q?.price)return;
+  const ref=$(scope==="general"?"gViopReferencePrice":"mViopReferencePrice");
+  if(ref)ref.value=q.price;
+  c.referencePrice=q.price;c.yahooSymbol=yahoo;
+  applyContractFields(scope,c,false);
+ }catch{}
+}
 function contractsForUnderlying(underlying){
  return viopContracts.filter(x=>String(x.underlying||"").toUpperCase()===String(underlying||"").toUpperCase())
   .sort((a,b)=>String(a.sortDate||a.expiryDate||"9999").localeCompare(String(b.sortDate||b.expiryDate||"9999")));
@@ -2160,22 +2434,40 @@ function populateViopExpirySelect(scope,underlying,selectedId=null){
   :'<option value="">Kontrat bulunamadı / manuel giriş</option>';
  return currentSelectedViopContract(scope);
 }
-function applyContractFields(scope,c){
+function contractSizeForClient(underlying){
+ const u=String(underlying||"").toUpperCase();
+ if(u==="XU030")return 10;
+ if(["USDTRY","EURTRY","EURUSD","GBPUSD"].includes(u))return 1000;
+ if(["XAUTRY","XAUUSD","XAGUSD"].includes(u))return 1;
+ return 100;
+}
+function applyContractFields(scope,c,fetchReference=true){
  if(!c)return;
  const isGeneral=scope==="general";
  const size=$(isGeneral?"gContractSize":"mContractSize");
  const initial=$(isGeneral?"gInitialMargin":"mInitialMargin");
  const maintenance=$(isGeneral?"gMaintenanceMargin":"mMaintenanceMargin");
- if(size)size.value=c.contractSize??1;
- if(initial)initial.value=c.initialMargin??"";
- if(maintenance)maintenance.value=c.maintenanceMargin??((Number(c.initialMargin)||0)*.75||"");
+ const rate=$(isGeneral?"gViopMarginRate":"mViopMarginRate");
+ const reference=$(isGeneral?"gViopReferencePrice":"mViopReferencePrice");
+ if(size)size.value=Number(c.contractSize)||contractSizeForClient(c.underlying);
+ if(rate)rate.value=Number(c.marginRate)||0;
+ if(reference)reference.value=Number(c.referencePrice)||0;
+ const calc=viopCalculatedMargin(scope,c);
+ if(initial)initial.value=calc.initial?calc.initial.toFixed(2):"";
+ if(maintenance)maintenance.value=calc.maintenance?calc.maintenance.toFixed(2):"";
  if(!isGeneral){
   $("mContractExpiry").value=c.expiryDate||c.maturityLabel||"";
-  $("mMarginMode").value="fixed";
-  $("mMarginRate").value="";
+  $("mMarginMode").value="fixed";$("mMarginRate").value="";
  }
- updateViopMarginSummary(scope,c);
- updateModelTradePreview();
+ const status=$(isGeneral?"gViopSourceStatus":"mViopSourceStatus");
+ if(status){
+  const source=c.marginSource||c.source||"Hesaplanan PSR";
+  status.textContent=`${c.code||c.id} · ${source} · PSR %${f(calc.rate,2)} · Referans ${f(calc.reference,4)} · Başlangıç ${f(calc.initial,2)} TRY`;
+  status.classList.toggle("sourceLive",calc.initial>0);
+  status.classList.toggle("sourceFallback",calc.initial<=0);
+ }
+ updateViopMarginSummary(scope,c);updateModelTradePreview();
+ if(fetchReference&&calc.initial<=0)hydrateViopReference(scope,c);
 }
 function applyViopUnderlying(scope,item){
  const underlying=String(item.underlying||item.symbol||"").toUpperCase();
@@ -2193,8 +2485,11 @@ function applyViopUnderlying(scope,item){
 function updateViopMarginSummary(scope,c=currentSelectedViopContract(scope)){
  const isGeneral=scope==="general";
  const qty=Number($(isGeneral?"qty":"mQty")?.value)||0;
- const initial=Number($(isGeneral?"gInitialMargin":"mInitialMargin")?.value)||0;
- const maintenance=Number($(isGeneral?"gMaintenanceMargin":"mMaintenanceMargin")?.value)||0;
+ const calc=viopCalculatedMargin(scope,c);
+ const initial=calc.initial,maintenance=calc.maintenance;
+ const initialInput=$(isGeneral?"gInitialMargin":"mInitialMargin"),maintenanceInput=$(isGeneral?"gMaintenanceMargin":"mMaintenanceMargin");
+ if(initialInput&&initial>0)initialInput.value=initial.toFixed(2);
+ if(maintenanceInput&&maintenance>0)maintenanceInput.value=maintenance.toFixed(2);
  if(isGeneral){
   $("gSelectedContract").textContent=c?.code||"-";
   $("gSelectedExpiry").textContent=c?.expiryDate||c?.maturityLabel||"-";
@@ -2206,6 +2501,7 @@ function updateViopMarginSummary(scope,c=currentSelectedViopContract(scope)){
 function syncModelViopVisibility(){
  const generalActive=$("assetClass")?.value==="Türev (VİOP/Vadeli)";
  const modelActive=$("mAssetClass")?.value==="Türev (VİOP/Vadeli)";
+ syncGlobalFuturesVisibility();
  $("gViopFields")?.classList.toggle("hidden",!generalActive);
  $("mViopFields")?.classList.toggle("hidden",!modelActive);
  if(generalActive&&$("symbol")?.value)ensureViopSelection("general",$("symbol").value);
@@ -2224,7 +2520,7 @@ async function loadViopContracts(force=false){
   viopContracts=Array.isArray(payload.contracts)?payload.contracts:[];
   viopUnderlyings=Array.isArray(payload.underlyings)?payload.underlyings:[];
   const tone=payload.live?"viopSourceLive":"viopSourceFallback";
-  const msg=`Kaynak: ${payload.sourceLabel||"Alnus Yatırım"} · ${payload.live?"Canlı kontrat tablosu":"Yedek sözleşme kataloğu"} · ${payload.asOf?new Date(payload.asOf).toLocaleString("tr-TR"):""}`;
+  const msg=`Kaynak: ${payload.sourceLabel||"Deniz PSR + Yahoo referans fiyat"} · ${payload.live?"Canlı kontrat tablosu":"Yedek sözleşme kataloğu"} · ${payload.asOf?new Date(payload.asOf).toLocaleString("tr-TR"):""}`;
   statuses.forEach(x=>{x.classList.remove("viopSourceLive","viopSourceFallback");x.classList.add(tone);x.textContent=msg+" · Dayanak seçildiğinde yakın vade otomatik uygulanır.";});
   if($("symbol")?.value&&$("assetClass")?.value==="Türev (VİOP/Vadeli)")ensureViopSelection("general",$("symbol").value);
   if($("mSymbol")?.value&&$("mAssetClass")?.value==="Türev (VİOP/Vadeli)")ensureViopSelection("model",$("mSymbol").value);
@@ -2246,13 +2542,19 @@ function applyViopContract(scope="model"){
  applyContractFields(scope,c);
 }
 function draftModelPosition(){
+ const globalItem=currentGlobalFuture("model");
  return{
   assetClass:$("mAssetClass")?.value||"",entry:Number($("mEntry")?.value)||0,qty:Number($("mQty")?.value)||0,
   currency:$("mCurrency")?.value||"TRY",commissionUnit:$("mCommissionUnit")?.value||"onbinde",
   commissionRate:Number($("mCommissionRate")?.value)||0,contractSize:Number($("mContractSize")?.value)||1,
   viopContract:$("mViopContract")?.value||"",marginMode:"fixed",
   initialMargin:Number($("mInitialMargin")?.value)||0,
-  maintenanceMargin:Number($("mMaintenanceMargin")?.value)||0,marginRate:0
+  maintenanceMargin:Number($("mMaintenanceMargin")?.value)||0,marginRate:0,
+  globalFutureId:globalItem?.id||"",futuresContract:globalItem?.code||"",
+  tradingViewSymbol:globalItem?.tradingViewSymbol||"",yahooSymbol:globalItem?.yahooSymbol||$("mYahooSymbol")?.value||"",
+  contractSize:$("mAssetClass")?.value==="Yurtdışı Futures"?(Number($("mGlobalFutureMultiplier")?.value)||globalItem?.multiplier||1):(Number($("mContractSize")?.value)||1),
+  initialMargin:$("mAssetClass")?.value==="Yurtdışı Futures"?(Number($("mGlobalFutureInitial")?.value)||globalItem?.initialMargin||0):(Number($("mInitialMargin")?.value)||0),
+  maintenanceMargin:$("mAssetClass")?.value==="Yurtdışı Futures"?(Number($("mGlobalFutureMaintenance")?.value)||globalItem?.maintenanceMargin||0):(Number($("mMaintenanceMargin")?.value)||0)
  };
 }
 function updateModelTradePreview(){
@@ -2265,6 +2567,85 @@ function updateModelTradePreview(){
  if($("mPreviewMaintenance"))$("mPreviewMaintenance").textContent=f(maintenance,2)+" TRY";
  if($("mPreviewCredit"))$("mPreviewCredit").textContent=f(incCredit,2)+" TRY";
 }
+
+function currentGlobalFuture(scope="general"){
+ const id=$(scope==="general"?"gGlobalFutureContract":"mGlobalFutureContract")?.value;
+ return globalFutures.find(x=>x.id===id)||null;
+}
+async function loadGlobalFutures(force=false){
+ try{
+  const response=await fetch("/api/global-futures/contracts"+(force?"?refresh=1":""));
+  const payload=await response.json();
+  if(!response.ok)throw new Error(payload.error||"Yurtdışı futures alınamadı");
+  globalFutures=Array.isArray(payload.contracts)?payload.contracts:[];
+  globalFuturesLoaded=true;
+  ["gGlobalFutureContract","mGlobalFutureContract"].forEach(id=>{
+   const select=$(id);if(!select)return;
+   select.innerHTML='<option value="">Kontrat seçin</option>'+globalFutures.map(x=>`<option value="${esc(x.id)}">${esc(x.code)} · ${esc(x.name)} · ${esc(x.exchange)}</option>`).join("");
+  });
+  ["gGlobalFutureStatus","mGlobalFutureStatus"].forEach(id=>{
+   const el=$(id);if(el){el.textContent=`${payload.sourceLabel||"Yahoo + AMP/CME"} · ${payload.asOf?new Date(payload.asOf).toLocaleString("tr-TR"):""}`;el.classList.add(payload.live?"sourceLive":"sourceEstimated")}
+  });
+ }catch(error){
+  ["gGlobalFutureStatus","mGlobalFutureStatus"].forEach(id=>{const el=$(id);if(el){el.textContent="Yurtdışı futures verisi alınamadı: "+error.message;el.classList.add("sourceFallback")}});
+ }
+}
+function globalFutureCalculation(scope,item=currentGlobalFuture(scope)){
+ if(!item)return{price:0,multiplier:1,initial:0,maintenance:0,notional:0};
+ const isGeneral=scope==="general",qty=Number($(isGeneral?"qty":"mQty")?.value)||0;
+ const entry=Number($(isGeneral?"entry":"mEntry")?.value)||0;
+ const price=entry||Number(item.price)||0;
+ const multiplier=Number($(isGeneral?"gGlobalFutureMultiplier":"mGlobalFutureMultiplier")?.value)||Number(item.multiplier)||1;
+ const fixedInitial=Number($(isGeneral?"gGlobalFutureInitial":"mGlobalFutureInitial")?.value)||Number(item.initialMargin)||0;
+ const rate=Number(item.marginRate)||0;
+ const initial=fixedInitial>0?fixedInitial:(price>0&&rate>0?price*multiplier*rate/100:0);
+ const fixedMaintenance=Number($(isGeneral?"gGlobalFutureMaintenance":"mGlobalFutureMaintenance")?.value)||Number(item.maintenanceMargin)||0;
+ const maintenance=fixedMaintenance>0?fixedMaintenance:initial*.9;
+ return{price,multiplier,initial,maintenance,notional:Math.abs(price*multiplier*qty),qty};
+}
+function renderGlobalFutureSummary(scope,item=currentGlobalFuture(scope)){
+ if(!item)return;
+ const isGeneral=scope==="general",prefix=isGeneral?"g":"m",calc=globalFutureCalculation(scope,item);
+ $(prefix+"GlobalFuturePrice").textContent=calc.price?`${f(calc.price,4)} ${item.quoteCurrency||item.currency||"USD"}`:"-";
+ $(prefix+"GlobalFutureNotional").textContent=`${f(calc.notional,2)} ${item.marginCurrency||"USD"}`;
+ $(prefix+"GlobalFutureTotalInitial").textContent=`${f(calc.initial*calc.qty,2)} ${item.marginCurrency||"USD"}`;
+ $(prefix+"GlobalFutureTotalMaintenance").textContent=`${f(calc.maintenance*calc.qty,2)} ${item.marginCurrency||"USD"}`;
+ $(prefix+"GlobalFutureMarginSource").textContent=item.marginSource||"Tahmini";
+}
+function applyGlobalFuture(scope,item){
+ const row=item?.id?item:globalFutures.find(x=>x.id===item?.symbol||x.id===item?.globalFutureId)||item;
+ if(!row)return;
+ const isGeneral=scope==="general",p=isGeneral?"g":"m";
+ const select=$(p+"GlobalFutureContract");
+ if(select&&row.id)select.value=row.id;
+ $(p+"GlobalFutureExchange").value=row.exchange||"";
+ $(p+"GlobalFutureYahoo").value=row.yahooSymbol||"";
+ $(p+"GlobalFutureTradingView").value=row.tradingViewSymbol||"";
+ $(p+"GlobalFutureMultiplier").value=row.multiplier||1;
+ $(p+"GlobalFutureInitial").value=Number(row.initialMargin)||"";
+ $(p+"GlobalFutureMaintenance").value=Number(row.maintenanceMargin)||"";
+ $(p+"GlobalFutureCurrency").value=row.marginCurrency||"USD";
+ const symbolInput=$(isGeneral?"symbol":"mSymbol"),yahooInput=$(isGeneral?"yahooSymbol":"mYahooSymbol"),currency=$(isGeneral?"currency":"mCurrency"),entry=$(isGeneral?"entry":"mEntry");
+ if(symbolInput)symbolInput.value=row.code||row.id;
+ if(yahooInput)yahooInput.value=row.yahooSymbol||"";
+ if(currency)currency.value=row.marginCurrency||"USD";
+ if(entry&&row.price)entry.value=row.price;
+ const status=$(p+"GlobalFutureStatus");
+ if(status){
+  status.textContent=`${row.name} · ${row.exchange} · ${row.marginSource||"Teminat tahmini"} · ${row.delayed?"Gecikmeli fiyat":""}`;
+  status.classList.add(row.marginEstimated?"sourceEstimated":"sourceLive");
+ }
+ renderGlobalFutureSummary(scope,row);updateModelTradePreview();
+}
+function syncGlobalFuturesVisibility(){
+ const g=$("assetClass")?.value==="Yurtdışı Futures",m=$("mAssetClass")?.value==="Yurtdışı Futures";
+ $("gGlobalFuturesFields")?.classList.toggle("hidden",!g);
+ $("mGlobalFuturesFields")?.classList.toggle("hidden",!m);
+ if((g||m)&&!globalFuturesLoaded)loadGlobalFutures();
+ if(g)renderGlobalFutureSummary("general");
+ if(m)renderGlobalFutureSummary("model");
+}
+
 function renderViopOpenPositions(rows){
  if(!rows.length)return'<div class="muted" style="padding:20px;text-align:center">Açık VİOP pozisyonu bulunmuyor.</div>';
  return`<div class="tableWrap"><table><thead><tr><th>Sembol</th><th>Kontrat</th><th>Vade</th><th>Adet</th><th>Kontrat Büyüklüğü</th><th>Pozisyon Büyüklüğü</th><th>Başlangıç Teminatı</th><th>Sürdürme Teminatı</th><th>Güncel Net K/Z</th></tr></thead>
@@ -2289,9 +2670,14 @@ $("modelForm").addEventListener("submit",e=>{
   stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value,
   commissionUnit:$("mCommissionUnit").value,commissionRate:n($("mCommissionRate").value)||0,
   closeCommissionUnit:$("mCommissionUnit").value,closeCommissionRate:n($("mCommissionRate").value)||0,
-  viopContract:$("mViopContract").value||"",contractSize:n($("mContractSize").value)||1,
-  marginMode:"fixed",initialMargin:n($("mInitialMargin").value)||0,
-  maintenanceMargin:n($("mMaintenanceMargin").value)||0,
+  viopContract:$("mViopContract").value||"",
+  globalFutureId:currentGlobalFuture("model")?.id||"",
+  futuresContract:currentGlobalFuture("model")?.code||"",
+  tradingViewSymbol:currentGlobalFuture("model")?.tradingViewSymbol||"",
+  contractSize:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureMultiplier")?.value)||1):(n($("mContractSize").value)||1),
+  marginMode:"fixed",
+  initialMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureInitial")?.value)||0):(n($("mInitialMargin").value)||0),
+  maintenanceMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureMaintenance")?.value)||0):(n($("mMaintenanceMargin").value)||0),
   contractExpiry:currentSelectedViopContract("model")?.expiryDate||$("mContractExpiry").value||"",marginRate:0
  };
  if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}
@@ -2457,20 +2843,25 @@ window.openPositionResearch=(scope,positionId)=>{
  const source=scope==="model"?model:general;
  const p=source.find(x=>x.id===positionId);
  if(!p)return;
- const viop=isViopPosition(p);
- const underlying=String(p.symbol||"").replace(/\.IS$/i,"").toUpperCase();
- const fundamental=viop?`${underlying}.IS`:(inferYahooSymbol(p)||p.yahooSymbol||p.symbol);
+ const viop=isViopPosition(p),globalFuture=isGlobalFuturesPosition(p);
+ const underlying=viop
+  ?extractViopUnderlying(p.viopContract||p.symbol,p.symbol)
+  :String(p.symbol||"").replace(/\.IS$/i,"").toUpperCase();
+ const fundamental=viop?`${underlying}.IS`:(globalFuture?(p.yahooSymbol||""):(inferYahooSymbol(p)||p.yahooSymbol||p.symbol));
  openResearchModal({
-  symbol:viop?(p.viopContract||p.symbol):p.symbol,
-  chartSymbol:viop?(p.viopContract||p.symbol):undefined,
-  viopContract:viop?(p.viopContract||""):undefined,
+  symbol:viop?(p.viopContract||p.symbol):globalFuture?(p.futuresContract||p.symbol):p.symbol,
+  chartSymbol:viop?(p.viopContract||p.symbol):globalFuture?(p.tradingViewSymbol||p.futuresContract||p.symbol):undefined,
+  viopContract:viop?(p.viopContract||p.symbol):undefined,
+  futuresContract:globalFuture?(p.futuresContract||p.symbol):undefined,
+  globalFutureId:globalFuture?p.globalFutureId:undefined,
+  tradingViewSymbol:globalFuture?p.tradingViewSymbol:undefined,
   underlying,
   yahooSymbol:fundamental,
   fundamentalSymbol:fundamental,
   openbbSymbol:fundamental,
   assetClass:p.assetClass,
-  market:viop?"VIOP":(String(fundamental).endsWith(".IS")?"BIST":""),
-  name:viop?`${p.viopContract||p.symbol} · ${underlying}`:p.symbol
+  market:viop?"VIOP":globalFuture?"GLOBAL_FUTURES":(String(fundamental).endsWith(".IS")?"BIST":""),
+  name:viop?`${p.viopContract||p.symbol} · ${underlying}`:globalFuture?(p.futuresContract||p.symbol):p.symbol
  });
 };
 
@@ -2585,7 +2976,7 @@ function openSearchResult(item){
  }
 }
 async function fetchSymbolSearch(query,mode="spot"){
- const endpoint=mode==="viop"?"/api/viop/search?q=":"/api/search?q=";
+ const endpoint=mode==="viop"?"/api/viop/search?q=":mode==="global-futures"?"/api/global-futures/search?q=":"/api/search?q=";
  const r=await fetch(endpoint+encodeURIComponent(query));
  const data=await r.json();
  if(!r.ok)throw new Error(data.error||"Arama yapılamadı");
@@ -2616,6 +3007,7 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,a
     input.value=item.symbol;
     yahooInput.value=item.mode==="viop"?"":item.yahooSymbol;
     if(item.mode==="viop")applyViopUnderlying(scope,item);
+    if(item.mode==="global-futures")applyGlobalFuture(scope,item);
     close();
    }else openSearchResult(item);
   }));
@@ -2633,7 +3025,8 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,a
   clearTimeout(marketSearchTimer);
   marketSearchTimer=setTimeout(async()=>{
    try{
-    const mode=assetClassId&&$(assetClassId)?.value==="Türev (VİOP/Vadeli)"?"viop":"spot";
+    const product=assetClassId?$(assetClassId)?.value:"";
+    const mode=product==="Türev (VİOP/Vadeli)"?"viop":product==="Yurtdışı Futures"?"global-futures":"spot";
     const found=await fetchSymbolSearch(q,mode);
     found.forEach(x=>x.mode=mode);
     if(myRequest!==requestNo)return;
@@ -2661,6 +3054,7 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,a
    if(yahooInput){
     input.value=item.symbol;yahooInput.value=item.mode==="viop"?"":item.yahooSymbol;
     if(item.mode==="viop")applyViopUnderlying(scope,item);
+    if(item.mode==="global-futures")applyGlobalFuture(scope,item);
     close();
    }else openSearchResult(item);
   }else if(event.key==="Escape")close();
@@ -2748,40 +3142,51 @@ function renderStatementTable(rows){
  return`<div class="statementTableWrap"><table class="statementTable"><thead><tr><th>Kalem</th>${periods.map(x=>`<th>${esc(periodLabel(x))}</th>`).join("")}</tr></thead><tbody>${keys.map(k=>`<tr><td>${esc(humanKey(k))}</td>${periods.map(x=>`<td>${statementValue(x[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
+function extractViopUnderlying(value,hint=""){
+ const hinted=String(hint||"").replace(/\.IS$/i,"").toUpperCase().replace(/^F_/,"").replace(/[^A-Z0-9]/g,"");
+ if(hinted&&!/\d{4,6}$/.test(hinted))return hinted;
+ const raw=String(value||"").toUpperCase().replace(/^BIST:/,"").replace(/^F_/,"").replace(/[^A-Z0-9]/g,"");
+ const m=raw.match(/^([A-Z0-9]+?)(?:0[1-9]|1[0-2])(?:20\d{2}|\d{2})$/);
+ return m?.[1]||raw.replace(/\d{4,6}$/,"");
+}
 const VIOP_MONTH_CODES={1:"F",2:"G",3:"H",4:"J",5:"K",6:"M",7:"N",8:"Q",9:"U",10:"V",11:"X",12:"Z"};
 const VIOP_TV_BASE_MAP={XU030:"XU030D",XU100:"XU100",USDTRY:"USDTRY",EURTRY:"EURTRY",EURUSD:"EURUSD",XAUTRY:"XAUTRY",XAUUSD:"XAUUSD"};
+function isGlobalFuturesResearchAsset(asset){
+ return asset?.assetClass==="Yurtdışı Futures"||Boolean(asset?.globalFutureId||asset?.futuresContract)||String(asset?.market||"").toUpperCase()==="GLOBAL_FUTURES";
+}
 function isViopResearchAsset(asset){
  const raw=String(asset?.viopContract||asset?.chartSymbol||asset?.symbol||"").toUpperCase();
  return String(asset?.assetClass||"").includes("VİOP")||String(asset?.market||"").toUpperCase()==="VIOP"||/^F_/.test(raw);
 }
-function parseViopTradingViewSymbol(rawValue,underlyingHint=""){
+function parseViopTradingViewExactSymbol(rawValue,underlyingHint=""){
  let raw=String(rawValue||"").trim().toUpperCase().replace(/^BIST:/,"");
- if(raw.endsWith("1!")||/^[A-Z0-9]+[FGHJKMNQUVXZ]\d{4}$/.test(raw))return`BIST:${raw}`;
+ if(/^[A-Z0-9]+[FGHJKMNQUVXZ]\d{4}$/.test(raw))return`BIST:${raw}`;
  raw=raw.replace(/^F_/,"").replace(/[^A-Z0-9]/g,"");
- let underlying=String(underlyingHint||"").toUpperCase().replace(/\.IS$/,"").replace(/^F_/,"").replace(/[^A-Z0-9]/g,"");
- let month=null,year=null;
+ let underlying=extractViopUnderlying(raw,underlyingHint),month=null,year=null;
  let match=raw.match(/^([A-Z0-9]+?)(0[1-9]|1[0-2])(20\d{2})$/);
  if(match){underlying=match[1];month=Number(match[2]);year=Number(match[3])}
  if(!match){
   match=raw.match(/^([A-Z0-9]+?)(0[1-9]|1[0-2])(\d{2})$/);
   if(match){underlying=match[1];month=Number(match[2]);year=2000+Number(match[3])}
  }
- if(!underlying){
-  const generic=raw.match(/^([A-Z0-9]+?)(?:\d{4}|\d{6})?$/);
-  underlying=generic?.[1]||raw;
- }
  const tvBase=VIOP_TV_BASE_MAP[underlying]||underlying;
  if(month&&year&&VIOP_MONTH_CODES[month])return`BIST:${tvBase}${VIOP_MONTH_CODES[month]}${year}`;
  return`BIST:${tvBase}1!`;
 }
+function parseViopTradingViewSymbol(rawValue,underlyingHint=""){
+ const underlying=extractViopUnderlying(rawValue,underlyingHint);
+ const tvBase=VIOP_TV_BASE_MAP[underlying]||underlying;
+ return`BIST:${tvBase}1!`;
+}
 function fundamentalSymbolForAsset(asset){
  if(isViopResearchAsset(asset)){
-  const underlying=String(asset.underlying||asset.fundamentalSymbol||asset.symbol||"").replace(/^F_/,"").replace(/\.IS$/i,"").toUpperCase();
+  const underlying=extractViopUnderlying(asset.viopContract||asset.chartSymbol||asset.symbol,asset.underlying||asset.fundamentalSymbol);
   return underlying?`${underlying}.IS`:String(asset.yahooSymbol||"");
  }
  return String(asset.fundamentalSymbol||asset.openbbSymbol||asset.yahooSymbol||asset.symbol||"").toUpperCase();
 }
 function tradingViewSymbolFor(asset){
+ if(isGlobalFuturesResearchAsset(asset))return asset.tradingViewSymbol||asset.chartSymbol||asset.symbol;
  if(isViopResearchAsset(asset)){
   return parseViopTradingViewSymbol(asset.viopContract||asset.chartSymbol||asset.symbol,asset.underlying);
  }
@@ -2803,7 +3208,7 @@ function tradingViewSymbolFor(asset){
  return`NASDAQ:${plain}`;
 }
 function isTradingViewWidgetRestricted(asset){
- if(isViopResearchAsset(asset))return true;
+ if(isViopResearchAsset(asset)||isGlobalFuturesResearchAsset(asset))return true;
  const yahoo=String(asset.yahooSymbol||"").toUpperCase();
  return yahoo.endsWith(".IS")||String(asset.market||"").toUpperCase()==="BIST";
 }
@@ -2816,8 +3221,8 @@ let fallbackDrawTool="cursor";
 let fallbackPendingPoint=null;
 let fallbackPreviewPoint=null;
 
-function tradingViewFullChartUrl(asset){
- return`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tradingViewSymbolFor(asset))}`;
+function tradingViewFullChartUrl(asset,symbol=tradingViewSymbolFor(asset)){
+ return`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(symbol)}`;
 }
 function resizeDrawingOverlay(){
  if(!fallbackOverlay)return;
@@ -2901,15 +3306,18 @@ async function mountDelayedFallbackChart(asset,range="1y",interval="1d"){
  if(fallbackResizeObserver){fallbackResizeObserver.disconnect();fallbackResizeObserver=null}
  if(fallbackTvChart){try{fallbackTvChart.remove()}catch{} fallbackTvChart=null}
  fallbackCandleSeries=null;fallbackOverlay=null;fallbackDrawings=[];fallbackPendingPoint=null;
- const isViop=isViopResearchAsset(asset);
+ const isViop=isViopResearchAsset(asset),isGlobalFuture=isGlobalFuturesResearchAsset(asset);
  const fundamental=fundamentalSymbolForAsset(asset);
- const yahooSymbol=isViop
-  ?(fundamental.endsWith(".IS")?fundamental:`${String(asset.underlying||asset.symbol).replace(/^F_/,"")}.IS`)
-  :(asset.yahooSymbol||(String(asset.symbol).endsWith(".IS")?asset.symbol:`${asset.symbol}.IS`));
- const exactTv=tradingViewSymbolFor(asset);
+ const yahooSymbol=isGlobalFuture
+  ?asset.yahooSymbol
+  :isViop
+   ?(fundamental.endsWith(".IS")?fundamental:`${extractViopUnderlying(asset.viopContract||asset.symbol,asset.underlying)}.IS`)
+   :(asset.yahooSymbol||(String(asset.symbol).endsWith(".IS")?asset.symbol:`${asset.symbol}.IS`));
+ const continuousTv=tradingViewSymbolFor(asset);
+ const exactTv=isViop?parseViopTradingViewExactSymbol(asset.viopContract||asset.symbol,asset.underlying):continuousTv;
  container.innerHTML=`<div class="tvFallbackWrap">
   <div class="tvFallbackToolbar">
-   <span class="tvFallbackSymbol">${esc(isViop?(asset.viopContract||asset.symbol):asset.symbol)} · ${isViop?"Dayanak Spot Proxy Grafik":"Gecikmeli Teknik Grafik"}</span>
+   <span class="tvFallbackSymbol">${esc(isFuturesPosition(asset)?(asset.viopContract||asset.futuresContract||asset.symbol):asset.symbol)} · ${isViop?"Çizilebilir Dayanak Spot Proxy":isGlobalFuture?"Çizilebilir Gecikmeli Futures":"Gecikmeli Teknik Grafik"}</span>
    ${[["1mo","1A"],["3mo","3A"],["6mo","6A"],["1y","1Y"],["5y","5Y"]].map(([r,l])=>`<button class="tvFallbackButton ${r===range?"active":""}" data-fallback-range="${r}">${l}</button>`).join("")}
    <button class="tvFallbackButton active" data-draw-tool="cursor">İmleç</button>
    <button class="tvFallbackButton" data-draw-tool="trend">Trend</button>
@@ -2917,9 +3325,9 @@ async function mountDelayedFallbackChart(asset,range="1y",interval="1d"){
    <button class="tvFallbackButton" data-draw-tool="fib">Fibo</button>
    <button class="tvFallbackButton" id="fallbackUndo">Geri Al</button>
    <button class="tvFallbackButton" id="fallbackClear">Temizle</button>
-   ${isViop?`<a class="tvExternalButton" target="_blank" rel="noopener" href="${esc(tradingViewFullChartUrl(asset))}">Gerçek VİOP Grafiğini TradingView’de Aç ↗</a>`:""}
+   ${(isViop||isGlobalFuture)?`<span class="tvContractLinks"><a class="tvExternalButton" target="_blank" rel="noopener" href="${esc(tradingViewFullChartUrl(asset,continuousTv))}">${isViop?"Sürekli VİOP":"TradingView Futures"} ↗</a>${isViop&&exactTv!==continuousTv?`<a class="tvExternalButton" target="_blank" rel="noopener" href="${esc(tradingViewFullChartUrl(asset,exactTv))}">Tam Vade ↗</a>`:""}</span>`:""}
   </div>
-  ${isViop?`<div class="tvProxyWarning">TradingView, bu VİOP sözleşmesini haricî widget içinde göstermiyor. Aşağıdaki çizilebilir grafik ${esc(yahooSymbol)} dayanak spot verisidir; gerçek ${esc(exactTv)} sözleşmesi üstteki düğmeyle TradingView’de açılır.</div>`:""}
+  ${isViop?`<div class="tvProxyWarning">BIST VİOP sözleşme verisi ücretsiz dış widget içinde güvenilir biçimde alınamadığı için çizilebilir grafik ${esc(yahooSymbol)} dayanak spot verisini kullanır. Sürekli kod: ${esc(continuousTv)} · Tam vade: ${esc(exactTv)}.</div>`:isGlobalFuture?`<div class="tvProxyWarning">Grafik Yahoo Finance’in gecikmeli ${esc(yahooSymbol)} vadeli verisini kullanır. Teminatlar broker/exchange verisi değiştikçe güncellenebilir.</div>`:""}
   <div id="tvFallbackCanvas" class="tvFallbackCanvas"><div class="tvFallbackLoading">Grafik yükleniyor…</div></div>
  </div>`;
  container.querySelectorAll("[data-fallback-range]").forEach(btn=>btn.addEventListener("click",()=>mountDelayedFallbackChart(asset,btn.dataset.fallbackRange,interval)));
@@ -3306,10 +3714,15 @@ $("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.
 $("creditReferenceMonthly").value=settings.creditReferenceMonthly??3.11;$("creditReferenceAnnual").value=settings.creditReferenceAnnual??45.15;
 $("creditSpread").value=settings.creditSpread??10;$("creditDays").value=settings.creditDays??2;
 $("referenceRateStatus").textContent=`Kayıtlı referans: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
-["mAssetClass","mEntry","mQty","mCurrency","mCommissionUnit","mCommissionRate","mContractSize","mInitialMargin","mMaintenanceMargin"].forEach(k=>$(k)?.addEventListener("input",()=>{syncModelViopVisibility();updateModelTradePreview()}));
-["qty","entry","gContractSize","gInitialMargin","gMaintenanceMargin"].forEach(k=>$(k)?.addEventListener("input",()=>updateViopMarginSummary("general")));
+["mAssetClass","mEntry","mQty","mCurrency","mCommissionUnit","mCommissionRate","mContractSize","mInitialMargin","mMaintenanceMargin","mViopReferencePrice"].forEach(k=>$(k)?.addEventListener("input",()=>{syncModelViopVisibility();updateModelTradePreview()}));
+["qty","entry","gContractSize","gInitialMargin","gMaintenanceMargin","gViopReferencePrice"].forEach(k=>$(k)?.addEventListener("input",()=>updateViopMarginSummary("general")));
 $("mViopContract")?.addEventListener("change",()=>applyViopContract("model"));
 $("gViopContract")?.addEventListener("change",()=>applyViopContract("general"));
+$("gGlobalFutureContract")?.addEventListener("change",()=>applyGlobalFuture("general",currentGlobalFuture("general")));
+$("mGlobalFutureContract")?.addEventListener("change",()=>applyGlobalFuture("model",currentGlobalFuture("model")));
+["qty","entry","gGlobalFutureMultiplier","gGlobalFutureInitial","gGlobalFutureMaintenance"].forEach(id=>$(id)?.addEventListener("input",()=>renderGlobalFutureSummary("general")));
+["mQty","mEntry","mGlobalFutureMultiplier","mGlobalFutureInitial","mGlobalFutureMaintenance"].forEach(id=>$(id)?.addEventListener("input",()=>renderGlobalFutureSummary("model")));
+
 document.querySelectorAll("[data-model-anchor]").forEach(btn=>btn.addEventListener("click",()=>{
  document.querySelectorAll("[data-model-anchor]").forEach(x=>x.classList.toggle("active",x===btn));
  $(btn.dataset.modelAnchor)?.scrollIntoView({behavior:"smooth",block:"start"});
