@@ -1,16 +1,20 @@
 {
-  "version": "6.7",
+  "version": "6.9",
   "validated": true,
+  "includes_v6_8": true,
   "features": [
-    "model KPI cards",
-    "T+2 credit cost",
-    "manual commission units",
-    "exact timestamps",
-    "net current PnL amount",
-    "VIOP collateral ledger",
-    "Is Yatirim contract refresh",
-    "TCMB reference rate refresh"
+    "TradingView screener fundamentals",
+    "Yahoo statistics HTML fallback",
+    "OpenBB optional enrichment",
+    "BIST valuation metrics",
+    "exact VIOP TradingView contract mapping",
+    "underlying fundamentals with futures chart"
   ],
-  "app_sha256": "de90851d2ed641b499585aedd5f168ac3c01e57514502b65129baf085f1885ce",
-  "server_sha256": "d02cea9092a85b72308aba76937d5b75eed5c690a3f9de6476a753f299fc87f9"
+  "examples": {
+    "F_KCHOL082026": "BIST:KCHOLQ2026",
+    "F_KCHOL0826": "BIST:KCHOLQ2026",
+    "KCHOL_continuous": "BIST:KCHOL1!"
+  },
+  "app_sha256": "2ef1c5565dd14c4edf0713a70684cc1a1c180fa2540dbafb8d6a3662176f0f87",
+  "server_sha256": "9c264604125f54c037515de4b15f012efe75b4c36f6091c3ff06dc6c55c57779"
 }
