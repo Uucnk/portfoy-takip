@@ -1,16 +1,16 @@
 {
-  "version": "7.2",
+  "version": "7.3",
   "validated": true,
-  "fully_free_ai": true,
-  "api_key_required": false,
   "features": [
-    "fixed chat send button",
-    "data-driven local market assistant",
-    "fundamental analysis",
-    "technical indicators",
-    "portfolio analysis",
-    "VIOP and futures margin Q&A"
+    "KAP financial statements",
+    "SEC five-year statements",
+    "Yahoo annual and quarterly statements",
+    "analyst consensus",
+    "multi-source news",
+    "company descriptions",
+    "ETF holdings and metrics",
+    "chat deletion"
   ],
-  "app_sha256": "0a86900a0333c57ba28e26483f5e5c6d75dd85017d74ab664e4b062dc32fbd3e",
-  "server_sha256": "b2f1c96c1e87db5ddafda963f960a4964ffe32635f3151b7f593989ad7d56d16"
+  "app_sha256": "4614f3d71e2156b633c7d199adaa9b85587deb5b0e43f3a67b762db190206e68",
+  "server_sha256": "577bf3b6eeada703b1eac5f427bd5d582b47f24dca00e2cbf4305cc57e161f01"
 }
