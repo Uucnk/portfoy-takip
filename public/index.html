@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pozisyon ve Model Portföy Takip · v7.2</title>
+<title>Pozisyon ve Model Portföy Takip · v7.3</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1089,8 +1089,52 @@ body.terminalHidden .app{right:0!important}
  .aiComposerRow{grid-template-columns:1fr}
 }
 
+
+/* v7.3 financial statements, analysts, news, ETF research and chat deletion */
+.researchSourceStrip{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.researchSourceStrip span{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:13px;background:#102237;border:1px solid #2c4c69;color:#a9c9e8;font-size:8.5px}
+.researchSourceStrip span.live{background:#103328;border-color:#28775d;color:#92e4c2}
+.researchSourceStrip span.partial{background:#30280f;border-color:#6e5a22;color:#ead07c}
+.statementControls{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;margin-bottom:9px}
+.statementFrequency{display:flex;gap:6px}
+.statementFrequency button{padding:6px 10px;font-size:9px;background:#101e2d;border:1px solid #2d455b;color:#9fb5cb}
+.statementFrequency button.active{background:#2869dc;border-color:#2869dc;color:#fff}
+.statementSourceNote{font-size:9px;color:#839ab0;line-height:1.45;margin:7px 0 0}
+.statementTable td:first-child{position:sticky;left:0;background:#0c1824;z-index:2;min-width:190px}
+.statementTable th:first-child{position:sticky;left:0;background:#132233;z-index:3}
+.analystDashboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.analystGauge{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.analystPanel{padding:12px;border:1px solid #294159;border-radius:10px;background:#0d1b28}
+.analystPanel h4{margin:0 0 8px;font-size:11px;color:#e6f0f9}
+.recommendationBar{height:9px;border-radius:7px;background:#172635;overflow:hidden;display:flex;margin:8px 0}
+.recommendationBar span{height:100%}
+.recommendationRow{display:grid;grid-template-columns:100px 1fr 38px;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #1c3043;font-size:9px}
+.newsToolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.newsFilters{display:flex;gap:5px;flex-wrap:wrap}
+.newsFilters button{padding:5px 8px;font-size:8.5px;background:#101e2d;border:1px solid #2b4359;color:#a7bdd3}
+.newsFilters button.active{background:#2869dc;border-color:#2869dc;color:white}
+.newsItemSource{display:inline-flex;padding:2px 6px;border-radius:9px;background:#14283d;border:1px solid #2b4b69;color:#a7c7e6;font-size:7.5px;margin-right:5px}
+.newsItem.kap{border-left:3px solid #47b98b}.newsItem.yahoo{border-left:3px solid #6d8fe8}.newsItem.google{border-left:3px solid #dfb74e}.newsItem.openbb{border-left:3px solid #936de0}
+.etfResearchGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:12px}
+.etfMetrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.etfHoldingList{display:flex;flex-direction:column;gap:6px}
+.etfHolding{display:grid;grid-template-columns:52px 1fr 62px;gap:8px;align-items:center;padding:8px 9px;border:1px solid #294157;border-radius:8px;background:#0e1c29;font-size:9px}
+.etfHolding strong{font-size:10px;color:#eef6fd}.etfHolding span:last-child{text-align:right;color:#80c7ff}
+.etfSectorList{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+.etfSectorRow{display:grid;grid-template-columns:120px 1fr 54px;gap:7px;align-items:center;font-size:8.5px}
+.etfSectorTrack{height:6px;border-radius:5px;background:#182737;overflow:hidden}.etfSectorTrack span{display:block;height:100%;background:#4b87e8}
+.etfEmpty{padding:18px;text-align:center;border:1px dashed #2d465e;border-radius:9px;color:#8299af}
+.aiHistoryRow{display:grid;grid-template-columns:minmax(0,1fr) 31px;gap:5px;margin-bottom:6px}
+.aiHistoryRow .aiHistoryItem{margin:0}
+.aiDeleteChat{border:1px solid #4d3540;background:#26151d;color:#e692a8;border-radius:8px;padding:0;font-size:13px;cursor:pointer}
+.aiDeleteChat:hover{background:#7d233d;color:white}
+.aiClearAll{width:100%;margin:0 0 9px;padding:7px;background:#21141a;border:1px solid #553241;color:#d993a5;font-size:9px}
+.researchCompanyDescription{white-space:pre-line}
+@media(max-width:1050px){.analystDashboard{grid-template-columns:repeat(2,minmax(0,1fr))}.analystGauge{grid-template-columns:1fr}.etfResearchGrid{grid-template-columns:1fr}}
+@media(max-width:620px){.analystDashboard,.etfMetrics{grid-template-columns:1fr}.etfHolding{grid-template-columns:48px 1fr 54px}.etfSectorRow{grid-template-columns:90px 1fr 45px}}
+
 </style>
-<meta name="portfolio-build" content="v7.2-free-market-assistant">
+<meta name="portfolio-build" content="v7.3-free-market-assistant">
 </head>
 <body>
 
@@ -1145,7 +1189,7 @@ body.terminalHidden .app{right:0!important}
   <div class="researchShell">
     <header class="researchHeader">
       <div class="researchIdentity">
-        <div class="researchEyebrow">OPENBB RESEARCH TERMINAL</div>
+        <div class="researchEyebrow">MULTI-SOURCE RESEARCH TERMINAL</div>
         <h1 id="researchTitle">Sembol</h1>
         <div id="researchSubtitle" class="researchSubtitle">Temel analiz, haberler ve teknik grafik</div>
       </div>
@@ -1158,6 +1202,7 @@ body.terminalHidden .app{right:0!important}
     <nav class="researchNav">
       <button type="button" class="researchNavBtn active" data-research-anchor="researchOverview">Özet</button>
       <button type="button" class="researchNavBtn" data-research-anchor="researchFundamentals">Temel Veriler</button>
+      <button type="button" id="researchEtfNav" class="researchNavBtn hidden" data-research-anchor="researchETF">ETF / Fon</button>
       <button type="button" class="researchNavBtn" data-research-anchor="researchStatements">Finansal Tablolar</button>
       <button type="button" class="researchNavBtn" data-research-anchor="researchAnalysts">Analistler</button>
       <button type="button" class="researchNavBtn" data-research-anchor="researchNews">Haberler</button>
@@ -1175,6 +1220,11 @@ body.terminalHidden .app{right:0!important}
         <div id="researchFundamentalContent"></div>
       </section>
 
+      <section id="researchETF" class="researchSection hidden">
+        <div class="researchSectionTitle"><h2>ETF / Fon Analizi</h2><span>Portföy dağılımı · Gider oranı · Performans</span></div>
+        <div id="researchETFContent"></div>
+      </section>
+
       <section id="researchStatements" class="researchSection">
         <div class="researchSectionTitle"><h2>Finansal Tablolar</h2><span>Gelir tablosu · Bilanço · Nakit akışı</span></div>
         <div id="researchStatementContent"></div>
@@ -1186,7 +1236,7 @@ body.terminalHidden .app{right:0!important}
       </section>
 
       <section id="researchNews" class="researchSection">
-        <div class="researchSectionTitle"><h2>Şirket Haberleri</h2><span>Kaynak: OpenBB sağlayıcıları</span></div>
+        <div class="researchSectionTitle"><h2>Şirket ve Kıymet Haberleri</h2><span>KAP · Yahoo Finance · Google News · OpenBB</span></div>
         <div id="researchNewsContent"></div>
       </section>
 
@@ -3050,8 +3100,23 @@ function recordList(data){
  if(Array.isArray(data?.data))return data.data;
  return[];
 }
+const STATEMENT_LABELS={
+ revenue:"Hasılat / Gelir",cost_of_revenue:"Satışların Maliyeti",gross_profit:"Brüt Kâr",
+ operating_income:"Faaliyet Kârı",pretax_income:"Vergi Öncesi Kâr",net_income:"Net Dönem Kârı",
+ ebitda:"FAVÖK",diluted_eps:"Seyreltilmiş HBK",research_and_development:"Ar-Ge Giderleri",
+ selling_general_administrative:"Genel Yönetim ve Satış Giderleri",interest_expense:"Faiz Gideri",
+ income_tax_expense:"Vergi Gideri",cash_and_equivalents:"Nakit ve Nakit Benzerleri",
+ receivables:"Ticari Alacaklar",inventory:"Stoklar",current_assets:"Dönen Varlıklar",
+ total_assets:"Toplam Varlıklar",current_liabilities:"Kısa Vadeli Yükümlülükler",
+ total_liabilities:"Toplam Yükümlülükler",short_term_debt:"Kısa Vadeli Borç",
+ long_term_debt:"Uzun Vadeli Borç",total_debt:"Toplam Finansal Borç",stockholders_equity:"Özkaynaklar",
+ operating_cash_flow:"İşletme Faaliyetlerinden Nakit",capital_expenditures:"Yatırım Harcamaları",
+ free_cash_flow:"Serbest Nakit Akışı",investing_cash_flow:"Yatırım Faaliyetlerinden Nakit",
+ financing_cash_flow:"Finansman Faaliyetlerinden Nakit",dividends_paid:"Ödenen Temettüler",
+ share_repurchases:"Hisse Geri Alımları",depreciation_amortization:"Amortisman ve İtfa"
+};
 function humanKey(key){
- return String(key).replaceAll("_"," ").replace(/\b\w/g,c=>c.toUpperCase());
+ return STATEMENT_LABELS[key]||String(key).replaceAll("_"," ").replace(/\b\w/g,c=>c.toUpperCase());
 }
 function statementValue(v){
  if(v===null||v===undefined||v==="")return"-";
@@ -3059,11 +3124,11 @@ function statementValue(v){
  return esc(v);
 }
 function renderStatementTable(rows){
- if(!rows?.length)return'<div class="researchEmpty">Bu tablo için OpenBB verisi bulunamadı.</div>';
+ if(!rows?.length)return'<div class="researchEmpty">Bu tablo için ücretsiz kaynaklardan veri bulunamadı.</div>';
  const periods=rows.slice(0,5);
- const excluded=new Set(["symbol","cik","filing_date","accepted_date","period","fiscal_period","fiscal_year","reported_currency"]);
+ const excluded=new Set(["symbol","cik","filing_date","accepted_date","period","fiscal_period","fiscal_year","reported_currency","source","_source","form","year","calendar_year"]);
  const keys=[...new Set(periods.flatMap(x=>Object.keys(x||{})))].filter(k=>!excluded.has(k)&&periods.some(x=>x[k]!==null&&x[k]!==undefined)).slice(0,45);
- const periodLabel=row=>row.fiscal_period||row.period||row.fiscal_year||row.calendar_year||row.date||"-";
+ const periodLabel=row=>row.period||row.fiscal_period||row.fiscal_year||row.calendar_year||row.date||row.year||"-";
  return`<div class="statementTableWrap"><table class="statementTable"><thead><tr><th>Kalem</th>${periods.map(x=>`<th>${esc(periodLabel(x))}</th>`).join("")}</tr></thead><tbody>${keys.map(k=>`<tr><td>${esc(humanKey(k))}</td>${periods.map(x=>`<td>${statementValue(x[k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
@@ -3340,8 +3405,8 @@ function renderResearchOverview(data,asset){
  const tv=data.tradingview_fundamentals||{};
  const companyName=info.name||info.company_name||quote.name||tv.description||asset.name||asset.symbol;
  $("researchTitle").textContent=`${asset.symbol} · ${companyName}`;
- $("researchSubtitle").textContent=[info.exchange,info.sector,info.industry].filter(Boolean).join(" · ")||"OpenBB temel analiz ve haber terminali";
- const description=info.long_business_summary||info.description||info.business_summary||"Şirket açıklaması OpenBB sağlayıcısı tarafından gönderilmedi.";
+ $("researchSubtitle").textContent=[info.exchange,info.sector||data.etf_profile?.category,info.industry||data.etf_profile?.family].filter(Boolean).join(" · ")||"Çok kaynaklı temel analiz ve haber terminali";
+ const description=info.long_business_summary||info.description||info.business_summary||data.etf_profile?.description||"Bu kıymet için ayrıntılı açıklama ücretsiz kaynaklardan alınamadı.";
  $("researchOverviewContent").innerHTML=`<div class="researchHero">
   <div class="researchCompanyCard">
    <div class="researchMetricGrid">
@@ -3415,50 +3480,104 @@ function renderResearchFundamentals(data){
  <div class="researchMetricGrid">${values.map(([l,v,t,s])=>researchMetric(l,researchValue(v,{percent:t==="percent",money:t==="money"}),s)).join("")}</div>`;
 }
 function renderResearchStatements(data){
- const statements={
-  income:recordList(data.income),
-  balance:recordList(data.balance),
-  cash:recordList(data.cash)
+ const statementSets={
+  income:{annual:recordList(data.income),quarterly:recordList(data.income_quarterly)},
+  balance:{annual:recordList(data.balance),quarterly:recordList(data.balance_quarterly)},
+  cash:{annual:recordList(data.cash),quarterly:recordList(data.cash_quarterly)}
  };
- $("researchStatementContent").innerHTML=`<div class="statementTabs">
+ let activeStatement="income",activeFrequency=statementSets.income.annual.length?"annual":"quarterly";
+ const sources=Array.isArray(data.statement_sources)?data.statement_sources:[];
+ const sourceStrip=sources.length?`<div class="researchSourceStrip">${sources.map(x=>`<span class="${x.ok?"live":"partial"}">${x.ok?"●":"○"} ${esc(x.label)}${x.note?` · ${esc(x.note)}`:""}</span>`).join("")}</div>`:"";
+ const render=()=>{
+  const rows=statementSets[activeStatement][activeFrequency]||[];
+  const hasAnnual=statementSets[activeStatement].annual.length>0,hasQuarterly=statementSets[activeStatement].quarterly.length>0;
+  $("statementTableTarget").innerHTML=`<div class="statementControls"><div class="statementFrequency">
+   <button class="${activeFrequency==="annual"?"active":""}" data-statement-frequency="annual" ${hasAnnual?"":"disabled"}>Yıllık</button>
+   <button class="${activeFrequency==="quarterly"?"active":""}" data-statement-frequency="quarterly" ${hasQuarterly?"":"disabled"}>Çeyreklik</button>
+  </div><span class="muted">${rows.length?`${rows.length} dönem`:`Veri bulunamadı`}</span></div>${renderStatementTable(rows)}
+  <div class="statementSourceNote">${esc(data.statement_note||"Kaynak önceliği: KAP/SEC resmî bildirimleri, Yahoo Finance ve OpenBB yedekleri.")}</div>`;
+  document.querySelectorAll("[data-statement-frequency]").forEach(btn=>btn.addEventListener("click",()=>{if(btn.disabled)return;activeFrequency=btn.dataset.statementFrequency;render()}));
+ };
+ $("researchStatementContent").innerHTML=`${sourceStrip}<div class="statementTabs">
   <button class="statementTab active" data-statement="income">Gelir Tablosu</button>
   <button class="statementTab" data-statement="balance">Bilanço</button>
   <button class="statementTab" data-statement="cash">Nakit Akışı</button>
- </div><div id="statementTableTarget">${renderStatementTable(statements.income)}</div>`;
+ </div><div id="statementTableTarget"></div>`;
  document.querySelectorAll("[data-statement]").forEach(btn=>btn.addEventListener("click",()=>{
   document.querySelectorAll("[data-statement]").forEach(x=>x.classList.toggle("active",x===btn));
-  $("statementTableTarget").innerHTML=renderStatementTable(statements[btn.dataset.statement]);
+  activeStatement=btn.dataset.statement;
+  activeFrequency=statementSets[activeStatement].annual.length?"annual":"quarterly";render();
  }));
+ render();
 }
 function renderResearchAnalysts(data){
- const target=firstRecord(data.price_target);
- const estimates=recordList(data.estimates);
+ const target=firstRecord(data.price_target),quote=firstRecord(data.quote);
+ const trends=recordList(data.recommendation_trend),earnings=recordList(data.earnings_estimates);
+ const meanRaw=target.target_consensus??target.target_mean??target.price_target,priceRaw=quote.price??quote.last_price;
+ const mean=meanRaw!==null&&meanRaw!==undefined&&meanRaw!==""&&Number.isFinite(Number(meanRaw))?Number(meanRaw):null;
+ const price=priceRaw!==null&&priceRaw!==undefined&&priceRaw!==""&&Number.isFinite(Number(priceRaw))?Number(priceRaw):null;
+ const upside=mean!==null&&price!==null&&price?((mean/price)-1)*100:null;
  const values=[
-  ["Hedef Fiyat Ort.",target.target_consensus??target.target_mean??target.price_target],
-  ["Hedef Fiyat Yüksek",target.target_high],
-  ["Hedef Fiyat Düşük",target.target_low],
-  ["Analist Sayısı",target.analyst_count??target.number_of_analysts]
+  ["Hedef Fiyat Ort.",mean],["Hedef Fiyat Yüksek",target.target_high],["Hedef Fiyat Düşük",target.target_low],
+  ["Analist Sayısı",target.analyst_count??target.number_of_analysts],["Potansiyel",upside]
  ];
- $("researchAnalystContent").innerHTML=`<div class="analystConsensus">${values.map(([l,v])=>researchMetric(l,researchValue(v))).join("")}</div>${estimates.length?renderStatementTable(estimates):'<div class="researchEmpty">Analist tahmini bulunamadı.</div>'}`;
+ const latest=trends[0]||{};
+ const counts=[
+  ["Güçlü Al",Number(latest.strongBuy)||0,"#2fc48d"],["Al",Number(latest.buy)||0,"#6fca9e"],
+  ["Tut",Number(latest.hold)||0,"#d7b957"],["Sat",Number(latest.sell)||0,"#e9856b"],["Güçlü Sat",Number(latest.strongSell)||0,"#d84c61"]
+ ];
+ const total=counts.reduce((a,x)=>a+x[1],0);
+ const consensus=target.recommendation_key||target.recommendation||data.analyst_summary?.recommendation_key||"-";
+ const consensusMean=target.recommendation_mean??data.analyst_summary?.recommendation_mean;
+ $("researchAnalystContent").innerHTML=`<div class="researchSourceStrip">${(data.analyst_sources||[]).map(x=>`<span class="${x.ok?"live":"partial"}">${x.ok?"●":"○"} ${esc(x.label)}</span>`).join("")}</div>
+ <div class="analystDashboard">${values.map(([l,v],i)=>researchMetric(l,researchValue(v,{percent:i===4,money:i<3,currency:quote.currency||"USD"}))).join("")}</div>
+ <div class="analystGauge">
+  <div class="analystPanel"><h4>Konsensüs: ${esc(consensus)} ${Number.isFinite(Number(consensusMean))?`· ${f(Number(consensusMean),2)}`:""}</h4>
+   ${total?`<div class="recommendationBar">${counts.map(x=>`<span style="width:${x[1]/total*100}%;background:${x[2]}"></span>`).join("")}</div>${counts.map(x=>`<div class="recommendationRow"><span>${x[0]}</span><div class="etfSectorTrack"><span style="width:${total?x[1]/total*100:0}%;background:${x[2]}"></span></div><strong>${x[1]}</strong></div>`).join("")}`:'<div class="researchEmpty">Analist tavsiye dağılımı bulunamadı.</div>'}
+  </div>
+  <div class="analystPanel"><h4>Kâr / Gelir Tahminleri</h4>${earnings.length?renderStatementTable(earnings):'<div class="researchEmpty">Kâr tahmini bulunamadı.</div>'}</div>
+ </div>`;
 }
 function renderResearchNews(data){
- const news=recordList(data.news);
- $("researchNewsContent").innerHTML=news.length?`<div class="newsList">${news.slice(0,30).map(item=>{
-  const url=item.url||item.article_url||item.link||"#";
-  const title=item.title||item.headline||"Haber";
-  const source=item.source||item.publisher||item.provider||"OpenBB";
-  const date=item.published_date||item.date||item.created_at||"";
-  const summary=item.text||item.summary||item.description||"";
-  return`<a class="newsItem" href="${esc(url)}" target="_blank" rel="noopener">
-   <div><div class="newsItemTitle">${esc(title)}</div><div class="newsItemMeta">${esc(source)} · ${esc(date)}</div>${summary?`<div class="newsItemSummary">${esc(summary.slice(0,320))}</div>`:""}</div><span>↗</span>
-  </a>`;
- }).join("")}</div>`:'<div class="researchEmpty">Bu sembol için haber bulunamadı.</div>';
+ const news=recordList(data.news),box=$("researchNewsContent");
+ if(!news.length){box.innerHTML='<div class="researchEmpty">Bu sembol için ücretsiz kaynaklardan haber veya bildirim bulunamadı.</div>';return}
+ const sourceKey=item=>String(item.source_key||item.source||item.publisher||"other").toLowerCase();
+ const groups=["all",...new Set(news.map(sourceKey))];let active="all";
+ const labels={all:"Tümü",kap:"KAP",yahoo:"Yahoo Finance",google:"Google News",openbb:"OpenBB",sec:"SEC"};
+ const draw=()=>{
+  const filtered=active==="all"?news:news.filter(x=>sourceKey(x)===active);
+  box.innerHTML=`<div class="newsToolbar"><div class="newsFilters">${groups.map(g=>`<button class="${g===active?"active":""}" data-news-filter="${esc(g)}">${esc(labels[g]||g)} (${g==="all"?news.length:news.filter(x=>sourceKey(x)===g).length})</button>`).join("")}</div><span class="muted">Son ${filtered.length} kayıt</span></div>
+   <div class="newsList">${filtered.slice(0,60).map(item=>{
+    const url=item.url||item.article_url||item.link||"#",title=item.title||item.headline||"Haber";
+    const source=item.source||item.publisher||item.provider||"Haber",date=item.published_date||item.date||item.created_at||item.publishDate||"";
+    const summary=item.text||item.summary||item.description||"",key=sourceKey(item);
+    return`<a class="newsItem ${esc(key)}" href="${esc(url)}" target="_blank" rel="noopener"><div><div class="newsItemTitle">${esc(title)}</div><div class="newsItemMeta"><span class="newsItemSource">${esc(source)}</span>${esc(date)}</div>${summary?`<div class="newsItemSummary">${esc(summary.slice(0,420))}</div>`:""}</div><span>↗</span></a>`;
+   }).join("")}</div>`;
+  box.querySelectorAll("[data-news-filter]").forEach(btn=>btn.addEventListener("click",()=>{active=btn.dataset.newsFilter;draw()}));
+ };
+ draw();
 }
+function renderResearchETF(data){
+ const profile=data.etf_profile||{},isEtf=Boolean(profile.is_etf||profile.is_fund);
+ $("researchETF").classList.toggle("hidden",!isEtf);$("researchEtfNav").classList.toggle("hidden",!isEtf);
+ if(!isEtf){$("researchETFContent").innerHTML="";return}
+ const metrics=[
+  ["Fon Ailesi",profile.family||"-"],["Kategori",profile.category||"-"],["Net Varlık",researchValue(profile.total_assets,{money:true,currency:profile.currency||"USD"})],
+  ["Gider Oranı",researchValue(profile.expense_ratio,{percent:true})],["Temettü Verimi",researchValue(profile.yield,{percent:true})],["YTD Getiri",researchValue(profile.ytd_return,{percent:true})],
+  ["3Y Getiri",researchValue(profile.three_year_return,{percent:true})],["5Y Getiri",researchValue(profile.five_year_return,{percent:true})],["Kuruluş",profile.inception_date||"-"]
+ ];
+ const holdings=Array.isArray(profile.holdings)?profile.holdings:[],sectors=Array.isArray(profile.sectors)?profile.sectors:[];
+ $("researchETFContent").innerHTML=`<div class="researchSourceStrip"><span class="${profile.source?"live":"partial"}">● ${esc(profile.source||"Yahoo Finance")}</span></div>
+ <div class="etfResearchGrid"><div><div class="etfMetrics">${metrics.map(([l,v])=>researchMetric(l,typeof v==="string"?v:researchValue(v))).join("")}</div>
+  <div class="analystPanel" style="margin-top:10px"><h4>Fon Açıklaması</h4><div class="researchCompanyDescription">${esc(profile.description||"Fon açıklaması bulunamadı.")}</div></div>
+  ${sectors.length?`<div class="analystPanel" style="margin-top:10px"><h4>Sektör Dağılımı</h4><div class="etfSectorList">${sectors.slice(0,15).map(x=>`<div class="etfSectorRow"><span>${esc(x.name)}</span><div class="etfSectorTrack"><span style="width:${Math.min(100,Number(x.weight)||0)}%"></span></div><strong>${f(Number(x.weight)||0,2)}%</strong></div>`).join("")}</div></div>`:""}
+ </div><div class="analystPanel"><h4>En Büyük Pozisyonlar</h4>${holdings.length?`<div class="etfHoldingList">${holdings.slice(0,25).map(x=>`<div class="etfHolding"><strong>${esc(x.symbol||"-")}</strong><span>${esc(x.name||x.symbol||"-")}</span><span>${f(Number(x.weight)||0,2)}%</span></div>`).join("")}</div>`:'<div class="etfEmpty">Holding verisi bulunamadı.</div>'}</div></div>`;
+} 
 async function loadOpenBBResearch(asset,force=false){
  currentResearchAsset=asset;
  $("researchStatus").style.display="block";
- $("researchStatus").textContent="OpenBB verileri yükleniyor…";
- ["researchOverviewContent","researchFundamentalContent","researchStatementContent","researchAnalystContent","researchNewsContent"].forEach(id=>$(id).innerHTML='<div class="researchEmpty">Yükleniyor…</div>');
+ $("researchStatus").textContent="Ücretsiz finansal veri kaynakları yükleniyor…";
+ ["researchOverviewContent","researchFundamentalContent","researchETFContent","researchStatementContent","researchAnalystContent","researchNewsContent"].forEach(id=>$(id).innerHTML='<div class="researchEmpty">Yükleniyor…</div>');
  mountTradingViewResearch(asset);
  try{
   const researchSymbol=fundamentalSymbolForAsset(asset);
@@ -3468,7 +3587,7 @@ async function loadOpenBBResearch(asset,force=false){
    fetch("/api/details?symbol="+encodeURIComponent(researchSymbol)).catch(()=>null)
   ]);
   const data=await openbbResponse.json();
-  if(!openbbResponse.ok)throw new Error(data.error||"OpenBB verileri alınamadı");
+  if(!openbbResponse.ok)throw new Error(data.error||"Araştırma verileri alınamadı");
   if(yahooResponse&&yahooResponse.ok){
    const yahoo=await yahooResponse.json();
    data.yahoo_details=yahoo;
@@ -3492,9 +3611,10 @@ async function loadOpenBBResearch(asset,force=false){
   }
   $("researchStatus").style.display="block";
   $("researchStatus").innerHTML=`<div class="researchDataNotice">${esc(data.source_note||"OpenBB ve Yahoo Finance üzerinden erişilebilen veriler getirildi.")}</div>`;
-  if(!data.configured)$("researchStatus").innerHTML='<div class="openbbConfigWarning">OpenBB servisi henüz yapılandırılmadı. TradingView grafiği çalışır; temel veriler için Render üzerinde OPENBB_BASE_URL tanımlanmalıdır.</div>';
+  if(!data.configured)$("researchStatus").innerHTML='<div class="researchDataNotice">OpenBB bağlı değil; KAP, SEC, Yahoo Finance, TradingView ve haber akışları kullanılmaya devam ediyor.</div>';
   renderResearchOverview(data,asset);
   renderResearchFundamentals(data);
+  renderResearchETF(data);
   renderResearchStatements(data);
   renderResearchAnalysts(data);
   renderResearchNews(data);
@@ -3502,6 +3622,7 @@ async function loadOpenBBResearch(asset,force=false){
   $("researchStatus").innerHTML=`<div class="openbbConfigWarning">${esc(error.message||"OpenBB verileri alınamadı")}</div>`;
   renderResearchOverview({},asset);
   renderResearchFundamentals({});
+  renderResearchETF({});
   renderResearchStatements({});
   renderResearchAnalysts({});
   renderResearchNews({});
@@ -3638,10 +3759,19 @@ function newAiSession(){
  const session={id:id(),title:"Yeni sohbet",createdAt:new Date().toISOString(),messages:[]};
  aiSessions.unshift(session);activeAiSessionId=session.id;saveAiSessions();renderAiWorkspace();return session;
 }
+function deleteAiSession(sessionId){
+ const session=aiSessions.find(x=>x.id===sessionId);if(!session)return;
+ if(!confirm(`“${session.title}” sohbeti silinsin mi?`))return;
+ aiSessions=aiSessions.filter(x=>x.id!==sessionId);
+ if(activeAiSessionId===sessionId)activeAiSessionId=aiSessions[0]?.id||null;
+ saveAiSessions();renderAiWorkspace();
+}
 function renderAiHistory(){
  const box=$("aiHistoryList");if(!box)return;
- box.innerHTML=aiSessions.map(s=>`<button class="aiHistoryItem ${s.id===activeAiSessionId?"active":""}" data-ai-session="${s.id}" title="${esc(s.title)}">${esc(s.title)}</button>`).join("");
+ box.innerHTML=`${aiSessions.length>1?'<button type="button" id="aiClearAll" class="aiClearAll">Tüm Sohbetleri Temizle</button>':''}${aiSessions.map(s=>`<div class="aiHistoryRow"><button class="aiHistoryItem ${s.id===activeAiSessionId?"active":""}" data-ai-session="${s.id}" title="${esc(s.title)}">${esc(s.title)}</button><button type="button" class="aiDeleteChat" data-ai-delete="${s.id}" aria-label="Sohbeti sil" title="Sohbeti sil">🗑</button></div>`).join("")}`;
  box.querySelectorAll("[data-ai-session]").forEach(btn=>btn.addEventListener("click",()=>{activeAiSessionId=btn.dataset.aiSession;renderAiWorkspace()}));
+ box.querySelectorAll("[data-ai-delete]").forEach(btn=>btn.addEventListener("click",event=>{event.stopPropagation();deleteAiSession(btn.dataset.aiDelete)}));
+ $("aiClearAll")?.addEventListener("click",()=>{if(confirm("Tüm kayıtlı sohbetler silinsin mi?")){aiSessions=[];activeAiSessionId=null;saveAiSessions();newAiSession()}});
 }
 function renderAiMessages(){
  const box=$("aiMessages"),session=activeAiSession();if(!box)return;
