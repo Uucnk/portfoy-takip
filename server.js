@@ -741,6 +741,167 @@ app.get("/api/chart/history",async(req,res)=>{
  }catch(error){res.status(502).json({error:error.message})}
 });
 
+
+const TRADINGVIEW_TURKEY_SCANNER="https://scanner.tradingview.com/turkey/scan";
+const tvFundamentalCache=new Map();
+const TV_CORE_COLUMNS=[
+ "name","description","close","currency","market_cap_basic",
+ "price_earnings_ttm","price_book_fq","enterprise_value_ebitda_ttm",
+ "price_sales_current","dividends_yield_current","return_on_equity_fq",
+ "return_on_assets_fq","debt_to_equity_fq","current_ratio_fq",
+ "quick_ratio_fq","beta_1_year","earnings_per_share_diluted_ttm",
+ "book_value_per_share_fq"
+];
+const TV_EXTENDED_COLUMNS=[
+ "enterprise_value_revenue_ttm","price_earnings_growth_ttm",
+ "gross_margin_ttm","operating_margin_ttm","net_margin_ttm",
+ "free_cash_flow_ttm","total_debt_fq","total_cash_fq",
+ "total_revenue_ttm","net_income_ttm","ebitda_ttm","change"
+];
+async function scanTradingViewColumns(ticker,columns){
+ const response=await fetch(TRADINGVIEW_TURKEY_SCANNER,{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json","Accept":"application/json",
+   "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) PortfolioTracker/6.9",
+   "Origin":"https://www.tradingview.com","Referer":"https://www.tradingview.com/"
+  },
+  body:JSON.stringify({
+   symbols:{tickers:[ticker],query:{types:[]}},
+   columns
+  }),
+  signal:AbortSignal.timeout(20000)
+ });
+ if(!response.ok)throw new Error(`TradingView scanner HTTP ${response.status}`);
+ const payload=await response.json();
+ const row=payload?.data?.[0];
+ if(!row||!Array.isArray(row.d))return{};
+ return Object.fromEntries(columns.map((column,index)=>[column,row.d[index]??null]));
+}
+async function fetchTradingViewFundamentals(symbol,force=false){
+ const plain=String(symbol||"").replace(/\.IS$/i,"").replace(/^BIST:/i,"").toUpperCase();
+ if(!plain)return{};
+ const cacheKey=`BIST:${plain}`,cached=tvFundamentalCache.get(cacheKey);
+ if(!force&&cached&&Date.now()-cached.at<15*60*1000)return cached.data;
+ let core={},extended={},errors=[];
+ try{core=await scanTradingViewColumns(cacheKey,TV_CORE_COLUMNS)}catch(error){errors.push(error.message)}
+ try{extended=await scanTradingViewColumns(cacheKey,TV_EXTENDED_COLUMNS)}catch(error){errors.push(error.message)}
+ const data={...core,...extended,symbol:plain,scanner_symbol:cacheKey};
+ if(data.total_debt_fq!=null||data.total_cash_fq!=null){
+  data.net_debt=(Number(data.total_debt_fq)||0)-(Number(data.total_cash_fq)||0);
+ }
+ data.ok=Object.values(data).some(v=>typeof v==="number"&&Number.isFinite(v));
+ data.errors=errors;
+ tvFundamentalCache.set(cacheKey,{at:Date.now(),data});
+ return data;
+}
+async function fetchYahooStatisticsPage(symbol){
+ const encoded=encodeURIComponent(symbol);
+ const urls=[
+  `https://finance.yahoo.com/quote/${encoded}/key-statistics/`,
+  `https://finance.yahoo.com/quote/${encoded}/`
+ ];
+ let html="",lastError=null;
+ for(const url of urls){
+  try{
+   const response=await fetch(url,{
+    headers:{"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36","Accept":"text/html,application/xhtml+xml"},
+    signal:AbortSignal.timeout(20000)
+   });
+   if(response.ok){html=await response.text();if(html)break}
+  }catch(error){lastError=error}
+ }
+ if(!html){if(lastError)throw lastError;return{}}
+ const numberFor=key=>{
+  const escaped=key.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const patterns=[
+   new RegExp(`"${escaped}"\\s*:\\s*\\{\\s*"raw"\\s*:\\s*(-?[0-9.eE+]+)`),
+   new RegExp(`\\\\"${escaped}\\\\"\\s*:\\s*\\{\\s*\\\\"raw\\\\"\\s*:\\s*(-?[0-9.eE+]+)`)
+  ];
+  for(const pattern of patterns){
+   const match=html.match(pattern),value=match?Number(match[1]):null;
+   if(Number.isFinite(value))return value;
+  }
+  return null;
+ };
+ return{
+  trailingPE:numberFor("trailingPE"),forwardPE:numberFor("forwardPE"),
+  priceToBook:numberFor("priceToBook"),enterpriseToEbitda:numberFor("enterpriseToEbitda"),
+  enterpriseToRevenue:numberFor("enterpriseToRevenue"),pegRatio:numberFor("pegRatio"),
+  dividendYield:numberFor("dividendYield"),returnOnEquity:numberFor("returnOnEquity"),
+  returnOnAssets:numberFor("returnOnAssets"),grossMargins:numberFor("grossMargins"),
+  operatingMargins:numberFor("operatingMargins"),profitMargins:numberFor("profitMargins"),
+  debtToEquity:numberFor("debtToEquity"),currentRatio:numberFor("currentRatio"),
+  quickRatio:numberFor("quickRatio"),beta:numberFor("beta"),trailingEps:numberFor("trailingEps"),
+  bookValue:numberFor("bookValue"),freeCashflow:numberFor("freeCashflow"),
+  totalDebt:numberFor("totalDebt"),totalCash:numberFor("totalCash"),
+  marketCap:numberFor("marketCap")
+ };
+}
+function tradingViewToResearch(tv){
+ if(!tv||typeof tv!=="object")return{};
+ return{
+  info:{results:[{
+   symbol:tv.symbol,name:tv.description||tv.name||tv.symbol,
+   company_name:tv.description||tv.name||tv.symbol,exchange:"BIST",currency:tv.currency||"TRY"
+  }]},
+  quote:{results:[{
+   symbol:tv.symbol,price:tv.close,last_price:tv.close,currency:tv.currency||"TRY",
+   market_cap:tv.market_cap_basic
+  }]},
+  metrics:{results:[{
+   market_cap:tv.market_cap_basic,pe_ratio:tv.price_earnings_ttm,
+   forward_pe:tv.price_earnings_forward,price_to_book:tv.price_book_fq,
+   enterprise_value_over_ebitda:tv.enterprise_value_ebitda_ttm,
+   enterprise_value_over_revenue:tv.enterprise_value_revenue_ttm,
+   price_to_sales:tv.price_sales_current,peg_ratio:tv.price_earnings_growth_ttm,
+   dividend_yield:tv.dividends_yield_current,return_on_equity:tv.return_on_equity_fq,
+   return_on_assets:tv.return_on_assets_fq,gross_margin:tv.gross_margin_ttm,
+   operating_margin:tv.operating_margin_ttm,net_profit_margin:tv.net_margin_ttm,
+   debt_to_equity:tv.debt_to_equity_fq,current_ratio:tv.current_ratio_fq,
+   quick_ratio:tv.quick_ratio_fq,beta:tv.beta_1_year,
+   earnings_per_share:tv.earnings_per_share_diluted_ttm,
+   book_value_per_share:tv.book_value_per_share_fq,free_cash_flow:tv.free_cash_flow_ttm,
+   net_debt:tv.net_debt
+  }]}
+ };
+}
+function yahooPageToResearch(y,symbol){
+ if(!y||typeof y!=="object")return{};
+ return{metrics:{results:[{
+  pe_ratio:y.trailingPE,forward_pe:y.forwardPE,price_to_book:y.priceToBook,
+  enterprise_value_over_ebitda:y.enterpriseToEbitda,
+  enterprise_value_over_revenue:y.enterpriseToRevenue,peg_ratio:y.pegRatio,
+  dividend_yield:y.dividendYield==null?null:y.dividendYield*100,
+  return_on_equity:y.returnOnEquity==null?null:y.returnOnEquity*100,
+  return_on_assets:y.returnOnAssets==null?null:y.returnOnAssets*100,
+  gross_margin:y.grossMargins==null?null:y.grossMargins*100,
+  operating_margin:y.operatingMargins==null?null:y.operatingMargins*100,
+  net_profit_margin:y.profitMargins==null?null:y.profitMargins*100,
+  debt_to_equity:y.debtToEquity,current_ratio:y.currentRatio,quick_ratio:y.quickRatio,
+  beta:y.beta,earnings_per_share:y.trailingEps,book_value_per_share:y.bookValue,
+  free_cash_flow:y.freeCashflow,
+  net_debt:(y.totalDebt==null&&y.totalCash==null)?null:(Number(y.totalDebt)||0)-(Number(y.totalCash)||0),
+  market_cap:y.marketCap
+ }]}}
+}
+function firstContainerRecord(container){
+ if(Array.isArray(container))return container[0]||{};
+ if(Array.isArray(container?.results))return container.results[0]||{};
+ if(Array.isArray(container?.data))return container.data[0]||{};
+ return container?.results||container?.data||container||{};
+}
+function mergeResearchContainer(...containers){
+ const merged={};
+ for(const container of containers.reverse()){
+  const record=firstContainerRecord(container);
+  for(const [key,value] of Object.entries(record||{})){
+   if(value!==null&&value!==undefined&&value!=="")merged[key]=value;
+  }
+ }
+ return{results:[merged]};
+}
+
 function yahooDetailsToResearch(details){
  if(!details||typeof details!=="object")return{};
  return{
@@ -775,48 +936,72 @@ app.get("/api/openbb/research",async(req,res)=>{
  const symbol=isBist?yahooSymbolFor(requested):requested;
  const preferred=String(req.query.provider||process.env.OPENBB_PROVIDER||"fmp").trim();
  const providers=isBist?["yfinance","fmp"]:[preferred,"fmp","yfinance"].filter((v,i,a)=>v&&a.indexOf(v)===i);
- const cacheKey=`${symbol}|${providers.join(",")}`;
- const force=req.query.force==="1",cached=openbbResearchCache.get(cacheKey);
+ const force=req.query.force==="1";
+ const cacheKey=`research|${symbol}|${providers.join(",")}`,cached=openbbResearchCache.get(cacheKey);
  if(!force&&cached&&Date.now()-cached.at<10*60*1000)return res.json(cached.data);
- if(!OPENBB_BASE_URL)return res.json({configured:false,symbol,source_note:"OpenBB servisi yapılandırılmadı."});
- const variants=(extra={})=>providers.map(provider=>({symbol,provider,...extra}));
- const periodVariants=(extra={})=>providers.map(provider=>({symbol,provider,period:"annual",limit:5,...extra}));
- const [info,quote,metrics,ratios,income,balance,cash,dividends,priceTarget,estimates,news]=await Promise.all([
-  fetchOpenBBAny(["/api/v1/equity/profile","/api/v1/equity/info"],variants()),
-  fetchOpenBBAny(["/api/v1/equity/price/quote","/api/v1/equity/quote"],variants()),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/metrics"],periodVariants()),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/ratios"],periodVariants()),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/income"],periodVariants()),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/balance"],periodVariants()),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/cash"],periodVariants()),
-  fetchOpenBBAny(["/api/v1/equity/fundamental/dividends"],variants({limit:20})),
-  fetchOpenBBAny(["/api/v1/equity/estimates/price_target_consensus","/api/v1/equity/price_target/consensus"],variants()),
-  fetchOpenBBAny(["/api/v1/equity/estimates/analyst","/api/v1/equity/estimates/historical"],variants({limit:12})),
-  fetchOpenBBAny(["/api/v1/news/company","/api/v1/news/world"],variants({limit:30}))
- ]);
- let fallback={};
- try{fallback=yahooFallbackShape(await yahooQuoteSummary(symbol),symbol)}catch{}
+
+ const empty={results:[]};
+ let info=empty,quote=empty,metrics=empty,ratios=empty,income=empty,balance=empty,cash=empty,dividends=empty,priceTarget=empty,estimates=empty,news=empty;
+ if(OPENBB_BASE_URL){
+  const variants=(extra={})=>providers.map(provider=>({symbol,provider,...extra}));
+  const periodVariants=(extra={})=>providers.map(provider=>({symbol,provider,period:"annual",limit:5,...extra}));
+  [info,quote,metrics,ratios,income,balance,cash,dividends,priceTarget,estimates,news]=await Promise.all([
+   fetchOpenBBAny(["/api/v1/equity/profile","/api/v1/equity/info"],variants()),
+   fetchOpenBBAny(["/api/v1/equity/price/quote","/api/v1/equity/quote"],variants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/metrics"],periodVariants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/ratios"],periodVariants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/income"],periodVariants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/balance"],periodVariants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/cash"],periodVariants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/dividends"],variants({limit:20})),
+   fetchOpenBBAny(["/api/v1/equity/estimates/price_target_consensus","/api/v1/equity/price_target/consensus"],variants()),
+   fetchOpenBBAny(["/api/v1/equity/estimates/analyst","/api/v1/equity/estimates/historical"],variants({limit:12})),
+   fetchOpenBBAny(["/api/v1/news/company","/api/v1/news/world"],variants({limit:30}))
+  ]);
+ }
+
+ let yahooShape={},yahooPageShape={},tvShape={},tvFundamentals={},yahooOk=false;
+ try{yahooShape=yahooFallbackShape(await yahooQuoteSummary(symbol),symbol);yahooOk=true}catch{}
  try{
   const robustYahoo=yahooDetailsToResearch(await fetchYahooDetails(symbol));
-  fallback={
-   ...fallback,
-   info:hasOpenBBData(fallback.info)?fallback.info:robustYahoo.info,
-   quote:hasOpenBBData(fallback.quote)?fallback.quote:robustYahoo.quote,
-   metrics:hasOpenBBData(fallback.metrics)?fallback.metrics:robustYahoo.metrics
+  yahooShape={
+   ...yahooShape,
+   info:mergeResearchContainer(yahooShape.info,robustYahoo.info),
+   quote:mergeResearchContainer(yahooShape.quote,robustYahoo.quote),
+   metrics:mergeResearchContainer(yahooShape.metrics,robustYahoo.metrics)
   };
- }catch(error){
-  console.warn("Yahoo detay yedeklemesi alınamadı:",error?.message);
+  yahooOk=true;
+ }catch(error){console.warn("Yahoo detay yedeklemesi alınamadı:",error?.message)}
+ try{
+  yahooPageShape=yahooPageToResearch(await fetchYahooStatisticsPage(symbol),symbol);
+  if(Object.values(firstContainerRecord(yahooPageShape.metrics)).some(v=>v!=null))yahooOk=true;
+ }catch(error){console.warn("Yahoo istatistik sayfası alınamadı:",error?.message)}
+ if(isBist){
+  try{
+   tvFundamentals=await fetchTradingViewFundamentals(symbol,force);
+   tvShape=tradingViewToResearch(tvFundamentals);
+  }catch(error){console.warn("TradingView temel verileri alınamadı:",error?.message)}
  }
- const choose=(primary,key)=>hasOpenBBData(primary)?primary:(fallback[key]||primary);
+
+ const mergedInfo=mergeResearchContainer(info,yahooShape.info,tvShape.info);
+ const mergedQuote=mergeResearchContainer(quote,yahooShape.quote,tvShape.quote);
+ const mergedMetrics=mergeResearchContainer(metrics,yahooShape.metrics,yahooPageShape.metrics,tvShape.metrics);
  const openbbCount=[info,quote,metrics,ratios,income,balance,cash,news].filter(hasOpenBBData).length;
  const data={
-  configured:true,symbol,provider:providers[0],
+  configured:true,openbb_configured:Boolean(OPENBB_BASE_URL),symbol,provider:providers[0],
   source_note:isBist
-   ?"BIST verileri OpenBB yfinance sağlayıcısı üzerinden; eksik anlık alanlar Yahoo Finance yedeklemesiyle getiriliyor. TradingView, BIST sembollerini dış widget’larda lisans nedeniyle göstermediğinden teknik grafik TradingView Lightweight Charts motoruyla gecikmeli fiyat verisinden çiziliyor."
-   :"Erişilebilen temel veriler OpenBB ve doğrudan Yahoo Finance yedeklemesi birlikte kullanılarak getiriliyor.",
-  info:choose(info,"info"),quote:choose(quote,"quote"),metrics:choose(metrics,"metrics"),ratios,
-  income,balance,cash,dividends,price_target:choose(priceTarget,"price_target"),estimates,news,
-  diagnostics:{openbb_sections_with_data:openbbCount,providers_tried:providers},
+   ?"BIST temel oranlarında TradingView Screener birinci doğrudan kaynak, Yahoo Finance ikinci yedek kaynak, OpenBB ise finansal tablolar ve mevcut ek veriler için kullanılıyor."
+   :"Temel veriler Yahoo Finance ve mevcut OpenBB sağlayıcıları birlikte kullanılarak getiriliyor.",
+  info:mergedInfo,quote:mergedQuote,metrics:mergedMetrics,ratios,
+  income,balance,cash,dividends,price_target:priceTarget,estimates,news,
+  tradingview_fundamentals:tvFundamentals,
+  diagnostics:{
+   tradingview_ok:Boolean(tvFundamentals?.ok),
+   yahoo_ok:yahooOk,
+   openbb_sections_with_data:openbbCount,
+   providers_tried:providers,
+   tradingview_errors:tvFundamentals?.errors||[]
+  },
   fetchedAt:new Date().toISOString()
  };
  openbbResearchCache.set(cacheKey,{at:Date.now(),data});
@@ -824,11 +1009,21 @@ app.get("/api/openbb/research",async(req,res)=>{
  res.json(data);
 });
 
+app.get("/api/fundamentals",async(req,res)=>{
+ const requested=String(req.query.symbol||"").trim().toUpperCase();
+ if(!requested)return res.status(400).json({error:"Sembol gereklidir"});
+ const symbol=yahooSymbolFor(requested);
+ let tradingview={},yahoo={},yahooPage={};
+ try{tradingview=await fetchTradingViewFundamentals(symbol,req.query.refresh==="1")}catch(error){tradingview={ok:false,error:error.message}}
+ try{yahoo=await fetchYahooDetails(symbol)}catch(error){yahoo={error:error.message}}
+ try{yahooPage=await fetchYahooStatisticsPage(symbol)}catch(error){yahooPage={error:error.message}}
+ res.json({symbol,tradingview,yahoo,yahooPage,fetchedAt:new Date().toISOString()});
+});
 
 
 
 const TCMB_REFERENCE_URL="https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Uye+Isyerlerine+Uygulanacak+Azami+Komisyon+Oranlari";
-const ISYATIRIM_VIOP_URL="https://www.isyatirim.com.tr/tr-tr/urunler/Sayfalar/Islem-Goren-Kontratlar.aspx";
+const ALNUS_VIOP_URL="https://www.alnusyatirim.com/viop";
 
 function decodeBasicHtml(value=""){
  return String(value)
@@ -862,48 +1057,121 @@ app.get("/api/reference-rate",async(_req,res)=>{
 });
 
 const VIOP_FALLBACK_CONTRACTS=[
- {id:"F_XU030",code:"F_XU030",name:"BIST 30 Endeks Vadeli",contractSize:10,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
- {id:"F_PAY",code:"F_PAY",name:"Pay Vadeli — Sembol Bazlı",contractSize:100,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
- {id:"F_USDTRY",code:"F_USDTRY",name:"Dolar/TL Vadeli",contractSize:1000,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
- {id:"F_EURTRY",code:"F_EURTRY",name:"Euro/TL Vadeli",contractSize:1000,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
- {id:"F_EURUSD",code:"F_EURUSD",name:"Euro/Dolar Vadeli",contractSize:1000,currency:"USD",marginMode:"fixed",initialMargin:null,marginRate:null},
- {id:"F_XAUTRY",code:"F_XAUTRY",name:"Gram Altın/TL Vadeli",contractSize:1,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
- {id:"F_XAUUSD",code:"F_XAUUSD",name:"Ons Altın/Dolar Vadeli",contractSize:1,currency:"USD",marginMode:"fixed",initialMargin:null,marginRate:null}
+ {id:"F_XU030",code:"F_XU030",underlying:"XU030",name:"BIST 30 Endeks Vadeli",contractSize:10,currency:"TRY",marginMode:"fixed",initialMargin:null,maintenanceMargin:null,expiryDate:null,maturityLabel:"Yakın Vade"},
+ {id:"F_PAY",code:"F_PAY",underlying:"PAY",name:"Pay Vadeli — Sembol Bazlı",contractSize:100,currency:"TRY",marginMode:"fixed",initialMargin:null,maintenanceMargin:null,expiryDate:null,maturityLabel:"Yakın Vade"},
+ {id:"F_USDTRY",code:"F_USDTRY",underlying:"USDTRY",name:"Dolar/TL Vadeli",contractSize:1000,currency:"TRY",marginMode:"fixed",initialMargin:null,maintenanceMargin:null,expiryDate:null,maturityLabel:"Yakın Vade"},
+ {id:"F_EURTRY",code:"F_EURTRY",underlying:"EURTRY",name:"Euro/TL Vadeli",contractSize:1000,currency:"TRY",marginMode:"fixed",initialMargin:null,maintenanceMargin:null,expiryDate:null,maturityLabel:"Yakın Vade"},
+ {id:"F_XAUTRY",code:"F_XAUTRY",underlying:"XAUTRY",name:"Gram Altın/TL Vadeli",contractSize:1,currency:"TRY",marginMode:"fixed",initialMargin:null,maintenanceMargin:null,expiryDate:null,maturityLabel:"Yakın Vade"}
 ];
-function parseViopRows(html){
+const VIOP_SPECIAL_UNDERLYINGS=new Set(["XU030","USDTRY","EURTRY","EURUSD","XAUTRY","XAUUSD","TRYUSD","TRYEUR","TLREF","ELCBAS","ANR","PAMUK","BUGDAY"]);
+let viopContractCache={at:0,contracts:[],live:false,error:null};
+
+function parseTrDate(value){
+ const s=decodeBasicHtml(value);
+ let m=s.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{4})/);
+ if(m)return`${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;
+ const months={ocak:1,şubat:2,mart:3,nisan:4,mayıs:5,haziran:6,temmuz:7,ağustos:8,eylül:9,ekim:10,kasım:11,aralık:12,subat:2,agustos:8,eylul:9,ekim:10,kasim:11,aralik:12};
+ m=s.toLocaleLowerCase("tr-TR").match(/(ocak|şubat|subat|mart|nisan|mayıs|haziran|temmuz|ağustos|agustos|eylül|eylul|ekim|kasım|kasim|aralık|aralik)\s+(\d{4})/);
+ if(m){
+  const month=months[m[1]],year=Number(m[2]);
+  return`${year}-${String(month).padStart(2,"0")}-28`;
+ }
+ return null;
+}
+function contractUnderlying(code,asset=""){
+ const c=String(code||"").toUpperCase();
+ const m=c.match(/^F_([A-Z0-9]+?)(?:\d{4}|\d{6})$/);
+ if(m)return m[1];
+ const generic=c.match(/^F_([A-Z0-9]+)/);
+ if(generic)return generic[1].replace(/\d+$/,"");
+ return String(asset||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+}
+function expiryFromContractCode(code){
+ const c=String(code||"").toUpperCase();
+ const m=c.match(/(\d{2})(\d{2})$/);
+ if(!m)return null;
+ const month=Number(m[1]),year=2000+Number(m[2]);
+ if(month<1||month>12)return null;
+ return`${year}-${String(month).padStart(2,"0")}-28`;
+}
+function parseAlnusViopRows(html){
  const contracts=[];
  const rowRegex=/<tr[^>]*>([\s\S]*?)<\/tr>/gi;
  for(const row of html.matchAll(rowRegex)){
   const cells=[...row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x=>decodeBasicHtml(x[1]));
-  if(cells.length<5)continue;
-  const joined=cells.join(" ");
-  if(!/F_[A-Z0-9]+|Vadeli|Sözleşme/i.test(joined))continue;
-  const code=cells.find(x=>/^F_[A-Z0-9_]+$/i.test(x))||cells.find(x=>/^[A-Z]{2,12}\d{0,4}$/i.test(x));
+  if(cells.length<6)continue;
+  const code=cells.find(x=>/^F_[A-Z0-9_]+$/i.test(x));
   if(!code)continue;
-  const nums=cells.map(trNumber);
-  const contractSize=nums.find((x,i)=>x!==null&&i>=2)??null;
-  const initialMargin=nums.find((x,i)=>x!==null&&i>=3&&x!==contractSize)??null;
+  const codeIndex=cells.indexOf(code);
+  const asset=cells[Math.max(0,codeIndex-1)]||code;
+  const maturityLabel=cells[codeIndex+1]||"";
+  const contractSize=trNumber(cells[codeIndex+2]);
+  const initialMargin=trNumber(cells[codeIndex+3]);
+  const spreadMargin=trNumber(cells[codeIndex+4]);
+  const currency=cells[codeIndex+5]||"TRY";
+  const lastTradingDay=cells[codeIndex+6]||"";
+  const expiryDate=parseTrDate(lastTradingDay)||parseTrDate(maturityLabel)||expiryFromContractCode(code);
+  const underlying=contractUnderlying(code,asset);
   contracts.push({
-   id:code,code,name:cells[0]||code,contractSize,initialMargin,marginRate:null,
-   marginMode:"fixed",currency:cells.at(-1)||"TRY",rawCells:cells
+   id:code,code,underlying,name:asset,maturityLabel,expiryDate,lastTradingDay,
+   sortDate:expiryDate||"9999-12-31",contractSize,initialMargin,
+   maintenanceMargin:initialMargin==null?null:initialMargin*.75,
+   spreadMargin,currency,marginMode:"fixed",source:"Alnus Yatırım"
   });
  }
  const unique=[];const seen=new Set();
  for(const c of contracts){if(!seen.has(c.id)){seen.add(c.id);unique.push(c)}}
- return unique;
+ const today=new Date().toISOString().slice(0,10);
+ unique.forEach(c=>c.isActive=!c.expiryDate||c.expiryDate>=today);
+ return unique.sort((a,b)=>String(a.sortDate).localeCompare(String(b.sortDate))||a.code.localeCompare(b.code));
 }
-app.get("/api/viop/contracts",async(_req,res)=>{
+function viopUnderlyingRows(contracts){
+ const map=new Map();
+ for(const c of contracts){
+  if(!c.underlying)continue;
+  if(!map.has(c.underlying))map.set(c.underlying,[]);
+  map.get(c.underlying).push(c);
+ }
+ return[...map.entries()].map(([underlying,rows])=>{
+  rows.sort((a,b)=>String(a.sortDate).localeCompare(String(b.sortDate)));
+  const nearest=rows.find(x=>x.isActive!==false)||rows[0];
+  return{
+   symbol:underlying,underlying,yahooSymbol:VIOP_SPECIAL_UNDERLYINGS.has(underlying)?"":`${underlying}.IS`,
+   name:nearest?.name||underlying,type:"VİOP Dayanak",exchange:"Borsa İstanbul VİOP",
+   nearestContract:nearest,contracts:rows
+  };
+ }).sort((a,b)=>a.symbol.localeCompare(b.symbol,"tr"));
+}
+async function getViopContracts(force=false){
+ if(!force&&viopContractCache.contracts.length&&Date.now()-viopContractCache.at<15*60*1000)return viopContractCache;
  let contracts=[],live=false,error=null;
  try{
-  const html=await fetchPublicText(ISYATIRIM_VIOP_URL,30000);
-  contracts=parseViopRows(html);live=contracts.length>0;
+  const html=await fetchPublicText(ALNUS_VIOP_URL,30000);
+  contracts=parseAlnusViopRows(html);live=contracts.length>0;
  }catch(err){error=err.message}
- if(!contracts.length)contracts=VIOP_FALLBACK_CONTRACTS;
+ if(!contracts.length)contracts=VIOP_FALLBACK_CONTRACTS.map(x=>({...x,isActive:true,sortDate:x.expiryDate||"9999-12-31"}));
+ viopContractCache={at:Date.now(),contracts,live,error};
+ return viopContractCache;
+}
+app.get("/api/viop/contracts",async(req,res)=>{
+ const cache=await getViopContracts(req.query.refresh==="1");
+ res.set("Cache-Control","public, max-age=300, s-maxage=300");
  res.json({
-  contracts,live,error,sourceLabel:"İş Yatırım — İşlem Gören Kontratlar",
-  sourceUrl:ISYATIRIM_VIOP_URL,asOf:new Date().toISOString(),
-  warning:"İş Yatırım açıklamasına göre teminatlar işlem sırasında ve saatlik risk parametresi güncellemeleriyle değişebilir."
+  contracts:cache.contracts,underlyings:viopUnderlyingRows(cache.contracts),
+  live:cache.live,error:cache.error,sourceLabel:"Alnus Yatırım — İşlem Gören VİOP Kontratları",
+  sourceUrl:ALNUS_VIOP_URL,asOf:new Date(cache.at).toISOString(),
+  warning:"Başlangıç teminatı Alnus tablosundan alınır; sürdürme teminatı başlangıç teminatının %75'i olarak hesaplanır."
  });
+});
+app.get("/api/viop/search",async(req,res)=>{
+ const q=String(req.query.q||"").trim().toUpperCase();
+ if(!q)return res.json({items:[]});
+ const cache=await getViopContracts(false);
+ const items=viopUnderlyingRows(cache.contracts)
+  .filter(x=>x.symbol.startsWith(q)||String(x.name||"").toLocaleUpperCase("tr-TR").includes(q))
+  .slice(0,50);
+ res.set("Cache-Control","public, max-age=60, s-maxage=60");
+ res.json({query:q,count:items.length,items,live:cache.live,source:"Alnus Yatırım"});
 });
 
 app.get("/api/data-diagnostic",async(req,res)=>{
