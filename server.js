@@ -1608,87 +1608,240 @@ app.get("/api/openbb/status",async(req,res)=>{
 });
 
 
-function extractResponseText(payload){
- if(typeof payload?.output_text==="string")return payload.output_text;
- const parts=[];
- for(const item of payload?.output||[]){
-  for(const content of item?.content||[]){
-   if(typeof content?.text==="string")parts.push(content.text);
+
+const FREE_ASSISTANT_STOP_WORDS=new Set([
+ "bir","bu","şu","icin","için","ile","ve","veya","mi","mı","mu","mü","ne","nedir","nasıl","nasil","hakkında","hakkinda","yorumla","analiz","yap","yapar","göster","goster","bana","sence","bugün","bugun","son","durum","hisse","senedi","piyasa","temel","teknik","değerleme","degerleme","ucuz","pahalı","pahali","fiyat","fiyatı","fiyati","kaç","kac","oran","oranı","orani","portföy","portfoy","risk","vadeli","futures","viop","başlangıç","baslangic","sürdürme","surdurme","teminat","trend","destek","direnç","direnc","rsi","sma","karşılaştır","karsilastir","vs","hangisi","daha","iyi"
+]);
+function assistantFold(value=""){
+ return String(value).toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ı/g,"i").replace(/ş/g,"s").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ö/g,"o").replace(/ç/g,"c");
+}
+function assistantFmt(value,digits=2){
+ const n=Number(value);return Number.isFinite(n)?n.toLocaleString("tr-TR",{minimumFractionDigits:0,maximumFractionDigits:digits}):"-";
+}
+function assistantPct(value,digits=2){const n=Number(value);return Number.isFinite(n)?`${n>=0?"+":""}${assistantFmt(n,digits)}%`:"-"}
+function assistantMoney(value,currency=""){const n=Number(value);return Number.isFinite(n)?`${assistantFmt(n,2)}${currency?` ${currency}`:""}`:"-"}
+function firstFinite(...values){for(const value of values){const n=Number(value);if(Number.isFinite(n))return n}return null}
+function normalizePercentValue(value){const n=Number(value);if(!Number.isFinite(n))return null;return Math.abs(n)<=1?n*100:n}
+function sma(values,period){if(!Array.isArray(values)||values.length<period)return null;const slice=values.slice(-period);return slice.reduce((a,b)=>a+b,0)/period}
+function rsi(values,period=14){
+ if(!Array.isArray(values)||values.length<=period)return null;let gain=0,loss=0;
+ for(let i=values.length-period;i<values.length;i++){const d=values[i]-values[i-1];if(d>0)gain+=d;else loss-=d}
+ if(loss===0)return 100;const rs=(gain/period)/(loss/period);return 100-(100/(1+rs));
+}
+async function fetchAssistantHistory(symbol,range="1y"){
+ const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${encodeURIComponent(range)}&interval=1d&events=div%2Csplits`;
+ const response=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0","Accept":"application/json"},signal:AbortSignal.timeout(18000)});
+ if(!response.ok)throw new Error(`Yahoo chart HTTP ${response.status}`);
+ const json=await response.json(),result=json?.chart?.result?.[0];
+ if(!result)throw new Error(json?.chart?.error?.description||"Geçmiş fiyat bulunamadı");
+ const q=result.indicators?.quote?.[0]||{},closes=(q.close||[]).filter(Number.isFinite),highs=(q.high||[]).filter(Number.isFinite),lows=(q.low||[]).filter(Number.isFinite);
+ return{closes,highs,lows,currency:result.meta?.currency||"",price:closes.at(-1)??result.meta?.regularMarketPrice??null};
+}
+function portfolioFreeAnalysis(context){
+ const positions=Array.isArray(context?.positions)?context.positions:[];
+ if(!positions.length)return"Aktif portföy verisi bulunmuyor. ‘Aktif portföyümü analizde kullan’ seçeneğini açık bırakın veya önce pozisyon ekleyin.";
+ const rows=positions.map(p=>({
+  ...p,size:Math.abs(Number(p.positionSize)||((Number(p.currentPrice)||Number(p.entry)||0)*(Number(p.quantity)||0))),
+  pnl:Number(p.pnlAmount)||0,pct:Number(p.pnlPercent)||0
+ }));
+ const totalExposure=rows.reduce((s,p)=>s+p.size,0),totalPnl=rows.reduce((s,p)=>s+p.pnl,0);
+ const sorted=[...rows].sort((a,b)=>b.size-a.size),winners=rows.filter(p=>p.pnl>0),losers=rows.filter(p=>p.pnl<0);
+ const classMap={};rows.forEach(p=>classMap[p.assetClass]=(classMap[p.assetClass]||0)+p.size);
+ const classes=Object.entries(classMap).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,v])=>`${k}: %${assistantFmt(totalExposure?v/totalExposure*100:0,1)}`).join(" · ");
+ const top=sorted.slice(0,3).map(p=>`${p.symbol} %${assistantFmt(totalExposure?p.size/totalExposure*100:0,1)}`).join(" · ");
+ const stopMissing=rows.filter(p=>!Number(p.stop)).map(p=>p.symbol);
+ const concentration=sorted[0]&&totalExposure?sorted[0].size/totalExposure*100:0;
+ return[
+  "PORTFÖY ÖZETİ",
+  `Aktif pozisyon: ${rows.length} · Brüt pozisyon büyüklüğü: ${assistantMoney(totalExposure,"TRY")} · Anlık net K/Z: ${assistantMoney(totalPnl,"TRY")}`,
+  `Kazanan/Kaybeden: ${winners.length}/${losers.length} · En büyük ağırlıklar: ${top||"-"}`,
+  `Ürün dağılımı: ${classes||"-"}`,
+  concentration>35?`Risk uyarısı: En büyük pozisyonun ağırlığı %${assistantFmt(concentration,1)}; bu seviye belirgin konsantrasyon riski yaratır.`:"Konsantrasyon: En büyük pozisyon toplam brüt büyüklüğün %35’inin altında.",
+  stopMissing.length?`Stop seviyesi girilmemiş pozisyonlar: ${stopMissing.slice(0,10).join(", ")}. Stop kullanmıyorsanız para bazlı maksimum zarar limiti tanımlayın.`:"Aktif pozisyonların tamamında stop seviyesi mevcut.",
+  "Not: Farklı para birimleri kur çevrimi yapılmadan aynı toplamda gösterilmiş olabilir."
+ ].join("\n\n");
+}
+function valuationComment(label,value){
+ const n=Number(value);if(!Number.isFinite(n))return null;
+ if(label==="F/K")return n<0?"şirket zarar ediyor":n<10?"düşük çarpan":n<=20?"genel olarak dengeli":n<=35?"büyüme primi taşıyor":"yüksek çarpan";
+ if(label==="PD/DD")return n<1?"defter değerinin altında":n<=3?"genel olarak dengeli":n<=5?"primli":"yüksek primli";
+ if(label==="FD/FAVÖK")return n<8?"düşük":n<=12?"dengeli":n<=15?"primli":"yüksek";
+ if(label==="ROE")return n<8?"zayıf":n<15?"orta":n<25?"güçlü":"çok güçlü";
+ if(label==="Borç/Özkaynak")return n<.5?"düşük borçluluk":n<=1.5?"orta borçluluk":"yüksek borçluluk";
+ return null;
+}
+async function resolveAssistantAssets(question,context,maxAssets=2){
+ const original=String(question||""),fold=assistantFold(original),positions=Array.isArray(context?.positions)?context.positions:[];
+ const resolved=[];
+ const add=asset=>{if(asset&&!resolved.some(x=>x.key===asset.key)&&resolved.length<maxAssets)resolved.push(asset)};
+ for(const p of positions){if(fold.includes(assistantFold(p.symbol))||p.contract&&fold.includes(assistantFold(p.contract)))add({key:`position:${p.symbol}`,type:p.assetClass==="Yurtdışı Futures"?"global-future":String(p.assetClass).includes("VİOP")?"viop":"security",symbol:p.symbol,position:p,contract:p.contract});}
+ const viopMatch=original.toUpperCase().match(/F_[A-Z0-9]+(?:\d{4}|\d{6})?/);if(viopMatch)add({key:`viop:${viopMatch[0]}`,type:"viop",symbol:viopMatch[0],contract:viopMatch[0]});
+ for(const item of GLOBAL_FUTURES_CATALOG){const codeFold=assistantFold(item.code),nameFold=assistantFold(item.name);if(new RegExp(`(^|[^a-z0-9])${codeFold}([^a-z0-9]|$)`).test(fold)||fold.includes(nameFold))add({key:`gf:${item.id}`,type:"global-future",symbol:item.code,item});}
+ const explicit=[...original.matchAll(/(?:\$|BIST:|NASDAQ:|NYSE:|AMEX:)?([A-ZÇĞİÖŞÜ][A-ZÇĞİÖŞÜ0-9.-]{1,14})/g)].map(m=>m[1]);
+ const words=original.split(/\s+/).map(x=>x.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü0-9.-]/g,"")).filter(Boolean);
+ const candidates=[...new Set([...explicit,...words.filter(w=>w.length>=2&&w.length<=16&&!FREE_ASSISTANT_STOP_WORDS.has(assistantFold(w)))])].slice(0,7);
+ for(const candidate of candidates){
+  if(resolved.length>=maxAssets)break;
+  try{
+   const results=await searchYahooProducts(candidate);
+   if(!results.length)continue;
+   const upper=candidate.toUpperCase();
+   const bistHint=/bist|yurtici|turkiye|viop/.test(fold);
+   const chosen=results.find(x=>x.symbol===upper)||results.find(x=>x.symbol===`${upper}.IS`)||
+    (bistHint?results.find(x=>x.symbol.endsWith(".IS")):null)||results.find(x=>assistantFold(x.name).includes(assistantFold(candidate)))||results[0];
+   if(chosen)add({key:`sec:${chosen.symbol}`,type:"security",symbol:chosen.symbol,name:chosen.name,exchange:chosen.exchange});
+  }catch{}
+ }
+ return resolved;
+}
+async function freeFundamentalSnapshot(asset){
+ const symbol=asset.symbol,details=await fetchYahooDetails(symbol).catch(()=>({symbol}));
+ const tv=await fetchTradingViewFundamentals(symbol,details.exchange||asset.exchange||"",false).catch(()=>({}));
+ let sec={};if(!String(symbol).endsWith(".IS"))sec=await fetchSecFundamentals(symbol,tv.market_cap_basic??details.marketCap).catch(()=>({metrics:{}}));
+ const sm=sec.metrics||{};
+ return{
+  symbol,name:details.name||tv.description||asset.name||symbol,currency:details.currency||tv.currency||"",
+  price:firstFinite(details.price,tv.close),change:firstFinite(details.changePercent,tv.change),
+  high52:firstFinite(details.fiftyTwoWeekHigh),low52:firstFinite(details.fiftyTwoWeekLow),
+  pe:firstFinite(tv.price_earnings_ttm,details.trailingPE,sm.pe_ratio),pb:firstFinite(tv.price_book_fq,details.priceToBook,sm.price_to_book),
+  evEbitda:firstFinite(tv.enterprise_value_ebitda_ttm,details.enterpriseToEbitda,sm.enterprise_value_over_ebitda),
+  ps:firstFinite(tv.price_sales_current,sm.price_to_sales),dividend:normalizePercentValue(firstFinite(tv.dividends_yield_current,details.dividendYield)),
+  roe:normalizePercentValue(firstFinite(tv.return_on_equity_fq,details.returnOnEquity,sm.return_on_equity)),
+  roa:normalizePercentValue(firstFinite(tv.return_on_assets_fq,details.returnOnAssets,sm.return_on_assets)),
+  debtEquity:firstFinite(tv.debt_to_equity_fq,details.debtToEquityComputed,sm.debt_to_equity),currentRatio:firstFinite(tv.current_ratio_fq,details.currentRatio,sm.current_ratio),
+  netMargin:normalizePercentValue(firstFinite(tv.net_margin_ttm,details.netMargin,sm.net_profit_margin)),beta:firstFinite(tv.beta_1_year,details.beta),
+  marketCap:firstFinite(tv.market_cap_basic,details.marketCap,sm.market_cap),source:[tv.ok?"TradingView":null,details.price!=null?"Yahoo":null,sec.ok?"SEC":null].filter(Boolean).join(" + ")||"Açık piyasa verileri"
+ };
+}
+function fundamentalAnswer(snapshot){
+ const rows=[
+  ["F/K",snapshot.pe],["PD/DD",snapshot.pb],["FD/FAVÖK",snapshot.evEbitda],["F/S",snapshot.ps],
+  ["ROE",snapshot.roe,true],["ROA",snapshot.roa,true],["Net Marj",snapshot.netMargin,true],["Borç/Özkaynak",snapshot.debtEquity],["Cari Oran",snapshot.currentRatio],["Beta",snapshot.beta]
+ ].filter(([,v])=>Number.isFinite(Number(v)));
+ const comments=rows.filter(([l])=>["F/K","PD/DD","FD/FAVÖK","ROE","Borç/Özkaynak"].includes(l)).map(([l,v])=>`${l} ${assistantFmt(v,2)} (${valuationComment(l,v)})`).join("; ");
+ return[
+  `${snapshot.symbol} · ${snapshot.name}`,
+  `Fiyat: ${assistantMoney(snapshot.price,snapshot.currency)} · Günlük değişim: ${assistantPct(snapshot.change)} · 52H: ${assistantMoney(snapshot.high52,snapshot.currency)} / 52D: ${assistantMoney(snapshot.low52,snapshot.currency)}`,
+  rows.map(([l,v,p])=>`${l}: ${assistantFmt(v,2)}${p?"%":""}`).join(" · ")||"Temel oranlar şu anda kaynaktan alınamadı.",
+  comments?`Yorum: ${comments}.`:"",
+  `Genel değerlendirme: Tek bir oranla ucuz/pahalı kararı verilmemeli. Çarpanları sektör medyanı, kâr büyümesi, nakit akışı ve bilanço kalitesiyle birlikte okuyun.`,
+  `Kaynak: ${snapshot.source} · Gecikmeli/açık veriler.`
+ ].filter(Boolean).join("\n\n");
+}
+async function technicalAnswer(asset){
+ let symbol=asset.symbol,label=asset.symbol,proxyNote="";
+ if(asset.type==="global-future"){symbol=asset.item?.yahooSymbol||asset.position?.yahooSymbol;label=asset.item?.name||asset.symbol}
+ if(asset.type==="viop"){
+  const raw=asset.contract||asset.symbol,underlying=String(raw).toUpperCase().replace(/^F_/,"").replace(/(?:0[1-9]|1[0-2])(?:20\d{2}|\d{2})$/,"");
+  symbol=`${underlying}.IS`;label=`${raw} / ${underlying}`;proxyNote="VİOP ücretsiz geçmiş veri kısıtı nedeniyle teknik hesap dayanak spot üzerinden yapılmıştır.";
+ }
+ const hist=await fetchAssistantHistory(symbol),c=hist.closes,h=hist.highs,l=hist.lows,price=hist.price;
+ const s20=sma(c,20),s50=sma(c,50),s200=sma(c,200),r=rsi(c,14),support=l.slice(-20).length?Math.min(...l.slice(-20)):null,resistance=h.slice(-20).length?Math.max(...h.slice(-20)):null;
+ const ret20=c.length>21?(price/c.at(-21)-1)*100:null,ret60=c.length>61?(price/c.at(-61)-1)*100:null;
+ const trend=price>s20&&s20>s50?"kısa/orta vadede yukarı":price<s20&&s20<s50?"kısa/orta vadede aşağı":"karışık/yatay";
+ return[
+  `${label} teknik görünüm`,
+  `Son fiyat: ${assistantMoney(price,hist.currency)} · Trend: ${trend}`,
+  `SMA20: ${assistantFmt(s20,4)} · SMA50: ${assistantFmt(s50,4)} · SMA200: ${assistantFmt(s200,4)} · RSI14: ${assistantFmt(r,1)}`,
+  `20 günlük destek/direnç: ${assistantFmt(support,4)} / ${assistantFmt(resistance,4)} · 1 aylık momentum: ${assistantPct(ret20)} · 3 aylık momentum: ${assistantPct(ret60)}`,
+  r!=null&&r>70?"RSI aşırı alım bölgesinde; momentum güçlü olsa da geri çekilme riski artmıştır.":r!=null&&r<30?"RSI aşırı satım bölgesinde; tepki ihtimali artmış olsa da düşen trend teyidi gerekir.":"RSI nötr bölgede; fiyat yapısı ve hacim teyidi daha önemlidir.",
+  proxyNote,
+  "Kaynak: Yahoo Finance gecikmeli günlük fiyat serisi."
+ ].filter(Boolean).join("\n\n");
+}
+async function futuresMarginAnswer(asset){
+ if(asset.type==="global-future"){
+  const cache=await getGlobalFutures(false),item=cache.contracts.find(x=>x.id===asset.item?.id||x.code===asset.symbol)||asset.item;
+  if(!item)return"Yurtdışı futures kontratı bulunamadı.";
+  return[
+   `${item.code} · ${item.name} (${item.exchange})`,
+   `Gecikmeli fiyat: ${assistantMoney(item.price,item.quoteCurrency)} · Kontrat çarpanı: ${assistantFmt(item.multiplier,4)} · Yaklaşık kontrat büyüklüğü: ${assistantMoney(Number(item.price)*Number(item.multiplier),item.marginCurrency)}`,
+   `Başlangıç teminatı: ${assistantMoney(item.initialMargin,item.marginCurrency)} · Sürdürme teminatı: ${assistantMoney(item.maintenanceMargin,item.marginCurrency)}`,
+   `Teminat kaynağı: ${item.marginSource}. ${item.marginEstimated?"Bu tutar tahminidir; broker ekranı işlem öncesi teyit edilmelidir.":"Açık broker tablosu kullanılmıştır; yine de işlem öncesi teyit edin."}`
+  ].join("\n\n");
+ }
+ const raw=asset.contract||asset.symbol,underlying=String(raw).toUpperCase().replace(/^F_/,"").replace(/(?:0[1-9]|1[0-2])(?:20\d{2}|\d{2})$/,"");
+ const cache=await getViopContracts(false),rows=cache.contracts.filter(x=>String(x.underlying).toUpperCase()===underlying).sort((a,b)=>String(a.sortDate).localeCompare(String(b.sortDate))),item=rows.find(x=>x.isActive!==false)||rows[0];
+ if(!item)return`${underlying} için VİOP teminat kaydı bulunamadı.`;
+ return[
+  `${item.code} · ${item.name}`,
+  `Kontrat büyüklüğü: ${assistantFmt(item.contractSize,2)} · Referans fiyat: ${assistantMoney(item.referencePrice,"TRY")} · PSR: %${assistantFmt(item.marginRate,2)}`,
+  `Başlangıç teminatı: ${assistantMoney(item.initialMargin,"TRY")} · Sürdürme teminatı: ${assistantMoney(item.maintenanceMargin,"TRY")}`,
+  `Kaynak: ${item.marginSource||"Açık VİOP kaynakları"}. Teminatlar gün içinde değişebilir; kurum ekranı işlem öncesi teyit edilmelidir.`
+ ].join("\n\n");
+}
+function knowledgeAnswer(question){
+ const q=assistantFold(question),rules=[
+  [["pd/dd","pd dd"],"PD/DD piyasa değerini özkaynaklara böler. 1 altı defter değerinin altında, 1–3 genel olarak dengeli, 3–5 primli, 5 üzeri yüksek kabul edilebilir. Bankalarda ROE ile birlikte okunmalıdır."],
+  [["f/k","fiyat kazanc"],"F/K fiyatın hisse başına kâra oranıdır. Negatif değer zarar anlamına gelir. 10–20 genel bir denge bandı olabilir; büyüme, kâr kalitesi ve sektör medyanı mutlaka kontrol edilmelidir."],
+  [["fd/favok","favok"],"FD/FAVÖK borcu da firma değerine dahil eder. 8 altı düşük, 8–12 dengeli, 12–15 primli, 15 üzeri yüksek olabilir. Bankalarda uygun bir oran değildir."],
+  [["roe"],"ROE özkaynağın kâr üretme gücüdür. %8 altı zayıf, %8–15 orta, %15–25 güçlü, %25 üzeri çok güçlü olabilir; yüksek borç ROE’yi yapay biçimde yükseltebilir."],
+  [["baslangic teminati","surdurme teminati","viop"],"Başlangıç teminatı pozisyonu açmak için gereken tutardır. Sürdürme teminatı hesabın altına düşmemesi gereken eşiktir. Gerçek piyasa riski teminat değil, kontratın toplam nominal büyüklüğüdür."],
+  [["stop","risk yonetimi"],"Önce teknik geçersizlik seviyesi belirlenir, sonra stop mesafesine göre adet hesaplanır. Pozisyon başına para riski toplam portföyün küçük bir yüzdesiyle sınırlandırılmalı; korelasyonlu pozisyonlar tek risk kümesi gibi ele alınmalıdır."],
+  [["sharpe"],"Sharpe oranı toplam oynaklık başına risksiz faiz üzerindeki getiriyi ölçer. 1 üzeri kabul edilebilir, 1,5 üzeri güçlü, 2 üzeri çok güçlü kabul edilir; dağılımın normal olmadığı dönemlerde tek başına yeterli değildir."],
+  [["sortino"],"Sortino yalnızca aşağı yönlü oynaklığı cezalandırır. Sharpe’a göre yatırımcının zarar riskine daha yakın bir ölçüdür. Yüksek olması daha iyidir."],
+  [["beta"],"Beta 1 ise piyasa ile benzer, 1 üzeri daha yüksek, 1 altı daha düşük sistematik oynaklık anlamına gelir. Negatif beta ters yönlü hareket eğilimini gösterir."]
+ ];
+ for(const [keys,answer] of rules)if(keys.some(k=>q.includes(k)))return answer;
+ return null;
+}
+async function freeMarketAssistant(question,context,messages=[]){
+ const q=assistantFold(question),portfolioIntent=/portfoy|pozisyonlarim|risk dagilimi|konsantrasyon/.test(q);
+ if(portfolioIntent)return portfolioFreeAnalysis(context);
+ const assets=await resolveAssistantAssets(question,context,/karsilastir| vs |hangisi/.test(` ${q} `)?2:1);
+ if(assets.length===2){
+  const snaps=await Promise.all(assets.map(a=>a.type==="security"?freeFundamentalSnapshot(a):null));
+  if(snaps.every(Boolean)){
+   const [a,b]=snaps;
+   return[
+    `${a.symbol} ve ${b.symbol} karşılaştırması`,
+    `Fiyat/Günlük: ${a.symbol} ${assistantMoney(a.price,a.currency)} (${assistantPct(a.change)}) · ${b.symbol} ${assistantMoney(b.price,b.currency)} (${assistantPct(b.change)})`,
+    `F/K: ${a.symbol} ${assistantFmt(a.pe,2)} · ${b.symbol} ${assistantFmt(b.pe,2)}`,
+    `PD/DD: ${a.symbol} ${assistantFmt(a.pb,2)} · ${b.symbol} ${assistantFmt(b.pb,2)}`,
+    `FD/FAVÖK: ${a.symbol} ${assistantFmt(a.evEbitda,2)} · ${b.symbol} ${assistantFmt(b.evEbitda,2)}`,
+    `ROE: ${a.symbol} %${assistantFmt(a.roe,2)} · ${b.symbol} %${assistantFmt(b.roe,2)}`,
+    "Daha düşük çarpan otomatik olarak daha iyi değildir; büyüme, kâr kalitesi, borçluluk ve sektör farkı birlikte değerlendirilmelidir."
+   ].join("\n\n");
   }
  }
- return parts.join("\n").trim();
+ const asset=assets[0];
+ if(asset){
+  if(/teminat|kaldirac|kontrat|margin/.test(q)&&(asset.type==="viop"||asset.type==="global-future"))return futuresMarginAnswer(asset);
+  if(/teknik|trend|destek|direnc|rsi|sma|grafik|momentum/.test(q))return technicalAnswer(asset);
+  if(asset.type==="global-future")return futuresMarginAnswer(asset);
+  if(asset.type==="viop")return /temel|degerleme|fk|pd/.test(q)?fundamentalAnswer(await freeFundamentalSnapshot({symbol:`${String(asset.contract||asset.symbol).replace(/^F_/,"").replace(/(?:0[1-9]|1[0-2])(?:20\d{2}|\d{2})$/,"")}.IS`})):futuresMarginAnswer(asset);
+  const snapshot=await freeFundamentalSnapshot(asset);
+  if(/fiyat|son durum|kac|gunluk/.test(q)&&!/temel|degerleme|fk|pd|roe|teknik/.test(q))return`${snapshot.symbol} · ${snapshot.name}\n\nSon fiyat: ${assistantMoney(snapshot.price,snapshot.currency)} · Günlük değişim: ${assistantPct(snapshot.change)} · 52 haftalık aralık: ${assistantMoney(snapshot.low52,snapshot.currency)} – ${assistantMoney(snapshot.high52,snapshot.currency)}\n\nKaynak: ${snapshot.source} · Gecikmeli veri.`;
+  if(/teknik|trend|destek|direnc|rsi|sma|momentum/.test(q))return technicalAnswer(asset);
+  return fundamentalAnswer(snapshot);
+ }
+ const knowledge=knowledgeAnswer(question);if(knowledge)return knowledge;
+ return[
+  "Piyasa Asistanı Free tamamen ücretsiz ve site içinde çalışıyor; API anahtarı gerekmez.",
+  "Şunları sorabilirsiniz:",
+  "• KCHOL temel analiz yap",
+  "• ORCL teknik görünüm ve destek/direnç",
+  "• AAPL ile MSFT karşılaştır",
+  "• GC futures başlangıç teminatı",
+  "• KCHOL VİOP teminatı",
+  "• Aktif portföyümü risk ve konsantrasyon açısından analiz et",
+  "• F/K, PD/DD, Sharpe veya beta ne demek?",
+  "Sembolü mümkünse açık yazın. Veriler gecikmeli olabilir ve kesin al/sat tavsiyesi üretilmez."
+ ].join("\n");
 }
-function financialLocalAnswer(question,context){
- const q=String(question||"").toLocaleLowerCase("tr-TR");
- const positions=Array.isArray(context?.positions)?context.positions:[];
- const found=positions.find(p=>q.includes(String(p.symbol||"").toLocaleLowerCase("tr-TR")));
- const positionText=found
-  ?`\n\nPortföy bağlamı: ${found.symbol} ${found.direction}, açılış ${found.entry}, güncel ${found.currentPrice??"-"}, K/Z ${Number(found.pnlAmount||0).toLocaleString("tr-TR",{maximumFractionDigits:2})} ${found.currency||""}.`
-  :"";
- const rules=[
-  [["pd/dd","pd dd","defter değeri"],"PD/DD, piyasa değerini özkaynaklara böler. 1 altı defter değerinin altında fiyatlama gösterebilir; ancak düşük ROE, varlık kalitesi veya bilanço riski nedeniyle düşük kalabilir. Bankalarda ROE ve sermaye yeterliliğiyle, sanayi şirketlerinde varlıkların ekonomik değeriyle birlikte okunmalıdır."],
-  [["f/k","fiyat kazanç"],"F/K, fiyatın hisse başına kâra oranıdır. Negatif değer zarar anlamına gelir. 10–20 genel olarak dengeli sayılabilse de büyüme, kâr kalitesi, döngüsellik ve sektör medyanı belirleyicidir."],
-  [["fd/favök","favök"],"FD/FAVÖK borcu da firma değerine dahil ettiği için sermaye yapıları farklı şirketleri karşılaştırmada faydalıdır. 8 altı düşük, 8–12 dengeli, 12 üzeri primli olabilir; bankalarda uygun değildir."],
-  [["viop","başlangıç teminatı","sürdürme teminatı"],"Başlangıç teminatı pozisyonu açmak için gereken tutardır. Sürdürme teminatı hesabın altına düşmemesi gereken eşiktir. Teminat azalırsa tamamlama çağrısı oluşabilir. Gerçek risk, teminat değil kontratın toplam pozisyon büyüklüğüdür."],
-  [["stop","risk yönetimi"],"Profesyonel risk planı; teknik geçersizlik seviyesi, pozisyon büyüklüğü, portföy korelasyonu ve maksimum kabul edilen para kaybını birlikte belirler. Önce stop mesafesi, sonra risk bütçesi, en son kontrat/adet hesaplanmalıdır."],
-  [["roe","özsermaye kârlılığı"],"ROE özkaynağın kâr üretme gücünü ölçer. %15 üzeri genellikle güçlüdür; fakat yüksek kaldıraç ROE’yi yapay biçimde yükseltebilir. Borç/özsermaye ve nakit akışıyla birlikte okunmalıdır."],
-  [["teknik analiz","trend"],"Teknik analizde önce piyasa rejimi ve ana trend, sonra destek/direnç, hacim ve volatilite incelenmelidir. Tek bir indikatör yerine fiyat yapısı ile risk seviyesi birlikte kullanılmalıdır."]
- ];
- for(const [keys,answer] of rules)if(keys.some(k=>q.includes(k)))return answer+positionText;
- if(found)return`${found.symbol} için mevcut portföy verisine göre pozisyon büyüklüğü, stop mesafesi ve toplam portföy korelasyonunu birlikte kontrol etmelisiniz. Güncel K/Z tek başına karar ölçütü değildir.${positionText}`;
- return"Bu soruyu yerel Warren AI Lite yanıtlıyor. Daha kapsamlı doğal dil analizi için Render ortamına OPENAI_API_KEY ekleyebilirsiniz. Soruyu sembol, dönem ve istediğiniz analiz türüyle daha net yazın; örneğin “KCHOL PD/DD ve ROE karşılaştırması” veya “GC futures teminat ve kaldıraç analizi”.";
-}
-app.get("/api/ai/status",(_req,res)=>{
- const openai=Boolean(process.env.OPENAI_API_KEY);
- const compatible=!openai&&Boolean(process.env.AI_API_KEY&&process.env.AI_BASE_URL);
- res.json({
-  provider:openai?"openai":compatible?"compatible":"local",
-  model:openai?(process.env.OPENAI_MODEL||"gpt-5.6"):compatible?(process.env.AI_MODEL||"configured"):"Warren AI Lite"
- });
-});
+app.get("/api/ai/status",(_req,res)=>res.json({provider:"free-local",model:"Piyasa Asistanı Free",fullyFree:true,requiresKey:false,dataDriven:true}));
 app.post("/api/ai/chat",express.json({limit:"200kb"}),async(req,res)=>{
- const messages=Array.isArray(req.body?.messages)?req.body.messages.slice(-20):[];
- const context=req.body?.context||null;
+ const messages=Array.isArray(req.body?.messages)?req.body.messages.slice(-20):[],context=req.body?.context||null;
  const last=messages.filter(x=>x.role==="user").at(-1)?.content;
  if(!last)return res.status(400).json({error:"Soru gereklidir"});
- const systemInstruction="Sen Warren AI adlı finansal eğitim asistanısın. Türkçe cevap ver. Piyasa verisi verilmediyse güncel fiyat uydurma. Değerleme, risk, teknik analiz ve portföy yönetiminde net ve profesyonel ol. Kişiselleştirilmiş kesin al/sat emri verme; varsayımları belirt.";
  try{
-  if(process.env.OPENAI_API_KEY){
-   const response=await fetch("https://api.openai.com/v1/responses",{
-    method:"POST",
-    headers:{"Authorization":`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
-    body:JSON.stringify({
-     model:process.env.OPENAI_MODEL||"gpt-5.6",
-     instructions:systemInstruction,
-     input:[
-      ...messages.map(m=>({role:m.role==="assistant"?"assistant":"user",content:String(m.content||"")})),
-      ...(context?[{role:"user",content:`Portföy bağlamı JSON: ${JSON.stringify(context)}`}]:[])
-     ]
-    }),
-    signal:AbortSignal.timeout(90000)
-   });
-   const payload=await response.json();
-   if(!response.ok)throw new Error(payload?.error?.message||`OpenAI HTTP ${response.status}`);
-   return res.json({answer:extractResponseText(payload)||"Yanıt üretilemedi.",provider:"openai",providerLabel:`OpenAI · ${process.env.OPENAI_MODEL||"gpt-5.6"}`});
-  }
-  if(process.env.AI_API_KEY&&process.env.AI_BASE_URL){
-   const endpoint=String(process.env.AI_BASE_URL).replace(/\/$/,"")+"/chat/completions";
-   const response=await fetch(endpoint,{
-    method:"POST",
-    headers:{"Authorization":`Bearer ${process.env.AI_API_KEY}`,"Content-Type":"application/json"},
-    body:JSON.stringify({
-     model:process.env.AI_MODEL||"default",
-     messages:[{role:"system",content:systemInstruction},...messages,...(context?[{role:"user",content:`Portföy bağlamı JSON: ${JSON.stringify(context)}`}]:[])]
-    }),
-    signal:AbortSignal.timeout(90000)
-   });
-   const payload=await response.json();
-   if(!response.ok)throw new Error(payload?.error?.message||`AI HTTP ${response.status}`);
-   return res.json({answer:payload?.choices?.[0]?.message?.content||"Yanıt üretilemedi.",provider:"compatible",providerLabel:`AI · ${process.env.AI_MODEL||"configured"}`});
-  }
-  return res.json({answer:financialLocalAnswer(last,context),provider:"local",providerLabel:"Warren AI Lite"});
+  const answer=await freeMarketAssistant(last,context,messages);
+  res.set("Cache-Control","no-store");
+  return res.json({answer,provider:"free-local",providerLabel:"Piyasa Asistanı Free",fullyFree:true,fetchedAt:new Date().toISOString()});
  }catch(error){
-  return res.status(502).json({error:error.message});
+  console.error("Free assistant error:",error);
+  const fallback=knowledgeAnswer(last)||"Soru işlendi ancak piyasa veri kaynağına şu anda ulaşılamadı. Bir dakika sonra tekrar deneyin veya oran/portföy kavramı hakkında sorun.";
+  return res.json({answer:fallback,provider:"free-local",providerLabel:"Piyasa Asistanı Free · Veri Yedeği",fullyFree:true,warning:error.message});
  }
 });
 
