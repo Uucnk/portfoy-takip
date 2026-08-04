@@ -826,6 +826,86 @@ app.get("/api/openbb/research",async(req,res)=>{
 
 
 
+
+const TCMB_REFERENCE_URL="https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Uye+Isyerlerine+Uygulanacak+Azami+Komisyon+Oranlari";
+const ISYATIRIM_VIOP_URL="https://www.isyatirim.com.tr/tr-tr/urunler/Sayfalar/Islem-Goren-Kontratlar.aspx";
+
+function decodeBasicHtml(value=""){
+ return String(value)
+  .replace(/&nbsp;|&#160;/gi," ")
+  .replace(/&amp;/gi,"&").replace(/&quot;/gi,'"').replace(/&#39;/gi,"'")
+  .replace(/&lt;/gi,"<").replace(/&gt;/gi,">")
+  .replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+}
+function trNumber(value){
+ const clean=decodeBasicHtml(value).replace(/\./g,"").replace(",",".").replace(/[^\d.-]/g,"");
+ const num=Number(clean);return Number.isFinite(num)?num:null;
+}
+async function fetchPublicText(url,timeout=25000){
+ const response=await fetch(url,{
+  headers:{"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) PortfolioTracker/6.7","Accept":"text/html,application/xhtml+xml"},
+  signal:AbortSignal.timeout(timeout)
+ });
+ if(!response.ok)throw new Error(`HTTP ${response.status}`);
+ return response.text();
+}
+app.get("/api/reference-rate",async(_req,res)=>{
+ let monthly=3.11,annualCompound=45.15,period="01/08/2026 - 31/08/2026",live=false;
+ try{
+  const text=decodeBasicHtml(await fetchPublicText(TCMB_REFERENCE_URL));
+  const rows=[...text.matchAll(/(\d{2}\/\d{2}\/\d{4}\s*-\s*\d{2}\/\d{2}\/\d{4})\s+(\d+[,.]\d+)\s+(\d+[,.]\d+)/g)];
+  if(rows.length){
+   period=rows[0][1];monthly=trNumber(rows[0][2])??monthly;annualCompound=trNumber(rows[0][3])??annualCompound;live=true;
+  }
+ }catch(error){console.warn("TCMB referans oranı alınamadı:",error.message)}
+ res.json({monthly,annualCompound,period,live,source:"TCMB",sourceUrl:TCMB_REFERENCE_URL,fetchedAt:new Date().toISOString()});
+});
+
+const VIOP_FALLBACK_CONTRACTS=[
+ {id:"F_XU030",code:"F_XU030",name:"BIST 30 Endeks Vadeli",contractSize:10,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
+ {id:"F_PAY",code:"F_PAY",name:"Pay Vadeli — Sembol Bazlı",contractSize:100,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
+ {id:"F_USDTRY",code:"F_USDTRY",name:"Dolar/TL Vadeli",contractSize:1000,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
+ {id:"F_EURTRY",code:"F_EURTRY",name:"Euro/TL Vadeli",contractSize:1000,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
+ {id:"F_EURUSD",code:"F_EURUSD",name:"Euro/Dolar Vadeli",contractSize:1000,currency:"USD",marginMode:"fixed",initialMargin:null,marginRate:null},
+ {id:"F_XAUTRY",code:"F_XAUTRY",name:"Gram Altın/TL Vadeli",contractSize:1,currency:"TRY",marginMode:"fixed",initialMargin:null,marginRate:null},
+ {id:"F_XAUUSD",code:"F_XAUUSD",name:"Ons Altın/Dolar Vadeli",contractSize:1,currency:"USD",marginMode:"fixed",initialMargin:null,marginRate:null}
+];
+function parseViopRows(html){
+ const contracts=[];
+ const rowRegex=/<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+ for(const row of html.matchAll(rowRegex)){
+  const cells=[...row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x=>decodeBasicHtml(x[1]));
+  if(cells.length<5)continue;
+  const joined=cells.join(" ");
+  if(!/F_[A-Z0-9]+|Vadeli|Sözleşme/i.test(joined))continue;
+  const code=cells.find(x=>/^F_[A-Z0-9_]+$/i.test(x))||cells.find(x=>/^[A-Z]{2,12}\d{0,4}$/i.test(x));
+  if(!code)continue;
+  const nums=cells.map(trNumber);
+  const contractSize=nums.find((x,i)=>x!==null&&i>=2)??null;
+  const initialMargin=nums.find((x,i)=>x!==null&&i>=3&&x!==contractSize)??null;
+  contracts.push({
+   id:code,code,name:cells[0]||code,contractSize,initialMargin,marginRate:null,
+   marginMode:"fixed",currency:cells.at(-1)||"TRY",rawCells:cells
+  });
+ }
+ const unique=[];const seen=new Set();
+ for(const c of contracts){if(!seen.has(c.id)){seen.add(c.id);unique.push(c)}}
+ return unique;
+}
+app.get("/api/viop/contracts",async(_req,res)=>{
+ let contracts=[],live=false,error=null;
+ try{
+  const html=await fetchPublicText(ISYATIRIM_VIOP_URL,30000);
+  contracts=parseViopRows(html);live=contracts.length>0;
+ }catch(err){error=err.message}
+ if(!contracts.length)contracts=VIOP_FALLBACK_CONTRACTS;
+ res.json({
+  contracts,live,error,sourceLabel:"İş Yatırım — İşlem Gören Kontratlar",
+  sourceUrl:ISYATIRIM_VIOP_URL,asOf:new Date().toISOString(),
+  warning:"İş Yatırım açıklamasına göre teminatlar işlem sırasında ve saatlik risk parametresi güncellemeleriyle değişebilir."
+ });
+});
+
 app.get("/api/data-diagnostic",async(req,res)=>{
  const symbol=String(req.query.symbol||"AAPL").trim().toUpperCase();
  const output={symbol,time:new Date().toISOString()};
