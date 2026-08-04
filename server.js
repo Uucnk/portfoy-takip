@@ -449,6 +449,11 @@ async function fetchYahooDetails(symbol) {
     momentum200d: momentumFromCloses(closes, 200),
     sector: profile.sector || null,
     industry: profile.industry || null,
+    country: profile.country || null,
+    website: profile.website || null,
+    longBusinessSummary: profile.longBusinessSummary || null,
+    fullTimeEmployees: profile.fullTimeEmployees || null,
+    quoteType,
     price: rawValue(financial, "currentPrice") ?? rawValue(price, "regularMarketPrice") ?? safeNumber(quoteRow.regularMarketPrice) ?? latestPrice,
     changePercent,
     trailingPE: rawValue(summary, "trailingPE") ?? rawValue(stats, "trailingPE") ?? safeNumber(quoteRow.trailingPE),
@@ -677,8 +682,103 @@ function yahooSymbolFor(symbol){
  if(/^[A-Z0-9]{2,8}$/.test(s)&&["THYAO","ASELS","AKBNK","YKBNK","DOHOL","VESTL","GARAN","SISE","EREGL","TUPRS","KCHOL","SAHOL","BIMAS","FROTO","TOASO"].includes(s))return`${s}.IS`;
  return s;
 }
+
+async function fetchYahooModuleSet(symbol,modules){
+ const encoded=encodeURIComponent(symbol),moduleString=modules.join(",");
+ return fetchJsonFromYahoo([`/v10/finance/quoteSummary/${encoded}?modules=${encodeURIComponent(moduleString)}`]).then(json=>json?.quoteSummary?.result?.[0]||{});
+}
+async function fetchYahooResearchBundle(symbol){
+ const sets=[
+  ["price","quoteType","summaryDetail","defaultKeyStatistics","financialData","assetProfile","calendarEvents","recommendationTrend","earningsTrend","earningsHistory","earnings"],
+  ["incomeStatementHistory","incomeStatementHistoryQuarterly","balanceSheetHistory","balanceSheetHistoryQuarterly","cashflowStatementHistory","cashflowStatementHistoryQuarterly"],
+  ["fundProfile","topHoldings","fundPerformance","fundOwnership","majorHoldersBreakdown","institutionOwnership"]
+ ];
+ const values=await Promise.all(sets.map(modules=>fetchYahooModuleSet(symbol,modules).catch(()=>({}))));
+ return Object.assign({},...values);
+}
+function flatYahooRow(row,source="Yahoo Finance"){
+ const rawEnd=row?.endDate?.raw,period=row?.endDate?.fmt||(rawEnd?new Date(Number(rawEnd)*1000).toISOString().slice(0,10):"-");
+ const output={period,source};
+ for(const [key,value] of Object.entries(row||{})){
+  if(["maxAge","endDate"].includes(key))continue;
+  const v=raw(value);if(v!==null&&v!==undefined&&v!=="")output[key.replace(/[A-Z]/g,m=>"_"+m.toLowerCase())]=v;
+ }
+ return output;
+}
+function yahooStatementShape(bundle){
+ const incomeAnnual=bundle?.incomeStatementHistory?.incomeStatementHistory||[];
+ const incomeQuarter=bundle?.incomeStatementHistoryQuarterly?.incomeStatementHistory||[];
+ const balanceAnnual=bundle?.balanceSheetHistory?.balanceSheetStatements||[];
+ const balanceQuarter=bundle?.balanceSheetHistoryQuarterly?.balanceSheetStatements||[];
+ const cashAnnual=bundle?.cashflowStatementHistory?.cashflowStatements||[];
+ const cashQuarter=bundle?.cashflowStatementHistoryQuarterly?.cashflowStatements||[];
+ return{
+  income:{results:incomeAnnual.map(x=>flatYahooRow(x))},income_quarterly:{results:incomeQuarter.map(x=>flatYahooRow(x))},
+  balance:{results:balanceAnnual.map(x=>flatYahooRow(x))},balance_quarterly:{results:balanceQuarter.map(x=>flatYahooRow(x))},
+  cash:{results:cashAnnual.map(x=>flatYahooRow(x))},cash_quarterly:{results:cashQuarter.map(x=>flatYahooRow(x))}
+ };
+}
+function yahooAnalystShape(bundle){
+ const fd=bundle?.financialData||{},trend=bundle?.recommendationTrend?.trend||[],earnings=bundle?.earningsTrend?.trend||[];
+ return{
+  price_target:{results:[{
+   target_consensus:raw(fd.targetMeanPrice),target_high:raw(fd.targetHighPrice),target_low:raw(fd.targetLowPrice),
+   analyst_count:raw(fd.numberOfAnalystOpinions),recommendation_key:fd.recommendationKey,
+   recommendation_mean:raw(fd.recommendationMean)
+  }]},
+  recommendation_trend:{results:trend.map(x=>({period:x.period,strongBuy:x.strongBuy,buy:x.buy,hold:x.hold,sell:x.sell,strongSell:x.strongSell}))},
+  earnings_estimates:{results:earnings.map(x=>({
+   period:x.period,end_date:x.endDate,earnings_avg:raw(x.earningsEstimate?.avg),earnings_low:raw(x.earningsEstimate?.low),earnings_high:raw(x.earningsEstimate?.high),
+   earnings_growth:raw(x.earningsEstimate?.growth),revenue_avg:raw(x.revenueEstimate?.avg),revenue_low:raw(x.revenueEstimate?.low),revenue_high:raw(x.revenueEstimate?.high),revenue_growth:raw(x.revenueEstimate?.growth)
+  }))},
+  analyst_summary:{recommendation_key:fd.recommendationKey,recommendation_mean:raw(fd.recommendationMean)}
+ };
+}
+function normalizeYahooPercent(v){const n=Number(raw(v));return Number.isFinite(n)?(Math.abs(n)<=1?n*100:n):null}
+function yahooEtfShape(bundle,symbol){
+ const price=bundle?.price||{},quoteType=String(price.quoteType||bundle?.quoteType?.quoteType||"").toUpperCase();
+ const fp=bundle?.fundProfile||{},th=bundle?.topHoldings||{},perf=bundle?.fundPerformance||{},sd=bundle?.summaryDetail||{};
+ const isEtf=["ETF","MUTUALFUND"].includes(quoteType)||Boolean(fp.categoryName||th.holdings?.length);
+ if(!isEtf)return{is_etf:false};
+ const fees=fp.feesExpensesInvestment||{};
+ const holdings=(th.holdings||[]).map(x=>({symbol:x.symbol,name:x.holdingName,weight:normalizeYahooPercent(x.holdingPercent)}));
+ const sectors=(th.sectorWeightings||[]).flatMap(obj=>Object.entries(obj||{}).map(([name,weight])=>({name,weight:normalizeYahooPercent(weight)})));
+ const returns=perf.trailingReturns||{};
+ return{
+  is_etf:quoteType==="ETF",is_fund:true,symbol,source:"Yahoo Finance fon modülleri",
+  family:fp.family,category:fp.categoryName,legal_type:fp.legalType,currency:price.currency,
+  description:fp.description||fp.longBusinessSummary||`${price.longName||price.shortName||symbol} bir borsa yatırım fonu / yatırım fonudur.`,
+  total_assets:raw(sd.totalAssets)||raw(price.marketCap),expense_ratio:normalizeYahooPercent(fees.annualReportExpenseRatio||fees.netExpRatio),
+  yield:normalizeYahooPercent(sd.yield||sd.dividendYield),ytd_return:normalizeYahooPercent(returns.ytd),
+  three_year_return:normalizeYahooPercent(returns.threeYear),five_year_return:normalizeYahooPercent(returns.fiveYear),
+  inception_date:fp.fundInceptionDate?.fmt||fp.fundInceptionDate,holdings,sectors,
+  equity_holdings:th.equityHoldings||null,bond_holdings:th.bondHoldings||null
+ };
+}
+async function fetchYahooNews(query,symbol){
+ const url=`https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query||symbol)}&quotesCount=0&newsCount=40&enableFuzzyQuery=true&lang=en-US&region=US`;
+ const response=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0","Accept":"application/json"},signal:AbortSignal.timeout(20000)});
+ if(!response.ok)throw new Error(`Yahoo news HTTP ${response.status}`);
+ const json=await response.json();
+ return(json.news||[]).map(x=>({title:x.title,url:x.link,publisher:x.publisher,source:x.publisher||"Yahoo Finance",source_key:"yahoo",published_date:x.providerPublishTime?new Date(x.providerPublishTime*1000).toISOString():"",summary:x.summary||"",uuid:x.uuid}));
+}
+function decodeXml(value=""){return String(value).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,"$1").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim()}
+async function fetchGoogleNews(query,isTr=false){
+ const lang=isTr?"tr":"en-US",gl=isTr?"TR":"US",ceid=isTr?"TR:tr":"US:en";
+ const url=`https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${lang}&gl=${gl}&ceid=${ceid}`;
+ const response=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0","Accept":"application/rss+xml,application/xml,text/xml"},signal:AbortSignal.timeout(20000)});
+ if(!response.ok)throw new Error(`Google News HTTP ${response.status}`);
+ const xml=await response.text(),items=[];
+ for(const match of xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)){
+  const part=match[1],read=tag=>decodeXml(part.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`,`i`))?.[1]||"");
+  const source=read("source")||"Google News";items.push({title:read("title"),url:read("link"),source,source_key:"google",published_date:read("pubDate"),summary:read("description")});
+ }
+ return items.slice(0,40);
+}
+function dedupeNews(items){const seen=new Set();return items.filter(x=>{const key=String(x.title||"").toLocaleLowerCase("tr-TR").replace(/[^a-z0-9çğıöşü]+/gi," ").trim();if(!key||seen.has(key))return false;seen.add(key);return true}).sort((a,b)=>new Date(b.published_date||b.date||0)-new Date(a.published_date||a.date||0));}
+
 async function yahooQuoteSummary(symbol){
- const modules="price,summaryDetail,defaultKeyStatistics,financialData,assetProfile,calendarEvents,recommendationTrend,earningsTrend";
+ const modules="price,quoteType,summaryDetail,defaultKeyStatistics,financialData,assetProfile,calendarEvents,recommendationTrend,earningsTrend,earningsHistory,earnings";
  const url=`https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=${modules}`;
  const response=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0","Accept":"application/json"},signal:AbortSignal.timeout(20000)});
  if(!response.ok)throw new Error(`Yahoo quoteSummary HTTP ${response.status}`);
@@ -913,6 +1013,14 @@ function yahooPageToResearch(y,symbol){
   market_cap:y.marketCap
  }]}}
 }
+function recordList(container){
+ if(Array.isArray(container))return container;
+ if(Array.isArray(container?.results))return container.results;
+ if(Array.isArray(container?.data))return container.data;
+ if(container?.results&&typeof container.results==="object")return[container.results];
+ if(container?.data&&typeof container.data==="object")return[container.data];
+ return[];
+}
 function firstContainerRecord(container){
  if(Array.isArray(container))return container[0]||{};
  if(Array.isArray(container?.results))return container.results[0]||{};
@@ -967,6 +1075,61 @@ function latestSecAnnual(companyFacts,taxonomy,tag,units){
   .sort((a,b)=>String(b.filed||"").localeCompare(String(a.filed||"")));
  return rows[0]?.val??null;
 }
+
+function secAnnualFactRows(companyFacts,taxonomy,tag,units,instant=false){
+ const rows=secFactRows(companyFacts,taxonomy,tag,units).filter(x=>["10-K","20-F","40-F"].includes(x.form)&&x.val!=null);
+ const chosen=new Map();
+ for(const row of rows){
+  const year=Number(row.fy)||(row.end?Number(String(row.end).slice(0,4)):null);if(!year)continue;
+  if(!instant&&row.start&&row.end){const days=(new Date(row.end)-new Date(row.start))/86400000;if(days<250)continue}
+  const old=chosen.get(year);if(!old||String(row.filed||"")>String(old.filed||""))chosen.set(year,row);
+ }
+ return chosen;
+}
+function secStatementSeries(companyFacts,definitions,instant=false){
+ const years=new Set(),series={};
+ for(const [key,tags,units] of definitions){
+  let map=new Map();for(const tag of tags){const candidate=secAnnualFactRows(companyFacts,"us-gaap",tag,units,instant);for(const [year,row] of candidate)if(!map.has(year))map.set(year,row)}
+  series[key]=map;for(const year of map.keys())years.add(year);
+ }
+ return[...years].sort((a,b)=>b-a).slice(0,5).map(year=>{
+  const row={period:`${year} FY`,fiscal_year:year,source:"SEC EDGAR XBRL"};
+  for(const [key] of definitions)row[key]=series[key].get(year)?.val??null;
+  return row;
+ });
+}
+function buildSecStatements(companyFacts){
+ const incomeDefs=[
+  ["revenue",["RevenueFromContractWithCustomerExcludingAssessedTax","Revenues","SalesRevenueNet"],["USD"]],
+  ["cost_of_revenue",["CostOfRevenue","CostOfGoodsAndServicesSold","CostOfGoodsSold"],["USD"]],
+  ["gross_profit",["GrossProfit"],["USD"]],["research_and_development",["ResearchAndDevelopmentExpense"],["USD"]],
+  ["selling_general_administrative",["SellingGeneralAndAdministrativeExpense","GeneralAndAdministrativeExpense"],["USD"]],
+  ["operating_income",["OperatingIncomeLoss"],["USD"]],["interest_expense",["InterestExpenseNonOperating","InterestExpense"],["USD"]],
+  ["pretax_income",["IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest","IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments"],["USD"]],
+  ["income_tax_expense",["IncomeTaxExpenseBenefit"],["USD"]],["net_income",["NetIncomeLoss","ProfitLoss"],["USD"]],
+  ["diluted_eps",["EarningsPerShareDiluted"],["USD/shares"]]
+ ];
+ const balanceDefs=[
+  ["cash_and_equivalents",["CashAndCashEquivalentsAtCarryingValue","CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"],["USD"]],
+  ["receivables",["AccountsReceivableNetCurrent","AccountsNotesAndLoansReceivableNetCurrent"],["USD"]],["inventory",["InventoryNet"],["USD"]],
+  ["current_assets",["AssetsCurrent"],["USD"]],["total_assets",["Assets"],["USD"]],
+  ["current_liabilities",["LiabilitiesCurrent"],["USD"]],["total_liabilities",["Liabilities"],["USD"]],
+  ["short_term_debt",["LongTermDebtCurrent","ShortTermBorrowings"],["USD"]],["long_term_debt",["LongTermDebtNoncurrent","LongTermDebt"],["USD"]],
+  ["stockholders_equity",["StockholdersEquity","StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"],["USD"]]
+ ];
+ const cashDefs=[
+  ["operating_cash_flow",["NetCashProvidedByUsedInOperatingActivities"],["USD"]],
+  ["capital_expenditures",["PaymentsToAcquirePropertyPlantAndEquipment","PaymentsForAdditionsToPropertyPlantAndEquipment"],["USD"]],
+  ["investing_cash_flow",["NetCashProvidedByUsedInInvestingActivities"],["USD"]],["financing_cash_flow",["NetCashProvidedByUsedInFinancingActivities"],["USD"]],
+  ["dividends_paid",["PaymentsOfDividends","PaymentsOfDividendsCommonStock"],["USD"]],["share_repurchases",["PaymentsForRepurchaseOfCommonStock"],["USD"]],
+  ["depreciation_amortization",["DepreciationDepletionAndAmortization","DepreciationDepletionAndAmortizationPropertyPlantAndEquipment"],["USD"]]
+ ];
+ const income=secStatementSeries(companyFacts,incomeDefs,false),balance=secStatementSeries(companyFacts,balanceDefs,true),cash=secStatementSeries(companyFacts,cashDefs,false);
+ for(const row of cash)if(row.operating_cash_flow!=null&&row.capital_expenditures!=null)row.free_cash_flow=Number(row.operating_cash_flow)-Math.abs(Number(row.capital_expenditures));
+ for(const row of balance)row.total_debt=(Number(row.short_term_debt)||0)+(Number(row.long_term_debt)||0)||null;
+ return{income:{results:income},balance:{results:balance},cash:{results:cash}};
+}
+
 async function fetchSecFundamentals(symbol,marketCap=null){
  const ticker=String(symbol||"").replace(/\..*$/,"").toUpperCase();
  const map=await getSecTickerMap(),cik=map.get(ticker);
@@ -1024,17 +1187,82 @@ async function fetchSecFundamentals(symbol,marketCap=null){
   free_cash_flow:fcf,net_debt:(totalDebt==null&&cash==null)?null:(totalDebt||0)-(cash||0),
   total_revenue_ttm:revenue,net_income_ttm:netIncome,ebitda_ttm:ebitda
  };
- return{ok:Object.values(metrics).some(v=>v!=null),symbol:ticker,cik,company:f.entityName,metrics,source:"SEC Company Facts"};
+ const statements=buildSecStatements(f);
+ return{ok:Object.values(metrics).some(v=>v!=null),symbol:ticker,cik,company:f.entityName,metrics,statements,source:"SEC Company Facts"};
 }
 function secToResearch(sec){
  return{metrics:{results:[sec?.metrics||{}]},info:{results:[{symbol:sec?.symbol,name:sec?.company,company_name:sec?.company,country:"United States"}]}};
 }
+
+const KAP_COMPANIES_URL="https://www.kap.org.tr/tr/bist-sirketler";
+const KAP_DISCLOSURE_API="https://www.kap.org.tr/tr/api/disclosure/members/byCriteria";
+const KAP_FINANCIAL_SUBJECT="4028328c594bfdca01594c0af9aa0057";
+let kapCompanyCache={at:0,map:new Map()};
+async function getKapCompanyMap(){
+ if(kapCompanyCache.map.size&&Date.now()-kapCompanyCache.at<24*60*60*1000)return kapCompanyCache.map;
+ const html=await fetchPublicText(KAP_COMPANIES_URL,30000),decoded=decodeBasicHtml(html).replace(/\\\"/g,'"');
+ const map=new Map(),pattern=/"mkkMemberOid":"([^"]+)","kapMemberTitle":"([^"]+)","relatedMemberTitle":"([^"]*)","stockCode":"([^"]+)","cityName":"([^"]*)"/g;
+ for(const m of decoded.matchAll(pattern))for(const ticker of m[4].split(",").map(x=>x.trim()).filter(Boolean))map.set(ticker,{company_id:m[1],name:m[2],auditor:m[3],ticker,city:m[5],summary_page:`https://www.kap.org.tr/tr/sirket/${ticker}`});
+ if(!map.size)throw new Error("KAP şirket listesi ayrıştırılamadı");kapCompanyCache={at:Date.now(),map};return map;
+}
+async function kapPost(payload){
+ const response=await fetch(KAP_DISCLOSURE_API,{method:"POST",headers:{"User-Agent":"Mozilla/5.0","Accept":"application/json","Content-Type":"application/json","Origin":"https://www.kap.org.tr","Referer":"https://www.kap.org.tr/tr/bildirim-sorgu"},body:JSON.stringify(payload),signal:AbortSignal.timeout(30000)});
+ if(!response.ok)throw new Error(`KAP HTTP ${response.status}`);return response.json();
+}
+function isoDateDaysAgo(days){const d=new Date(Date.now()-days*86400000);return d.toISOString().slice(0,10)}
+async function fetchKapDisclosures(symbol,{days=730,financialOnly=false}={}){
+ const plain=String(symbol||"").replace(/\.IS$/i,"").toUpperCase(),company=(await getKapCompanyMap()).get(plain);if(!company)return{company:null,items:[]};
+ const base={fromDate:isoDateDaysAgo(days),toDate:new Date().toISOString().slice(0,10),subjectList:financialOnly?[KAP_FINANCIAL_SUBJECT]:[],mkkMemberOidList:[company.company_id],inactiveMkkMemberOidList:[],bdkMemberOidList:[],fromSrc:false,disclosureIndexList:[]};
+ const variants=financialOnly?[{...base,disclosureClass:"FR"}]:[base,{...base,disclosureClass:"ODA"},{...base,disclosureClass:"DG"},{...base,disclosureClass:"FR"}];
+ const combined=[];let lastError=null;
+ for(const payload of variants){try{const result=await kapPost(payload);if(Array.isArray(result))combined.push(...result)}catch(error){lastError=error}}
+ const seen=new Set(),items=combined.filter(item=>{const key=String(item.disclosureIndex||item.id||`${item.title}|${item.publishDate}`);if(seen.has(key))return false;seen.add(key);return true}).sort((a,b)=>String(b.publishDate||b.date||"").localeCompare(String(a.publishDate||a.date||"")));
+ if(!items.length&&lastError&&financialOnly)throw lastError;
+ return{company,items};
+}
+function classifyKapStatement(role,label){
+ const r=String(role||"").toLocaleUpperCase("tr-TR"),l=String(label||"").toLocaleUpperCase("tr-TR");
+ if(/CASH|NAKİT AKIŞ|NAKIT AKIS/.test(r+l))return"cash";
+ if(/BALANCE|FINANCIALPOSITION|BİLANÇO|BILANCO|VARLIKLAR|YÜKÜMLÜLÜKLER|OZKAYNAK|ÖZKAYNAK/.test(r+l))return"balance";
+ if(/INCOME|PROFITLOSS|GELİR|GELIR|HASILAT|KAR VEYA ZARAR|KÂR VEYA ZARAR/.test(r+l))return"income";
+ return null;
+}
+function parseKapFinancialPage(html,period){
+ const out={income:{period,source:"KAP"},balance:{period,source:"KAP"},cash:{period,source:"KAP"}};
+ for(const row of String(html||"").matchAll(/<tr[^>]*class="([^"]*data-input-row[^"]*)"[^>]*>([\s\S]*?)<\/tr>/gi)){
+  const role=row[1],body=row[2];
+  const labelMatch=body.match(/class="[^"]*multi-language-content[^\"]*content-tr[^"]*"[^>]*>([\s\S]*?)<\//i)||body.match(/<td[^>]*>([\s\S]*?)<\/td>/i);
+  const label=decodeBasicHtml(labelMatch?.[1]||"");if(!label)continue;
+  const vals=[...body.matchAll(/class="[^"]*taxonomy-context-value[^"]*"[^>]*>([\s\S]*?)<\/td>/gi)].map(x=>decodeBasicHtml(x[1])).filter(Boolean);
+  const value=trNumber(vals[0]);if(value==null)continue;
+  const type=classifyKapStatement(role,label);if(!type)continue;
+  let key=label.toLocaleLowerCase("tr-TR").replace(/[ç]/g,"c").replace(/[ğ]/g,"g").replace(/[ı]/g,"i").replace(/[ö]/g,"o").replace(/[ş]/g,"s").replace(/[ü]/g,"u").replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
+  if(key&&out[type][key]===undefined)out[type][key]=value;
+ }
+ return out;
+}
+async function fetchKapFinancialStatements(symbol){
+ const result=await fetchKapDisclosures(symbol,{days:1900,financialOnly:true}),reports=result.items.slice(0,5),income=[],balance=[],cash=[];
+ for(const item of reports){
+  const index=item.disclosureIndex;if(!index)continue;
+  try{
+   const page=await fetchPublicText(`https://www.kap.org.tr/tr/Bildirim/${index}`,30000),period=`${item.year||""} ${item.ruleType||item.ruleTypeTerm||item.period||""}`.trim();
+   const parsed=parseKapFinancialPage(page,period);if(Object.keys(parsed.income).length>2)income.push(parsed.income);if(Object.keys(parsed.balance).length>2)balance.push(parsed.balance);if(Object.keys(parsed.cash).length>2)cash.push(parsed.cash);
+  }catch{}
+ }
+ return{company:result.company,income:{results:income},balance:{results:balance},cash:{results:cash},reportCount:reports.length};
+}
+function kapDisclosuresToNews(result){
+ return(result.items||[]).map(x=>({title:x.title||x.subject||x.disclosureType||"KAP Bildirimi",url:`https://www.kap.org.tr/tr/Bildirim/${x.disclosureIndex}`,source:"KAP",source_key:"kap",published_date:x.publishDate||x.date||"",summary:x.summary||x.ruleType||"",disclosureIndex:x.disclosureIndex}));
+}
+
 function yahooDetailsToResearch(details){
  if(!details||typeof details!=="object")return{};
  return{
   info:{results:[{
    symbol:details.symbol,name:details.name,company_name:details.name,
-   exchange:details.exchange,sector:details.sector,industry:details.industry,
+   exchange:details.exchange,sector:details.sector,industry:details.industry,country:details.country,
+   website:details.website,long_business_summary:details.longBusinessSummary,full_time_employees:details.fullTimeEmployees,quote_type:details.quoteType,
    currency:details.currency
   }]},
   quote:{results:[{
@@ -1057,105 +1285,69 @@ function yahooDetailsToResearch(details){
 }
 
 app.get("/api/openbb/research",async(req,res)=>{
- const requested=String(req.query.symbol||"").trim().toUpperCase();
- if(!requested)return res.status(400).json({error:"Sembol gereklidir"});
- const isBist=requested.endsWith(".IS")||req.query.market==="BIST";
- const symbol=isBist?yahooSymbolFor(requested):requested;
- const preferred=String(req.query.provider||process.env.OPENBB_PROVIDER||"fmp").trim();
- const providers=isBist?["yfinance","fmp"]:[preferred,"fmp","yfinance"].filter((v,i,a)=>v&&a.indexOf(v)===i);
- const force=req.query.force==="1";
- const cacheKey=`research|${symbol}|${providers.join(",")}`,cached=openbbResearchCache.get(cacheKey);
- if(!force&&cached&&Date.now()-cached.at<10*60*1000)return res.json(cached.data);
-
- const empty={results:[]};
- let info=empty,quote=empty,metrics=empty,ratios=empty,income=empty,balance=empty,cash=empty,dividends=empty,priceTarget=empty,estimates=empty,news=empty;
+ const requested=String(req.query.symbol||"").trim().toUpperCase();if(!requested)return res.status(400).json({error:"Sembol gereklidir"});
+ const isBist=requested.endsWith(".IS")||req.query.market==="BIST",symbol=isBist?yahooSymbolFor(requested):requested,force=req.query.force==="1";
+ const cacheKey=`research-v73|${symbol}`,cached=openbbResearchCache.get(cacheKey);if(!force&&cached&&Date.now()-cached.at<10*60*1000)return res.json(cached.data);
+ const empty={results:[]};let info=empty,quote=empty,metrics=empty,ratios=empty,income=empty,balance=empty,cash=empty,incomeQuarter=empty,balanceQuarter=empty,cashQuarter=empty,dividends=empty,priceTarget=empty,estimates=empty,news=empty;
+ let openbbCount=0;
  if(OPENBB_BASE_URL){
-  const variants=(extra={})=>providers.map(provider=>({symbol,provider,...extra}));
-  const periodVariants=(extra={})=>providers.map(provider=>({symbol,provider,period:"annual",limit:5,...extra}));
+  const providers=isBist?["yfinance","fmp"]:[String(req.query.provider||process.env.OPENBB_PROVIDER||"fmp"),"fmp","yfinance"].filter((v,i,a)=>v&&a.indexOf(v)===i);
+  const variants=(extra={})=>providers.map(provider=>({symbol,provider,...extra})),periodVariants=(extra={})=>providers.map(provider=>({symbol,provider,period:"annual",limit:5,...extra}));
   [info,quote,metrics,ratios,income,balance,cash,dividends,priceTarget,estimates,news]=await Promise.all([
-   fetchOpenBBAny(["/api/v1/equity/profile","/api/v1/equity/info"],variants()),
-   fetchOpenBBAny(["/api/v1/equity/price/quote","/api/v1/equity/quote"],variants()),
-   fetchOpenBBAny(["/api/v1/equity/fundamental/metrics"],periodVariants()),
-   fetchOpenBBAny(["/api/v1/equity/fundamental/ratios"],periodVariants()),
-   fetchOpenBBAny(["/api/v1/equity/fundamental/income"],periodVariants()),
-   fetchOpenBBAny(["/api/v1/equity/fundamental/balance"],periodVariants()),
-   fetchOpenBBAny(["/api/v1/equity/fundamental/cash"],periodVariants()),
-   fetchOpenBBAny(["/api/v1/equity/fundamental/dividends"],variants({limit:20})),
-   fetchOpenBBAny(["/api/v1/equity/estimates/price_target_consensus","/api/v1/equity/price_target/consensus"],variants()),
-   fetchOpenBBAny(["/api/v1/equity/estimates/analyst","/api/v1/equity/estimates/historical"],variants({limit:12})),
-   fetchOpenBBAny(["/api/v1/news/company","/api/v1/news/world"],variants({limit:30}))
-  ]);
+   fetchOpenBBAny(["/api/v1/equity/profile","/api/v1/equity/info"],variants()),fetchOpenBBAny(["/api/v1/equity/price/quote","/api/v1/equity/quote"],variants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/metrics"],periodVariants()),fetchOpenBBAny(["/api/v1/equity/fundamental/ratios"],periodVariants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/income"],periodVariants()),fetchOpenBBAny(["/api/v1/equity/fundamental/balance"],periodVariants()),fetchOpenBBAny(["/api/v1/equity/fundamental/cash"],periodVariants()),
+   fetchOpenBBAny(["/api/v1/equity/fundamental/dividends"],variants({limit:20})),fetchOpenBBAny(["/api/v1/equity/estimates/price_target_consensus","/api/v1/equity/price_target/consensus"],variants()),
+   fetchOpenBBAny(["/api/v1/equity/estimates/analyst","/api/v1/equity/estimates/historical"],variants({limit:12})),fetchOpenBBAny(["/api/v1/news/company","/api/v1/news/world"],variants({limit:30}))
+  ]);openbbCount=[info,quote,metrics,ratios,income,balance,cash,news].filter(hasOpenBBData).length;
  }
-
- let yahooShape={},yahooPageShape={},tvShape={},tvFundamentals={},secShape={},secFundamentals={},yahooOk=false,robustYahooDetails=null;
- try{yahooShape=yahooFallbackShape(await yahooQuoteSummary(symbol),symbol);yahooOk=true}catch{}
- try{
-  robustYahooDetails=await fetchYahooDetails(symbol);
-  const robustYahoo=yahooDetailsToResearch(robustYahooDetails);
-  yahooShape={
-   ...yahooShape,
-   info:mergeResearchContainer(yahooShape.info,robustYahoo.info),
-   quote:mergeResearchContainer(yahooShape.quote,robustYahoo.quote),
-   metrics:mergeResearchContainer(yahooShape.metrics,robustYahoo.metrics)
-  };
-  yahooOk=true;
- }catch(error){console.warn("Yahoo detay yedeklemesi alınamadı:",error?.message)}
- try{
-  yahooPageShape=yahooPageToResearch(await fetchYahooStatisticsPage(symbol),symbol);
-  if(Object.values(firstContainerRecord(yahooPageShape.metrics)).some(v=>v!=null))yahooOk=true;
- }catch(error){console.warn("Yahoo istatistik sayfası alınamadı:",error?.message)}
- try{
-  tvFundamentals=await fetchTradingViewFundamentals(symbol,robustYahooDetails?.exchange||firstContainerRecord(yahooShape.info).exchange||"",force);
-  tvShape=tradingViewToResearch(tvFundamentals);
- }catch(error){console.warn("TradingView temel verileri alınamadı:",error?.message)}
- if(!isBist){
-  try{
-   const marketCap=firstContainerRecord(tvShape.metrics).market_cap
-    ??firstContainerRecord(yahooShape.metrics).market_cap
-    ??robustYahooDetails?.marketCap;
-   secFundamentals=await fetchSecFundamentals(symbol,marketCap);
-   secShape=secToResearch(secFundamentals);
-  }catch(error){secFundamentals={ok:false,error:error.message};console.warn("SEC temel verileri alınamadı:",error?.message)}
- }
-
- const mergedInfo=mergeResearchContainer(info,tvShape.info,secShape.info,yahooShape.info);
- const mergedQuote=mergeResearchContainer(quote,tvShape.quote,yahooShape.quote);
- const mergedMetrics=mergeResearchContainer(metrics,tvShape.metrics,secShape.metrics,yahooShape.metrics,yahooPageShape.metrics);
- const openbbCount=[info,quote,metrics,ratios,income,balance,cash,news].filter(hasOpenBBData).length;
- const data={
-  configured:true,openbb_configured:Boolean(OPENBB_BASE_URL),symbol,provider:providers[0],
-  source_note:isBist
-   ?"BIST temel oranlarında TradingView Screener birinci doğrudan kaynak, Yahoo Finance ve OpenBB yedek kaynak olarak kullanılıyor."
-   :"Yurt dışı hisselerinde TradingView global screener, SEC Company Facts, Yahoo Finance ve mevcut OpenBB sağlayıcıları birlikte kullanılıyor.",
-  info:mergedInfo,quote:mergedQuote,metrics:mergedMetrics,ratios,
-  income,balance,cash,dividends,price_target:priceTarget,estimates,news,
-  tradingview_fundamentals:tvFundamentals,
-  sec_fundamentals:secFundamentals,
-  diagnostics:{
-   tradingview_ok:Boolean(tvFundamentals?.ok),
-   sec_ok:Boolean(secFundamentals?.ok),
-   yahoo_ok:yahooOk,
-   openbb_sections_with_data:openbbCount,
-   providers_tried:providers,
-   tradingview_errors:tvFundamentals?.errors||[]
-  },
-  fetchedAt:new Date().toISOString()
- };
- openbbResearchCache.set(cacheKey,{at:Date.now(),data});
- res.set("Cache-Control","public, max-age=300, s-maxage=300");
- res.json(data);
+ let bundle={},yahooShape={},yahooStatements={},yahooAnalysts={},etfProfile={is_etf:false},robustYahooDetails=null,yahooOk=false;
+ try{bundle=await fetchYahooResearchBundle(symbol);yahooShape=yahooFallbackShape(bundle,symbol);yahooStatements=yahooStatementShape(bundle);yahooAnalysts=yahooAnalystShape(bundle);etfProfile=yahooEtfShape(bundle,symbol);yahooOk=true}catch(error){console.warn("Yahoo bundle:",error?.message)}
+ try{robustYahooDetails=await fetchYahooDetails(symbol);const robust=yahooDetailsToResearch(robustYahooDetails);yahooShape={...yahooShape,info:mergeResearchContainer(yahooShape.info,robust.info),quote:mergeResearchContainer(yahooShape.quote,robust.quote),metrics:mergeResearchContainer(yahooShape.metrics,robust.metrics)};yahooOk=true}catch(error){console.warn("Yahoo details:",error?.message)}
+ let yahooPageShape={};try{yahooPageShape=yahooPageToResearch(await fetchYahooStatisticsPage(symbol),symbol)}catch{}
+ let tvFundamentals={},tvShape={};try{tvFundamentals=await fetchTradingViewFundamentals(symbol,robustYahooDetails?.exchange||firstContainerRecord(yahooShape.info).exchange||"",force);tvShape=tradingViewToResearch(tvFundamentals)}catch(error){console.warn("TradingView:",error?.message)}
+ let secFundamentals={},secShape={},secStatements={income:empty,balance:empty,cash:empty};
+ if(!isBist&&!etfProfile.is_fund){try{const marketCap=firstContainerRecord(tvShape.metrics).market_cap??firstContainerRecord(yahooShape.metrics).market_cap??robustYahooDetails?.marketCap;secFundamentals=await fetchSecFundamentals(symbol,marketCap);secShape=secToResearch(secFundamentals);secStatements=secFundamentals.statements||secStatements}catch(error){secFundamentals={ok:false,error:error.message}}}
+ let kapResult={company:null,items:[]},kapStatements={income:empty,balance:empty,cash:empty,reportCount:0};
+ if(isBist){try{kapResult=await fetchKapDisclosures(symbol,{days:730});kapStatements=await fetchKapFinancialStatements(symbol)}catch(error){console.warn("KAP:",error?.message)}}
+ const kapInfo=kapResult.company?{results:[{symbol:requested.replace(/\.IS$/,""),name:kapResult.company.name,company_name:kapResult.company.name,country:"Türkiye",city:kapResult.company.city,auditor:kapResult.company.auditor,website:kapResult.company.summary_page,long_business_summary:`${kapResult.company.name}, Borsa İstanbul'da ${requested.replace(/\.IS$/i,"")} koduyla işlem gören ve kamuyu aydınlatma yükümlülüklerini KAP üzerinden yerine getiren bir şirkettir.`}]}:empty;
+ const mergedInfo=mergeResearchContainer(info,yahooShape.info,kapInfo,secShape.info,tvShape.info),mergedQuote=mergeResearchContainer(quote,tvShape.quote,yahooShape.quote),mergedMetrics=mergeResearchContainer(metrics,tvShape.metrics,secShape.metrics,yahooShape.metrics,yahooPageShape.metrics);
+ const chooseRows=(...containers)=>containers.find(x=>recordList(x).length)||empty;
+ income=chooseRows(kapStatements.income,secStatements.income,yahooStatements.income,income);balance=chooseRows(kapStatements.balance,secStatements.balance,yahooStatements.balance,balance);cash=chooseRows(kapStatements.cash,secStatements.cash,yahooStatements.cash,cash);
+ incomeQuarter=yahooStatements.income_quarterly||empty;balanceQuarter=yahooStatements.balance_quarterly||empty;cashQuarter=yahooStatements.cash_quarterly||empty;
+ priceTarget=mergeResearchContainer(priceTarget,yahooAnalysts.price_target);const recommendationTrend=yahooAnalysts.recommendation_trend||empty,earningsEstimates=recordList(yahooAnalysts.earnings_estimates).length?yahooAnalysts.earnings_estimates:estimates;
+ const companyName=firstContainerRecord(mergedInfo).name||firstContainerRecord(mergedInfo).company_name||symbol,plain=symbol.replace(/\.IS$/i,"");
+ let yahooNews=[],googleNews=[];try{yahooNews=await fetchYahooNews(companyName,plain)}catch{}try{googleNews=await fetchGoogleNews(`${companyName} ${plain}`,isBist)}catch{}
+ const openbbNews=recordList(news).map(x=>({...x,source_key:"openbb",source:x.source||x.publisher||"OpenBB"})),kapNews=kapDisclosuresToNews(kapResult);
+ const combinedNews=dedupeNews([...kapNews,...yahooNews,...googleNews,...openbbNews]).slice(0,80);
+ const statementSources=[
+  {label:"KAP Finansal Rapor",ok:recordList(kapStatements.income).length+recordList(kapStatements.balance).length+recordList(kapStatements.cash).length>0,note:isBist?`${kapStatements.reportCount||0} bildirim`:"BIST dışı"},
+  {label:"SEC EDGAR XBRL",ok:Boolean(secFundamentals?.statements&&recordList(secStatements.income).length),note:!isBist&&!etfProfile.is_fund?"Resmî":"Uygulanamaz"},
+  {label:"Yahoo Finance Tabloları",ok:recordList(yahooStatements.income).length+recordList(yahooStatements.balance).length+recordList(yahooStatements.cash).length>0,note:"Yıllık / çeyreklik"},
+  {label:"OpenBB",ok:openbbCount>0,note:OPENBB_BASE_URL?"Yedek":"Bağlı değil"}
+ ];
+ const data={configured:true,openbb_configured:Boolean(OPENBB_BASE_URL),symbol,
+  source_note:"KAP/SEC resmî bildirimleri, Yahoo Finance, TradingView, Google News ve mevcut OpenBB verileri tek ekranda birleştirildi.",
+  info:mergedInfo,quote:mergedQuote,metrics:mergedMetrics,ratios,income,balance,cash,income_quarterly:incomeQuarter,balance_quarterly:balanceQuarter,cash_quarterly:cashQuarter,dividends,
+  price_target:priceTarget,recommendation_trend:recommendationTrend,earnings_estimates:earningsEstimates,analyst_summary:yahooAnalysts.analyst_summary||{},news:{results:combinedNews},etf_profile:etfProfile,
+  tradingview_fundamentals:tvFundamentals,sec_fundamentals:secFundamentals,statement_sources:statementSources,
+  statement_note:isBist?"BIST şirketlerinde KAP resmî finansal raporu önceliklidir; KAP ayrıştırılamazsa Yahoo/OpenBB yedeği kullanılır.":"ABD şirketlerinde SEC EDGAR XBRL önceliklidir; diğer piyasalarda Yahoo/OpenBB yedeği kullanılır.",
+  analyst_sources:[{label:"Yahoo Finance Konsensüsü",ok:Boolean(firstContainerRecord(yahooAnalysts.price_target).analyst_count||firstContainerRecord(yahooAnalysts.price_target).target_consensus||recordList(yahooAnalysts.recommendation_trend).length)},{label:"OpenBB Tahminleri",ok:recordList(estimates).length>0}],
+  diagnostics:{tradingview_ok:Boolean(tvFundamentals?.ok),sec_ok:Boolean(secFundamentals?.ok),yahoo_ok:yahooOk,kap_ok:Boolean(kapResult.company),openbb_sections_with_data:openbbCount},fetchedAt:new Date().toISOString()};
+ openbbResearchCache.set(cacheKey,{at:Date.now(),data});res.set("Cache-Control","public, max-age=300, s-maxage=300");res.json(data);
 });
 
 app.get("/api/fundamentals",async(req,res)=>{
  const requested=String(req.query.symbol||"").trim().toUpperCase();
  if(!requested)return res.status(400).json({error:"Sembol gereklidir"});
  const symbol=yahooSymbolFor(requested);
- let tradingview={},yahoo={},yahooPage={},sec={};
+ let tradingview={},yahoo={},yahooPage={},sec={},bundle={},etf={},statements={};
  try{yahoo=await fetchYahooDetails(symbol)}catch(error){yahoo={error:error.message}}
+ try{bundle=await fetchYahooResearchBundle(symbol);etf=yahooEtfShape(bundle,symbol);statements=yahooStatementShape(bundle)}catch(error){bundle={error:error.message}}
  try{tradingview=await fetchTradingViewFundamentals(symbol,yahoo.exchange||"",req.query.refresh==="1")}catch(error){tradingview={ok:false,error:error.message}}
  try{yahooPage=await fetchYahooStatisticsPage(symbol)}catch(error){yahooPage={error:error.message}}
  try{sec=await fetchSecFundamentals(symbol,tradingview.market_cap_basic??yahoo.marketCap)}catch(error){sec={ok:false,error:error.message}}
- res.json({symbol,tradingview,sec,yahoo,yahooPage,fetchedAt:new Date().toISOString()});
+ res.json({symbol,tradingview,sec,yahoo,yahooPage,etf,statements,fetchedAt:new Date().toISOString()});
 });
 
 
