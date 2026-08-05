@@ -1,16 +1,19 @@
 {
-  "version": "7.3",
+  "version": "7.4",
   "validated": true,
   "features": [
-    "KAP financial statements",
-    "SEC five-year statements",
-    "Yahoo annual and quarterly statements",
-    "analyst consensus",
-    "multi-source news",
-    "company descriptions",
-    "ETF holdings and metrics",
-    "chat deletion"
+    "username/password registration",
+    "scrypt password hashing",
+    "httpOnly sessions",
+    "PostgreSQL cloud state",
+    "remember username",
+    "admin account menu",
+    "read-only user portfolio viewer"
   ],
-  "app_sha256": "4614f3d71e2156b633c7d199adaa9b85587deb5b0e43f3a67b762db190206e68",
-  "server_sha256": "577bf3b6eeada703b1eac5f427bd5d582b47f24dca00e2cbf4305cc57e161f01"
+  "requires": [
+    "DATABASE_URL",
+    "ADMIN_PASSWORD"
+  ],
+  "app_sha256": "f8d2b114da2b9f939f0456b6ae365dead87cf375607244e2c42710948a530df4",
+  "server_sha256": "b7baa64d68aae979ea75a70bb27605bf0278661570ea32d4c3e8d1e801f6733f"
 }
