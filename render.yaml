@@ -12,6 +12,18 @@ services:
         sync: false
       - key: OPENBB_PROVIDER
         value: fmp
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_USERNAME
+        value: uucnk
+      - key: ADMIN_FIRST_NAME
+        value: Umut
+      - key: ADMIN_LAST_NAME
+        value: Canik
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ALLOW_REGISTRATION
+        value: "true"
 
   - type: web
     name: portfolio-openbb2
