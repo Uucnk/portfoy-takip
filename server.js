@@ -1,6 +1,9 @@
 import express from "express";
 import path from "node:path";
 import fs from "node:fs";
+import crypto from "node:crypto";
+import { promisify } from "node:util";
+import { Pool } from "pg";
 import { fileURLToPath } from "node:url";
 
 const app = express();
@@ -8,6 +11,174 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, "public");
 const PORT = process.env.PORT || 3000;
+
+const DATABASE_URL = process.env.DATABASE_URL || "";
+const SESSION_COOKIE = "portfolio_session";
+const SESSION_HOURS = 12;
+const REMEMBER_DAYS = 30;
+const scryptAsync = promisify(crypto.scrypt);
+const dbPool = DATABASE_URL
+  ? new Pool({
+      connectionString: DATABASE_URL,
+      ssl: /localhost|127\.0\.0\.1/.test(DATABASE_URL) ? false : { rejectUnauthorized: false },
+      max: 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 15000
+    })
+  : null;
+let databaseReady = false;
+let databaseError = DATABASE_URL ? null : "DATABASE_URL tanımlı değil";
+const loginAttempts = new Map();
+
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
+app.use((req,res,next)=>{
+  res.setHeader("X-Content-Type-Options","nosniff");
+  res.setHeader("Referrer-Policy","strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy","camera=(), microphone=(), geolocation=()");
+  res.setHeader("X-Frame-Options","SAMEORIGIN");
+  next();
+});
+app.use(express.json({ limit: "3mb" }));
+
+function normalizeUsername(value="") {
+  return String(value).trim().toLocaleLowerCase("tr-TR");
+}
+function publicUser(row) {
+  return {
+    id: String(row.id), username: row.username, firstName: row.first_name,
+    lastName: row.last_name, role: row.role, createdAt: row.created_at
+  };
+}
+function parseCookies(header="") {
+  return Object.fromEntries(String(header).split(";").map(x=>x.trim()).filter(Boolean).map(part=>{
+    const i=part.indexOf("=");return i<0?[part,""]:[part.slice(0,i),decodeURIComponent(part.slice(i+1))];
+  }));
+}
+function tokenHash(token) { return crypto.createHash("sha256").update(token).digest("hex"); }
+async function hashPassword(password) {
+  const salt=crypto.randomBytes(16);const derived=await scryptAsync(password,salt,64,{N:16384,r:8,p:1});
+  return `scrypt$16384$8$1$${salt.toString("base64")}$${Buffer.from(derived).toString("base64")}`;
+}
+async function verifyPassword(password,stored) {
+  try {
+    const [kind,n,r,p,salt64,hash64]=String(stored).split("$");if(kind!=="scrypt")return false;
+    const expected=Buffer.from(hash64,"base64");const actual=Buffer.from(await scryptAsync(password,Buffer.from(salt64,"base64"),expected.length,{N:Number(n),r:Number(r),p:Number(p)}));
+    return expected.length===actual.length&&crypto.timingSafeEqual(expected,actual);
+  } catch { return false; }
+}
+function validateRegistration(body) {
+  const username=normalizeUsername(body.username),firstName=String(body.firstName||"").trim(),lastName=String(body.lastName||"").trim(),password=String(body.password||""),passwordConfirm=String(body.passwordConfirm||"");
+  if(!/^[a-z0-9._-]{3,24}$/.test(username))throw new Error("Kullanıcı adı 3–24 karakter olmalı; yalnızca harf, rakam, nokta, alt çizgi ve tire kullanılabilir.");
+  if(firstName.length<2||firstName.length>50||lastName.length<2||lastName.length>50)throw new Error("İsim ve soyisim 2–50 karakter olmalıdır.");
+  if(password.length<8||password.length>128)throw new Error("Şifre en az 8 karakter olmalıdır.");
+  if(password!==passwordConfirm)throw new Error("Şifreler birbiriyle aynı değil.");
+  return {username,firstName,lastName,password};
+}
+async function initializeDatabase() {
+  if(!dbPool)return;
+  try {
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS app_users (
+        id BIGSERIAL PRIMARY KEY,
+        username VARCHAR(24) NOT NULL UNIQUE,
+        first_name VARCHAR(50) NOT NULL,
+        last_name VARCHAR(50) NOT NULL,
+        password_hash TEXT NOT NULL,
+        role VARCHAR(16) NOT NULL DEFAULT 'user' CHECK (role IN ('user','admin')),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS app_sessions (
+        id BIGSERIAL PRIMARY KEY,
+        user_id BIGINT NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+        token_hash CHAR(64) NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        user_agent TEXT
+      );
+      CREATE INDEX IF NOT EXISTS app_sessions_user_idx ON app_sessions(user_id);
+      CREATE INDEX IF NOT EXISTS app_sessions_expires_idx ON app_sessions(expires_at);
+      CREATE TABLE IF NOT EXISTS app_user_state (
+        user_id BIGINT PRIMARY KEY REFERENCES app_users(id) ON DELETE CASCADE,
+        state JSONB NOT NULL DEFAULT '{}'::jsonb,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await dbPool.query("DELETE FROM app_sessions WHERE expires_at < NOW()");
+    const adminPassword=process.env.ADMIN_PASSWORD;
+    if(adminPassword){
+      const username=normalizeUsername(process.env.ADMIN_USERNAME||"uucnk");
+      const existing=await dbPool.query("SELECT id,role FROM app_users WHERE username=$1",[username]);
+      if(!existing.rowCount){
+        const passwordHash=await hashPassword(adminPassword);
+        await dbPool.query("INSERT INTO app_users(username,first_name,last_name,password_hash,role) VALUES($1,$2,$3,$4,'admin')",[username,process.env.ADMIN_FIRST_NAME||"Umut",process.env.ADMIN_LAST_NAME||"Canik",passwordHash]);
+        console.log(`Admin account created: ${username}`);
+      }else if(existing.rows[0].role!=="admin"){
+        await dbPool.query("UPDATE app_users SET role='admin',updated_at=NOW() WHERE id=$1",[existing.rows[0].id]);
+      }
+    }
+    databaseReady=true;databaseError=null;
+  } catch(error) {
+    databaseReady=false;databaseError=error.message;console.error("Database initialization error:",error);
+  }
+}
+async function createSession(res,req,userId,remember=false) {
+  const token=crypto.randomBytes(32).toString("base64url");
+  const maxAge=remember?REMEMBER_DAYS*86400:SESSION_HOURS*3600;
+  await dbPool.query("INSERT INTO app_sessions(user_id,token_hash,expires_at,user_agent) VALUES($1,$2,NOW()+($3||' seconds')::interval,$4)",[userId,tokenHash(token),String(maxAge),String(req.headers["user-agent"]||"").slice(0,500)]);
+  const secure=req.secure||req.headers["x-forwarded-proto"]==="https";
+  res.setHeader("Set-Cookie",`${SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure?"; Secure":""}`);
+}
+function clearSessionCookie(res,req) {
+  const secure=req.secure||req.headers["x-forwarded-proto"]==="https";
+  res.setHeader("Set-Cookie",`${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure?"; Secure":""}`);
+}
+async function resolveAuth(req) {
+  if(!dbPool||!databaseReady)return null;
+  const token=parseCookies(req.headers.cookie||"")[SESSION_COOKIE];if(!token)return null;
+  const result=await dbPool.query(`SELECT u.*,s.id AS session_id FROM app_sessions s JOIN app_users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>NOW()`,[tokenHash(token)]);
+  if(!result.rowCount)return null;
+  req.sessionToken=token;req.sessionId=result.rows[0].session_id;req.user=result.rows[0];
+  dbPool.query("UPDATE app_sessions SET last_seen_at=NOW() WHERE id=$1",[req.sessionId]).catch(()=>{});
+  return req.user;
+}
+async function authRequired(req,res,next) {
+  try{const user=await resolveAuth(req);if(!user)return res.status(401).json({error:"Oturum açmanız gerekiyor."});next()}catch(error){res.status(500).json({error:"Oturum doğrulanamadı."})}
+}
+async function adminRequired(req,res,next) {
+  await authRequired(req,res,()=>{if(req.user.role!=="admin")return res.status(403).json({error:"Bu alan yalnızca ana hesaba açıktır."});next()});
+}
+function loginRateKey(req,username){return`${req.ip}|${username}`}
+function checkLoginRate(req,username){const key=loginRateKey(req,username),now=Date.now(),row=loginAttempts.get(key);if(!row||now-row.first>15*60*1000){loginAttempts.set(key,{count:0,first:now});return}if(row.count>=8)throw new Error("Çok fazla başarısız giriş denemesi. 15 dakika bekleyin.")}
+function recordLoginFailure(req,username){const key=loginRateKey(req,username),row=loginAttempts.get(key)||{count:0,first:Date.now()};row.count++;loginAttempts.set(key,row)}
+
+app.get("/api/auth/status",(_req,res)=>res.json({databaseConfigured:Boolean(DATABASE_URL),ready:databaseReady,error:databaseReady?null:databaseError,registrationEnabled:process.env.ALLOW_REGISTRATION!=="false"}));
+app.get("/api/auth/me",authRequired,(req,res)=>{res.set("Cache-Control","no-store");res.json({user:publicUser(req.user)})});
+app.post("/api/auth/register",async(req,res)=>{
+  if(!dbPool||!databaseReady)return res.status(503).json({error:"Veritabanı bağlantısı hazır değil."});
+  if(process.env.ALLOW_REGISTRATION==="false")return res.status(403).json({error:"Yeni kayıt şu anda kapalı."});
+  try{
+    const data=validateRegistration(req.body||{}),passwordHash=await hashPassword(data.password);
+    const result=await dbPool.query("INSERT INTO app_users(username,first_name,last_name,password_hash,role) VALUES($1,$2,$3,$4,'user') RETURNING *",[data.username,data.firstName,data.lastName,passwordHash]);
+    await createSession(res,req,result.rows[0].id,true);res.status(201).json({user:publicUser(result.rows[0])});
+  }catch(error){if(error.code==="23505")return res.status(409).json({error:"Bu kullanıcı adı daha önce alınmış."});res.status(400).json({error:error.message})}
+});
+app.post("/api/auth/login",async(req,res)=>{
+  if(!dbPool||!databaseReady)return res.status(503).json({error:"Veritabanı bağlantısı hazır değil."});
+  const username=normalizeUsername(req.body?.username),password=String(req.body?.password||"");
+  try{checkLoginRate(req,username)}catch(error){return res.status(429).json({error:error.message})}
+  const result=await dbPool.query("SELECT * FROM app_users WHERE username=$1",[username]);
+  if(!result.rowCount||!(await verifyPassword(password,result.rows[0].password_hash))){recordLoginFailure(req,username);return res.status(401).json({error:"Kullanıcı adı veya şifre hatalı."})}
+  loginAttempts.delete(loginRateKey(req,username));await createSession(res,req,result.rows[0].id,Boolean(req.body?.remember));res.json({user:publicUser(result.rows[0])});
+});
+app.post("/api/auth/logout",async(req,res)=>{try{await resolveAuth(req);if(req.sessionId)await dbPool.query("DELETE FROM app_sessions WHERE id=$1",[req.sessionId])}catch{}clearSessionCookie(res,req);res.json({ok:true})});
+app.get("/api/state",authRequired,async(req,res)=>{const result=await dbPool.query("SELECT state,updated_at FROM app_user_state WHERE user_id=$1",[req.user.id]);res.set("Cache-Control","no-store");res.json({hasState:Boolean(result.rowCount),state:result.rows[0]?.state||{},updatedAt:result.rows[0]?.updated_at||null})});
+app.put("/api/state",authRequired,async(req,res)=>{const state=req.body?.state;if(!state||typeof state!=="object"||Array.isArray(state))return res.status(400).json({error:"Geçerli hesap verisi gereklidir."});const size=Buffer.byteLength(JSON.stringify(state));if(size>2500000)return res.status(413).json({error:"Hesap verisi 2,5 MB sınırını aşıyor."});const result=await dbPool.query("INSERT INTO app_user_state(user_id,state,updated_at) VALUES($1,$2::jsonb,NOW()) ON CONFLICT(user_id) DO UPDATE SET state=EXCLUDED.state,updated_at=NOW() RETURNING updated_at",[req.user.id,JSON.stringify(state)]);res.json({ok:true,updatedAt:result.rows[0].updated_at})});
+app.get("/api/admin/users",adminRequired,async(_req,res)=>{const result=await dbPool.query(`SELECT u.id,u.username,u.first_name,u.last_name,u.role,u.created_at,st.updated_at AS state_updated_at,MAX(s.last_seen_at) AS last_seen_at FROM app_users u LEFT JOIN app_user_state st ON st.user_id=u.id LEFT JOIN app_sessions s ON s.user_id=u.id GROUP BY u.id,st.updated_at ORDER BY CASE WHEN u.role='admin' THEN 0 ELSE 1 END,u.first_name,u.last_name`);res.set("Cache-Control","no-store");res.json({users:result.rows.map(row=>({...publicUser(row),stateUpdatedAt:row.state_updated_at,lastSeenAt:row.last_seen_at}))})});
+app.get("/api/admin/users/:id/state",adminRequired,async(req,res)=>{if(!/^\d+$/.test(req.params.id))return res.status(400).json({error:"Geçersiz hesap."});const result=await dbPool.query("SELECT u.*,st.state,st.updated_at AS state_updated_at FROM app_users u LEFT JOIN app_user_state st ON st.user_id=u.id WHERE u.id=$1",[req.params.id]);if(!result.rowCount)return res.status(404).json({error:"Hesap bulunamadı."});res.set("Cache-Control","no-store");res.json({user:publicUser(result.rows[0]),state:result.rows[0].state||{},updatedAt:result.rows[0].state_updated_at||null})});
+
 
 async function fetchJsonFromYahoo(paths, timeoutMs = 12000) {
   const hosts = ["https://query2.finance.yahoo.com", "https://query1.finance.yahoo.com"];
@@ -49,7 +220,6 @@ function stripHtml(value = "") {
 }
 
 
-app.disable("x-powered-by");
 app.use(express.static(publicDir, {
   etag: true,
   maxAge: "1h",
@@ -2022,7 +2192,7 @@ async function freeMarketAssistant(question,context,messages=[]){
  ].join("\n");
 }
 app.get("/api/ai/status",(_req,res)=>res.json({provider:"free-local",model:"Piyasa Asistanı Free",fullyFree:true,requiresKey:false,dataDriven:true}));
-app.post("/api/ai/chat",express.json({limit:"200kb"}),async(req,res)=>{
+app.post("/api/ai/chat",async(req,res)=>{
  const messages=Array.isArray(req.body?.messages)?req.body.messages.slice(-20):[],context=req.body?.context||null;
  const last=messages.filter(x=>x.role==="user").at(-1)?.content;
  if(!last)return res.status(400).json({error:"Soru gereklidir"});
@@ -2038,7 +2208,7 @@ app.post("/api/ai/chat",express.json({limit:"200kb"}),async(req,res)=>{
 });
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "portfolio-tracker" });
+  res.json({ ok: true, service: "portfolio-tracker", databaseConfigured: Boolean(DATABASE_URL), databaseReady });
 });
 
 app.get("/api/quotes", async (req, res) => {
@@ -2109,6 +2279,8 @@ app.get("*", (_req, res) => {
   res.set("Cache-Control", "no-store");
   res.sendFile(uiEntryFile);
 });
+
+await initializeDatabase();
 
 app.listen(PORT, () => {
   let uiStatus = "missing";
