@@ -156,8 +156,8 @@ body{padding-top:44px;padding-bottom:42px}
  padding:9px 13px;font-size:12px;font-weight:700
 }
 .buttonLink:hover{filter:brightness(1.08)}
-#markets.tab,#calendar.tab{display:none}
-#markets.tab.active,#calendar.tab.active{display:block!important}
+#markets.tab,#calendar.tab,#adminAccounts.tab{display:none}
+#markets.tab.active,#calendar.tab.active,#adminAccounts.tab.active{display:block!important}
 #marketContent{min-height:180px}
 .calendarFrame{display:block;min-height:720px}
 
@@ -1133,10 +1133,102 @@ body.terminalHidden .app{right:0!important}
 @media(max-width:1050px){.analystDashboard{grid-template-columns:repeat(2,minmax(0,1fr))}.analystGauge{grid-template-columns:1fr}.etfResearchGrid{grid-template-columns:1fr}}
 @media(max-width:620px){.analystDashboard,.etfMetrics{grid-template-columns:1fr}.etfHolding{grid-template-columns:48px 1fr 54px}.etfSectorRow{grid-template-columns:90px 1fr 45px}}
 
+
+/* v7.4 authentication, cloud state and admin accounts */
+body.authLocked{overflow:hidden}
+body.authLocked .sidebar,body.authLocked .orderTerminal,body.authLocked .mobileDock,
+body.authLocked .fixedTicker,body.authLocked .app,body.authLocked .securityDrawer,
+body.authLocked .researchModal{visibility:hidden!important;pointer-events:none!important}
+.authGate{
+ position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;
+ padding:22px;background:
+ radial-gradient(circle at 15% 15%,rgba(51,113,218,.21),transparent 34%),
+ radial-gradient(circle at 88% 82%,rgba(46,180,139,.14),transparent 28%),#050b12
+}
+.authGate.hidden{display:none}
+.authShell{width:min(980px,100%);display:grid;grid-template-columns:1.04fr .96fr;background:#091522;border:1px solid #29445e;border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.authBrand{padding:38px;background:linear-gradient(145deg,#102743,#081521);border-right:1px solid #29445e;display:flex;flex-direction:column;justify-content:space-between;min-height:580px}
+.authBrandMark{font-size:11px;letter-spacing:.17em;color:#7fb3ff;font-weight:900}
+.authBrand h1{font-size:38px;line-height:1.08;margin:14px 0 12px;color:#f3f7fc}
+.authBrand p{font-size:13px;line-height:1.7;color:#9fb3c8;max-width:470px}
+.authFeatureList{display:grid;gap:9px;margin-top:24px}
+.authFeature{display:flex;gap:9px;align-items:flex-start;font-size:11px;color:#b7c8da}
+.authFeature span:first-child{color:#47d6a1;font-weight:900}
+.authLegal{font-size:9px;color:#6f8499;line-height:1.55}
+.authPanel{padding:34px 38px;display:flex;flex-direction:column;justify-content:center;background:#0a1622}
+.authTabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:22px;padding:5px;background:#07111b;border:1px solid #263c51;border-radius:10px}
+.authTab{background:transparent;border:0;color:#8198ae;padding:10px;border-radius:7px}
+.authTab.active{background:#2869dc;color:#fff}
+.authForm{display:none}.authForm.active{display:block}
+.authForm h2{font-size:24px;margin:0 0 5px}.authFormIntro{font-size:11px;color:#8097ad;margin-bottom:19px}
+.authField{margin-bottom:12px}.authField label{font-size:9px;letter-spacing:.05em;color:#9ab0c6}.authField input{height:43px;font-size:13px}
+.authNameGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.authRemember{display:flex;align-items:center;gap:7px;font-size:10px;color:#9db0c3;margin:5px 0 14px}.authRemember input{width:auto}
+.authSubmit{width:100%;height:44px;font-size:12px}
+.authMessage{min-height:36px;margin-top:12px;padding:9px 10px;border-radius:8px;font-size:10px;line-height:1.45;background:#101f2d;border:1px solid #293f55;color:#98adc1}
+.authMessage.error{background:#29141b;border-color:#633142;color:#ff9cad}.authMessage.success{background:#10291f;border-color:#286b51;color:#83e0b9}
+.authSetupNote{margin-top:13px;font-size:9px;color:#73899f;line-height:1.5}
+.sidebarFooter{position:absolute;left:8px;right:8px;bottom:10px;padding:9px;border:1px solid #24394d;border-radius:9px;background:#0d1b29;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.sidebarUser{min-width:0}.sidebarUser strong{display:block;font-size:10px;color:#edf4fb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sidebarUser span{display:block;font-size:8px;color:#758ca3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebarLogout{padding:6px 8px!important;background:#26151c!important;border:1px solid #56303e!important;color:#e6a0b2!important;font-size:9px!important}
+.sidebar.closed .sidebarFooter{grid-template-columns:1fr;padding:6px}.sidebar.closed .sidebarUser{display:none}.sidebar.closed .sidebarLogout{font-size:0}.sidebar.closed .sidebarLogout:after{content:'↪';font-size:14px}
+.adminAccountsGroup.hidden{display:none}.adminAccountsList{max-height:240px;overflow-y:auto}.adminAccountsList .sideSub{justify-content:space-between;gap:8px}.adminAccountName{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.adminAccountRole{font-size:7px;color:#6f87a0}
+.adminViewerHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;flex-wrap:wrap;margin-bottom:14px}.adminIdentity h2{margin:0 0 5px}.adminIdentityMeta{font-size:10px;color:#8298ad}
+.adminStats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:14px}.adminStat{padding:12px;border:1px solid #294158;background:#0d1b29;border-radius:10px}.adminStat span{display:block;font-size:8px;color:#8198ae;text-transform:uppercase}.adminStat strong{display:block;font-size:18px;margin-top:5px;color:#f3f7fc}
+.adminPortfolioTabs{display:flex;gap:7px;margin-bottom:10px}.adminPortfolioTab.active{background:#2869dc;color:#fff}.adminReadOnlyNotice{font-size:9px;color:#d6c47d;background:#27220d;border:1px solid #55491b;padding:8px 10px;border-radius:8px;margin-bottom:10px}
+.adminPositionTable{overflow:auto;border:1px solid #263d52;border-radius:10px}.adminPositionTable table{min-width:1100px;width:100%}.adminPositionTable th,.adminPositionTable td{font-size:9px;padding:8px 7px}.cloudSaveStatus{font-size:8px;color:#7390aa;margin-top:3px}.cloudSaveStatus.saving{color:#f0c868}.cloudSaveStatus.saved{color:#5bd5a6}.cloudSaveStatus.error{color:#ff8299}
+@media(max-width:760px){.authShell{grid-template-columns:1fr;max-width:520px}.authBrand{display:none}.authPanel{padding:25px 20px;min-height:560px}.authNameGrid{grid-template-columns:1fr}.adminStats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.authGate{padding:10px}.authPanel{padding:20px 14px}.adminStats{grid-template-columns:1fr}}
+
 </style>
-<meta name="portfolio-build" content="v7.3-free-market-assistant">
+<meta name="portfolio-build" content="v7.4-auth-cloud-accounts">
 </head>
-<body>
+<body class="authLocked">
+
+<div id="authGate" class="authGate">
+ <div class="authShell">
+  <section class="authBrand">
+   <div>
+    <div class="authBrandMark">PORTFÖY TAKİP · CLOUD ACCOUNT</div>
+    <h1>Portföyünü her cihazdan yönet.</h1>
+    <p>Kullanıcı hesabınla giriş yap; Portfolio, Model Portföy ve ayarların güvenli biçimde veritabanında saklansın.</p>
+    <div class="authFeatureList">
+     <div class="authFeature"><span>✓</span><span>Telefon, iş bilgisayarı ve kişisel bilgisayarda aynı hesap</span></div>
+     <div class="authFeature"><span>✓</span><span>Şifreler tek yönlü scrypt özetiyle saklanır</span></div>
+     <div class="authFeature"><span>✓</span><span>Ana hesap yalnızca kayıtlı kullanıcı portföylerini görüntüler</span></div>
+    </div>
+   </div>
+   <div class="authLegal">Şifren tarayıcıda veya GitHub dosyalarında tutulmaz. “Kullanıcı adını hatırla” seçeneği yalnızca kullanıcı adını bu cihazda saklar.</div>
+  </section>
+  <section class="authPanel">
+   <div class="authTabs">
+    <button type="button" class="authTab active" data-auth-view="login">Giriş Yap</button>
+    <button type="button" class="authTab" data-auth-view="register">Kayıt Ol</button>
+   </div>
+   <form id="loginForm" class="authForm active" autocomplete="on">
+    <h2>Hesabına giriş yap</h2><div class="authFormIntro">Portföy verilerin hesabına özel olarak açılacaktır.</div>
+    <div class="authField"><label>Kullanıcı Adı</label><input id="loginUsername" name="username" autocomplete="username" maxlength="24" required></div>
+    <div class="authField"><label>Şifre</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="8" required></div>
+    <label class="authRemember"><input id="rememberUsername" type="checkbox"> Kullanıcı adını hatırla</label>
+    <button class="authSubmit" type="submit">Giriş Yap</button>
+   </form>
+   <form id="registerForm" class="authForm" autocomplete="on">
+    <h2>Yeni hesap oluştur</h2><div class="authFormIntro">E-posta veya telefon numarası gerekmiyor.</div>
+    <div class="authNameGrid">
+     <div class="authField"><label>İsim</label><input id="registerFirstName" autocomplete="given-name" maxlength="50" required></div>
+     <div class="authField"><label>Soyisim</label><input id="registerLastName" autocomplete="family-name" maxlength="50" required></div>
+    </div>
+    <div class="authField"><label>Kullanıcı Adı</label><input id="registerUsername" autocomplete="username" maxlength="24" pattern="[A-Za-z0-9._-]{3,24}" required></div>
+    <div class="authField"><label>Şifre</label><input id="registerPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></div>
+    <div class="authField"><label>Şifreyi Doğrula</label><input id="registerPasswordConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></div>
+    <button class="authSubmit" type="submit">Hesap Oluştur</button>
+   </form>
+   <div id="authMessage" class="authMessage">Veritabanı ve oturum bağlantısı kontrol ediliyor…</div>
+   <div class="authSetupNote">Ana hesap sunucuda güvenli şekilde oluşturulur. Kurulum değişkenleri yalnızca Render Environment bölümünde tutulmalıdır.</div>
+  </section>
+ </div>
+</div>
+
 
 <aside id="sidebar" class="sidebar open">
   <div class="sidebarTop">
@@ -1163,7 +1255,15 @@ body.terminalHidden .app{right:0!important}
     </div>
     <button class="sideMain" data-side-tab="calendar"><span class="sideIcon">▣</span><span class="sideLabel">Calendar</span></button>
     <button class="sideMain" data-side-tab="askai"><span class="sideIcon">✦</span><span class="sideLabel">Soru Sor</span></button>
+    <div id="adminAccountsGroup" class="sideGroup adminAccountsGroup hidden">
+      <button id="adminAccountsButton" class="sideMain sideExpandable expanded" data-side-tab="adminAccounts"><span class="sideIcon">♙</span><span class="sideLabel">Hesaplar</span><span class="sideChevron">⌄</span></button>
+      <div id="adminAccountsList" class="sideSubmenu open adminAccountsList"><div class="sideSub"><span class="adminAccountName">Hesaplar yükleniyor…</span></div></div>
+    </div>
   </nav>
+  <div class="sidebarFooter">
+   <div class="sidebarUser"><strong id="sidebarUserName">-</strong><span id="sidebarUsername">-</span><div id="cloudSaveStatus" class="cloudSaveStatus">Bulut bağlantısı bekleniyor</div></div>
+   <button type="button" id="logoutBtn" class="sidebarLogout" title="Çıkış Yap">Çıkış</button>
+  </div>
 </aside>
 
 <aside id="orderTerminal" class="orderTerminal">
@@ -1785,6 +1885,19 @@ body.terminalHidden .app{right:0!important}
   </div>
  </div>
 </section>
+<section id="adminAccounts" class="tab">
+ <div class="adminViewerHeader">
+  <div class="adminIdentity"><div class="researchEyebrow">ANA HESAP · KULLANICI GÖRÜNTÜLEME</div><h2 id="adminViewerTitle">Bir hesap seçin</h2><div id="adminViewerMeta" class="adminIdentityMeta">Sol menüdeki Hesaplar bölümünden kayıtlı kullanıcı seçebilirsiniz.</div></div>
+  <button type="button" id="adminRefreshUsers" class="secondary">Hesapları Yenile</button>
+ </div>
+ <div class="adminReadOnlyNotice">Bu alan salt okunurdur. Ana hesap diğer kullanıcıların Portfolio ve Model Portföy kayıtlarını görüntüler; onların adına işlem eklemez veya değiştirmez.</div>
+ <div id="adminStats" class="adminStats">
+  <div class="adminStat"><span>Portfolio Pozisyonu</span><strong>-</strong></div><div class="adminStat"><span>Model Pozisyonu</span><strong>-</strong></div><div class="adminStat"><span>Aktif Pozisyon</span><strong>-</strong></div><div class="adminStat"><span>Son Kayıt</span><strong>-</strong></div>
+ </div>
+ <div class="adminPortfolioTabs"><button type="button" class="adminPortfolioTab active" data-admin-view="general">Portfolio</button><button type="button" class="adminPortfolioTab" data-admin-view="model">Model Portföy</button></div>
+ <div id="adminPortfolioViewer" class="adminPositionTable"><div class="marketLoading">Henüz kullanıcı seçilmedi.</div></div>
+</section>
+
 
 <div class="note">Veriler Chrome tarayıcısının yerel hafızasında tutulur. Düzenli olarak “Yedek Al” butonunu kullanın.</div>
 </div>
@@ -1877,6 +1990,7 @@ const MARKET_UNIVERSES={
 
 const TYPES=["Yurtiçi Hisse","Yurtdışı Hisse","ETF","Türev (VİOP/Vadeli)","Yurtdışı Futures","Emtia","Fon","Eurobond","Yurtiçi Opsiyon","Yurtdışı Opsiyon","Varant"];
 const GK="portfolio_general_v5", MK="portfolio_model_v5", SK="portfolio_model_settings_v5";
+let currentAuthUser=null,cloudStateReady=false,cloudSaveTimer=null,cloudSaveInFlight=false,adminUsersCache=[],adminSelectedUser=null,adminSelectedState=null,adminSelectedView="general";
 let general=JSON.parse(localStorage.getItem(GK)||"[]");
 let model=JSON.parse(localStorage.getItem(MK)||"[]");
 const DEFAULT_MODEL_SETTINGS={
@@ -1947,7 +2061,33 @@ const n=v=>{const x=parseFloat(v);return Number.isFinite(x)?x:null};
 const f=(v,d=2)=>v===null||v===undefined||Number.isNaN(v)?"-":Number(v).toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d});
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-function save(){localStorage.setItem(GK,JSON.stringify(general));localStorage.setItem(MK,JSON.stringify(model));localStorage.setItem(SK,JSON.stringify(settings))}
+function collectCloudState(){
+ return{
+  schemaVersion:1,general,model,settings,
+  marketFavorites:Array.isArray(window.marketFavorites)?window.marketFavorites:[],
+  customMarketItems:window.customMarketItems&&typeof window.customMarketItems==="object"?window.customMarketItems:{},
+  aiSessions:Array.isArray(window.aiSessions)?window.aiSessions:[]
+ };
+}
+function setCloudSaveStatus(text,tone=""){
+ const el=$("cloudSaveStatus");if(!el)return;el.textContent=text;el.className="cloudSaveStatus "+tone;
+}
+function scheduleCloudSave(){
+ if(!currentAuthUser||!cloudStateReady)return;
+ clearTimeout(cloudSaveTimer);setCloudSaveStatus("Değişiklikler bekliyor","saving");
+ cloudSaveTimer=setTimeout(saveCloudStateNow,700);
+}
+async function saveCloudStateNow(){
+ if(!currentAuthUser||!cloudStateReady||cloudSaveInFlight)return;
+ cloudSaveInFlight=true;setCloudSaveStatus("Buluta kaydediliyor…","saving");
+ try{
+  const response=await fetch("/api/state",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({state:collectCloudState()})});
+  const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.error||`HTTP ${response.status}`);
+  setCloudSaveStatus("Buluta kaydedildi","saved");
+ }catch(error){setCloudSaveStatus("Kayıt hatası: "+error.message,"error")}
+ finally{cloudSaveInFlight=false}
+}
+function save(){localStorage.setItem(GK,JSON.stringify(general));localStorage.setItem(MK,JSON.stringify(model));localStorage.setItem(SK,JSON.stringify(settings));scheduleCloudSave()}
 const COMMISSION_DIVISORS={binde:1000,onbinde:10000,yuzbinde:100000};
 function commissionLabel(unit){return unit==="binde"?"Binde":unit==="yuzbinde"?"Yüzbinde":"Onbinde"}
 function commissionAmount(notional,unit,rate){
@@ -2849,8 +2989,8 @@ $("closeSecurityDrawer").addEventListener("click",()=>{
 });
 
 let activeMarketCategory="all";
-let marketFavorites=JSON.parse(localStorage.getItem("marketFavorites")||"[]");
-function saveMarketFavorites(){localStorage.setItem("marketFavorites",JSON.stringify(marketFavorites))}
+var marketFavorites=JSON.parse(localStorage.getItem("marketFavorites")||"[]");window.marketFavorites=marketFavorites;
+function saveMarketFavorites(){window.marketFavorites=marketFavorites;localStorage.setItem("marketFavorites",JSON.stringify(marketFavorites));scheduleCloudSave()}
 function isFavorite(symbol){return marketFavorites.includes(symbol)}
 function toggleFavorite(symbol){
  marketFavorites=isFavorite(symbol)?marketFavorites.filter(x=>x!==symbol):[...marketFavorites,symbol];
@@ -2898,7 +3038,7 @@ function marketCard(item,q){
 
 
 const CUSTOM_MARKET_KEY="portfolio_custom_market_items_v56";
-let customMarketItems=JSON.parse(localStorage.getItem(CUSTOM_MARKET_KEY)||"{}");
+var customMarketItems=JSON.parse(localStorage.getItem(CUSTOM_MARKET_KEY)||"{}");window.customMarketItems=customMarketItems;
 let marketSearchTimer=null;
 
 function normalizeSearchResult(item){
@@ -2933,7 +3073,7 @@ function saveCustomMarketItem(item){
  };
  customMarketItems[category]=customMarketItems[category]||[];
  if(!customMarketItems[category].some(x=>x.s===card.s))customMarketItems[category].push(card);
- localStorage.setItem(CUSTOM_MARKET_KEY,JSON.stringify(customMarketItems));
+ window.customMarketItems=customMarketItems;localStorage.setItem(CUSTOM_MARKET_KEY,JSON.stringify(customMarketItems));scheduleCloudSave();
  loadMarkets(activeMarketCategory||category);
 }
 function customItemsFor(category){
@@ -3750,10 +3890,10 @@ window.addEventListener("resize",()=>{renderGeneralPie();renderModelPie()});
 
 
 const AI_STORAGE_KEY="portfolio_free_market_assistant_sessions_v2";
-let aiSessions=[];
+var aiSessions=[];window.aiSessions=aiSessions;
 try{aiSessions=JSON.parse(localStorage.getItem(AI_STORAGE_KEY)||"[]")}catch{aiSessions=[]}
 let activeAiSessionId=aiSessions[0]?.id||null;
-function saveAiSessions(){localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(aiSessions.slice(0,40)))}
+function saveAiSessions(){window.aiSessions=aiSessions;localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(aiSessions.slice(0,40)));scheduleCloudSave()}
 function activeAiSession(){return aiSessions.find(x=>x.id===activeAiSessionId)||null}
 function newAiSession(){
  const session={id:id(),title:"Yeni sohbet",createdAt:new Date().toISOString(),messages:[]};
@@ -3831,6 +3971,76 @@ document.querySelectorAll("[data-ai-quick]").forEach(btn=>btn.addEventListener("
 if(!activeAiSessionId)newAiSession();else renderAiWorkspace();
 refreshAiStatus();
 
+
+function authMessage(text,tone=""){$("authMessage").textContent=text;$('authMessage').className="authMessage "+tone}
+function switchAuthView(view){document.querySelectorAll("[data-auth-view]").forEach(b=>b.classList.toggle("active",b.dataset.authView===view));document.querySelectorAll(".authForm").forEach(f=>f.classList.toggle("active",f.id===(view==="login"?"loginForm":"registerForm")));authMessage(view==="login"?"Kullanıcı adı ve şifrenizi girin.":"İsim, soyisim, kullanıcı adı ve şifre yeterlidir.")}
+document.querySelectorAll("[data-auth-view]").forEach(b=>b.addEventListener("click",()=>switchAuthView(b.dataset.authView)));
+async function authFetch(url,options={}){const response=await fetch(url,{...options,headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{})},cache:"no-store"});const payload=await response.json().catch(()=>({}));if(!response.ok){const error=new Error(payload.error||`HTTP ${response.status}`);error.status=response.status;error.payload=payload;throw error}return payload}
+function clearLocalPortfolioMemory(){general=[];model=[];settings={...DEFAULT_MODEL_SETTINGS,viopTransfers:[]};localStorage.removeItem(GK);localStorage.removeItem(MK);localStorage.removeItem(SK)}
+function applyCloudState(state){
+ const s=state&&typeof state==="object"?state:{};
+ general=Array.isArray(s.general)?s.general:[];model=Array.isArray(s.model)?s.model:[];
+ settings={...DEFAULT_MODEL_SETTINGS,...(s.settings&&typeof s.settings==="object"?s.settings:{})};settings.viopTransfers=Array.isArray(settings.viopTransfers)?settings.viopTransfers:[];
+ marketFavorites=Array.isArray(s.marketFavorites)?s.marketFavorites:[];window.marketFavorites=marketFavorites;localStorage.setItem("marketFavorites",JSON.stringify(marketFavorites));
+ customMarketItems=s.customMarketItems&&typeof s.customMarketItems==="object"?s.customMarketItems:{};window.customMarketItems=customMarketItems;localStorage.setItem(CUSTOM_MARKET_KEY,JSON.stringify(customMarketItems));
+ aiSessions=Array.isArray(s.aiSessions)?s.aiSessions:[];window.aiSessions=aiSessions;activeAiSessionId=aiSessions[0]?.id||null;localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(aiSessions.slice(0,40)));
+ localStorage.setItem(GK,JSON.stringify(general));localStorage.setItem(MK,JSON.stringify(model));localStorage.setItem(SK,JSON.stringify(settings));
+}
+function refreshSettingsInputs(){
+ $("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.startDate||today;$("riskFree").value=settings.riskFree||0;
+ $("creditReferenceMonthly").value=settings.creditReferenceMonthly??3.11;$("creditReferenceAnnual").value=settings.creditReferenceAnnual??45.15;$("creditSpread").value=settings.creditSpread??10;$("creditDays").value=settings.creditDays??2;
+ $("referenceRateStatus").textContent=`Kayıtlı referans: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
+}
+async function loadOwnCloudState(){
+ setCloudSaveStatus("Hesap verileri yükleniyor","saving");
+ const payload=await authFetch("/api/state");
+ if(payload.hasState){applyCloudState(payload.state)}else{
+  const localHasData=(general.length||model.length)&&currentAuthUser?.role==="admin";
+  if(localHasData){cloudStateReady=true;await saveCloudStateNow()}else applyCloudState({});
+ }
+ cloudStateReady=true;refreshSettingsInputs();renderGeneral();renderModel();renderAiWorkspace();setCloudSaveStatus("Bulut bağlantısı hazır","saved");
+}
+function userDisplayName(user){return`${user.firstName||""} ${user.lastName||""}`.trim()||user.username}
+async function completeAuthenticatedSession(user){
+ currentAuthUser=user;$("authGate").classList.add("hidden");document.body.classList.remove("authLocked");
+ $("sidebarUserName").textContent=userDisplayName(user);$("sidebarUsername").textContent=`@${user.username}${user.role==="admin"?" · Ana Hesap":""}`;
+ $("adminAccountsGroup").classList.toggle("hidden",user.role!=="admin");
+ await loadOwnCloudState();showMainTab("general");
+ if(user.role==="admin")loadAdminUsers();
+ setTimeout(()=>{refreshQuotes("general");refreshQuotes("model");loadMarkets("all");refreshAllTickers();},500);
+}
+async function initAuth(){
+ const remembered=localStorage.getItem("rememberedPortfolioUsername")||"";$("loginUsername").value=remembered;$("rememberUsername").checked=Boolean(remembered);
+ try{
+  const status=await authFetch("/api/auth/status");
+  if(!status.databaseConfigured){authMessage("Veritabanı bağlantısı henüz kurulmadı. Render'a DATABASE_URL ekleyin.","error");return}
+  if(!status.ready){authMessage("Veritabanı hazırlanıyor. Birkaç saniye sonra sayfayı yenileyin.","error");return}
+  const me=await authFetch("/api/auth/me");await completeAuthenticatedSession(me.user);
+ }catch(error){
+  if(error.status===401){authMessage("Giriş yapın veya yeni hesap oluşturun.");return}
+  authMessage(error.message,"error");
+ }
+}
+$("loginForm").addEventListener("submit",async event=>{event.preventDefault();authMessage("Giriş kontrol ediliyor…");try{const username=$("loginUsername").value.trim();const payload=await authFetch("/api/auth/login",{method:"POST",body:JSON.stringify({username,password:$("loginPassword").value,remember:$("rememberUsername").checked})});if($("rememberUsername").checked)localStorage.setItem("rememberedPortfolioUsername",username);else localStorage.removeItem("rememberedPortfolioUsername");$("loginPassword").value="";await completeAuthenticatedSession(payload.user)}catch(error){authMessage(error.message,"error")}});
+$("registerForm").addEventListener("submit",async event=>{event.preventDefault();const password=$("registerPassword").value,confirmPassword=$("registerPasswordConfirm").value;if(password!==confirmPassword){authMessage("Şifreler birbiriyle aynı değil.","error");return}authMessage("Hesap oluşturuluyor…");try{const payload=await authFetch("/api/auth/register",{method:"POST",body:JSON.stringify({firstName:$("registerFirstName").value,lastName:$("registerLastName").value,username:$("registerUsername").value,password,passwordConfirm:confirmPassword})});$("registerForm").reset();authMessage("Hesap oluşturuldu.","success");await completeAuthenticatedSession(payload.user)}catch(error){authMessage(error.message,"error")}});
+$("logoutBtn").addEventListener("click",async()=>{try{await authFetch("/api/auth/logout",{method:"POST"})}catch{}cloudStateReady=false;currentAuthUser=null;clearLocalPortfolioMemory();location.reload()});
+function adminPositionTable(rows){
+ if(!rows.length)return'<div class="marketLoading">Bu bölümde pozisyon bulunmuyor.</div>';
+ return`<table><thead><tr><th>Durum</th><th>Sembol</th><th>Ürün</th><th>Yön</th><th>Açılış</th><th>Güncel/Kapanış</th><th>Miktar</th><th>Pozisyon Büyüklüğü</th><th>K/Z</th><th>Tarih</th></tr></thead><tbody>${rows.map(p=>{const px=p.status==="Kapalı"?(p.closePrice??p.currentPrice??p.entry):(p.currentPrice??p.entry);const pnl=p.status==="Kapalı"?netClosedPnl(p):netLivePnl(p);return`<tr><td><span class="badge ${p.status==="Aktif"?"success":""}">${esc(p.status||"-")}</span></td><td><strong>${esc(p.viopContract||p.futuresContract||p.symbol)}</strong></td><td>${esc(p.assetClass||"-")}</td><td>${esc(p.direction||"-")}</td><td>${f(p.entry,4)} ${esc(p.currency||"")}</td><td>${f(px,4)} ${esc(p.currency||"")}</td><td>${f(p.qty,2)}</td><td>${f(tradeNotional(p,px),2)} ${esc(p.currency||"")}</td><td class="${pnl>=0?"positive":"negative"}">${f(pnl,2)} ${esc(p.currency||"")}</td><td>${formatDateTime(p.openDateTime||p.openDate)}</td></tr>`}).join("")}</tbody></table>`;
+}
+function renderAdminSelectedState(){
+ const state=adminSelectedState||{},rows=adminSelectedView==="model"?(Array.isArray(state.model)?state.model:[]):(Array.isArray(state.general)?state.general:[]);
+ document.querySelectorAll("[data-admin-view]").forEach(b=>b.classList.toggle("active",b.dataset.adminView===adminSelectedView));$("adminPortfolioViewer").innerHTML=adminPositionTable(rows);
+}
+async function openAdminUser(userId){
+ try{showMainTab("adminAccounts");$("adminPortfolioViewer").innerHTML='<div class="marketLoading">Hesap verileri yükleniyor…</div>';const payload=await authFetch(`/api/admin/users/${encodeURIComponent(userId)}/state`);adminSelectedUser=payload.user;adminSelectedState=payload.state||{};$("adminViewerTitle").textContent=userDisplayName(payload.user);$("adminViewerMeta").textContent=`@${payload.user.username} · Kayıt: ${new Date(payload.user.createdAt).toLocaleString("tr-TR")} · Son kayıt: ${payload.updatedAt?new Date(payload.updatedAt).toLocaleString("tr-TR"):"Henüz yok"}`;const g=Array.isArray(adminSelectedState.general)?adminSelectedState.general:[],m=Array.isArray(adminSelectedState.model)?adminSelectedState.model:[],active=[...g,...m].filter(p=>p.status==="Aktif").length;$("adminStats").innerHTML=`<div class="adminStat"><span>Portfolio Pozisyonu</span><strong>${g.length}</strong></div><div class="adminStat"><span>Model Pozisyonu</span><strong>${m.length}</strong></div><div class="adminStat"><span>Aktif Pozisyon</span><strong>${active}</strong></div><div class="adminStat"><span>Son Kayıt</span><strong style="font-size:11px">${payload.updatedAt?new Date(payload.updatedAt).toLocaleString("tr-TR"):"-"}</strong></div>`;renderAdminSelectedState()}catch(error){$("adminPortfolioViewer").innerHTML=`<div class="marketEmpty">${esc(error.message)}</div>`}
+}
+async function loadAdminUsers(){
+ if(currentAuthUser?.role!=="admin")return;
+ try{const payload=await authFetch("/api/admin/users");adminUsersCache=payload.users||[];$("adminAccountsList").innerHTML=adminUsersCache.length?adminUsersCache.map(u=>`<button class="sideSub" data-admin-user-id="${u.id}"><span class="adminAccountName">${esc(userDisplayName(u))}</span><span class="adminAccountRole">${u.role==="admin"?"ANA":"@"+esc(u.username)}</span></button>`).join(""):'<div class="sideSub"><span class="adminAccountName">Kayıtlı hesap yok</span></div>';$("adminAccountsList").querySelectorAll("[data-admin-user-id]").forEach(b=>b.addEventListener("click",event=>{event.stopPropagation();openAdminUser(b.dataset.adminUserId)}))}catch(error){$("adminAccountsList").innerHTML=`<div class="sideSub"><span class="adminAccountName">${esc(error.message)}</span></div>`}
+}
+$("adminRefreshUsers").addEventListener("click",loadAdminUsers);$("adminAccountsButton").addEventListener("click",()=>{$("adminAccountsList").classList.toggle("open");showMainTab("adminAccounts")});document.querySelectorAll("[data-admin-view]").forEach(b=>b.addEventListener("click",()=>{adminSelectedView=b.dataset.adminView;renderAdminSelectedState()}));
+
 fillTypes();populateEditTypes();
 
 showMainTab("general");
@@ -3856,8 +4066,8 @@ document.querySelectorAll("[data-model-anchor]").forEach(btn=>btn.addEventListen
  document.querySelectorAll("[data-model-anchor]").forEach(x=>x.classList.toggle("active",x===btn));
  $(btn.dataset.modelAnchor)?.scrollIntoView({behavior:"smooth",block:"start"});
 }));
-syncModelViopVisibility();renderGeneral();renderModel();loadViopContracts();
-setTimeout(()=>{refreshQuotes("general");refreshQuotes("model");loadMarkets("all");refreshAllTickers()},800);
+syncModelViopVisibility();loadViopContracts();
+initAuth();
 </script>
 
 <script>
@@ -3915,6 +4125,7 @@ setTimeout(()=>{refreshQuotes("general");refreshQuotes("model");loadMarkets("all
 <script>
 window.addEventListener("load",function(){
  setTimeout(function(){
+  if(document.body.classList.contains("authLocked"))return;
   try{
    var general=document.getElementById("general");
    var cards=general&&general.querySelector(".cards");
