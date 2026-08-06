@@ -1,16 +1,14 @@
 {
-  "version": "7.5",
+  "version": "7.6",
   "validated": true,
   "features": [
-    "visual-only financial login hero",
-    "responsive authentication layout",
-    "sidebar account settings button",
-    "password change modal",
-    "server-side current-password verification",
-    "scrypt password re-hashing",
-    "other-session revocation"
+    "manual backup controls removed",
+    "automatic account cloud state",
+    "cross-device refresh on focus and polling",
+    "dirty-state retry protection",
+    "flush before logout and page hide",
+    "complete account cache cleanup"
   ],
-  "app_sha256": "e976d94e601e8588f19e7bc7f778d9309d20faa67fdad94804d1e6f03ebb7692",
-  "server_sha256": "fc4988904dbe728f7c3fd63bcc28b7ddc47eedb83c6fa2e329d15e8584eb5b53",
-  "hero_sha256": "c3505ea306eff9e971887c944523ab99dff9afb14b4d92f608229652b3676632"
+  "app_sha256": "79549638b65f892dd3561715b56e0492d99e037115d5dc64b624fa8bb51bca64",
+  "server_sha256": "fc4988904dbe728f7c3fd63bcc28b7ddc47eedb83c6fa2e329d15e8584eb5b53"
 }
