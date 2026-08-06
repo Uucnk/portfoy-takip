@@ -173,6 +173,36 @@ app.post("/api/auth/login",async(req,res)=>{
   if(!result.rowCount||!(await verifyPassword(password,result.rows[0].password_hash))){recordLoginFailure(req,username);return res.status(401).json({error:"Kullanıcı adı veya şifre hatalı."})}
   loginAttempts.delete(loginRateKey(req,username));await createSession(res,req,result.rows[0].id,Boolean(req.body?.remember));res.json({user:publicUser(result.rows[0])});
 });
+app.post("/api/account/change-password",authRequired,async(req,res)=>{
+  try{
+    const currentPassword=String(req.body?.currentPassword||"");
+    const newPassword=String(req.body?.newPassword||"");
+    const confirmPassword=String(req.body?.confirmPassword||"");
+    if(currentPassword.length<1)return res.status(400).json({error:"Mevcut şifrenizi girin."});
+    if(newPassword.length<8||newPassword.length>128)return res.status(400).json({error:"Yeni şifre 8–128 karakter arasında olmalıdır."});
+    if(newPassword!==confirmPassword)return res.status(400).json({error:"Yeni şifreler birbiriyle aynı değil."});
+    const result=await dbPool.query("SELECT password_hash FROM app_users WHERE id=$1",[req.user.id]);
+    if(!result.rowCount)return res.status(404).json({error:"Kullanıcı hesabı bulunamadı."});
+    const currentHash=result.rows[0].password_hash;
+    if(!(await verifyPassword(currentPassword,currentHash)))return res.status(401).json({error:"Mevcut şifre hatalı."});
+    if(await verifyPassword(newPassword,currentHash))return res.status(400).json({error:"Yeni şifre mevcut şifreden farklı olmalıdır."});
+    const newHash=await hashPassword(newPassword);
+    await dbPool.query("BEGIN");
+    try{
+      await dbPool.query("UPDATE app_users SET password_hash=$1,updated_at=NOW() WHERE id=$2",[newHash,req.user.id]);
+      await dbPool.query("DELETE FROM app_sessions WHERE user_id=$1 AND id<>$2",[req.user.id,req.sessionId]);
+      await dbPool.query("COMMIT");
+    }catch(error){
+      await dbPool.query("ROLLBACK");
+      throw error;
+    }
+    res.json({ok:true,message:"Şifren başarıyla değiştirildi. Diğer cihazlardaki oturumlar kapatıldı."});
+  }catch(error){
+    console.error("Password change error:",error);
+    res.status(500).json({error:"Şifre güncellenirken bir sunucu hatası oluştu."});
+  }
+});
+
 app.post("/api/auth/logout",async(req,res)=>{try{await resolveAuth(req);if(req.sessionId)await dbPool.query("DELETE FROM app_sessions WHERE id=$1",[req.sessionId])}catch{}clearSessionCookie(res,req);res.json({ok:true})});
 app.get("/api/state",authRequired,async(req,res)=>{const result=await dbPool.query("SELECT state,updated_at FROM app_user_state WHERE user_id=$1",[req.user.id]);res.set("Cache-Control","no-store");res.json({hasState:Boolean(result.rowCount),state:result.rows[0]?.state||{},updatedAt:result.rows[0]?.updated_at||null})});
 app.put("/api/state",authRequired,async(req,res)=>{const state=req.body?.state;if(!state||typeof state!=="object"||Array.isArray(state))return res.status(400).json({error:"Geçerli hesap verisi gereklidir."});const size=Buffer.byteLength(JSON.stringify(state));if(size>2500000)return res.status(413).json({error:"Hesap verisi 2,5 MB sınırını aşıyor."});const result=await dbPool.query("INSERT INTO app_user_state(user_id,state,updated_at) VALUES($1,$2::jsonb,NOW()) ON CONFLICT(user_id) DO UPDATE SET state=EXCLUDED.state,updated_at=NOW() RETURNING updated_at",[req.user.id,JSON.stringify(state)]);res.json({ok:true,updatedAt:result.rows[0].updated_at})});
