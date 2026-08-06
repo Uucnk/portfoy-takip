@@ -1,19 +1,16 @@
 {
-  "version": "7.4",
+  "version": "7.5",
   "validated": true,
   "features": [
-    "username/password registration",
-    "scrypt password hashing",
-    "httpOnly sessions",
-    "PostgreSQL cloud state",
-    "remember username",
-    "admin account menu",
-    "read-only user portfolio viewer"
+    "visual-only financial login hero",
+    "responsive authentication layout",
+    "sidebar account settings button",
+    "password change modal",
+    "server-side current-password verification",
+    "scrypt password re-hashing",
+    "other-session revocation"
   ],
-  "requires": [
-    "DATABASE_URL",
-    "ADMIN_PASSWORD"
-  ],
-  "app_sha256": "f8d2b114da2b9f939f0456b6ae365dead87cf375607244e2c42710948a530df4",
-  "server_sha256": "b7baa64d68aae979ea75a70bb27605bf0278661570ea32d4c3e8d1e801f6733f"
+  "app_sha256": "e976d94e601e8588f19e7bc7f778d9309d20faa67fdad94804d1e6f03ebb7692",
+  "server_sha256": "fc4988904dbe728f7c3fd63bcc28b7ddc47eedb83c6fa2e329d15e8584eb5b53",
+  "hero_sha256": "c3505ea306eff9e971887c944523ab99dff9afb14b4d92f608229652b3676632"
 }
