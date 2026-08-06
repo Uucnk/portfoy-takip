@@ -1292,8 +1292,26 @@ body.authLocked .accountSettingsOverlay{display:none!important}
  .accountSettingsActions{display:grid;grid-template-columns:1fr 1fr}
 }
 
+
+/* v7.6 automatic cross-device cloud synchronization */
+.headerCloudBadge{
+ display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;
+ border:1px solid #2c506d;background:#0e2131;color:#a9c8df;font-size:9px;
+ font-weight:800;letter-spacing:.03em;white-space:nowrap
+}
+.headerCloudDot{
+ width:7px;height:7px;border-radius:50%;background:#42dda5;
+ box-shadow:0 0 0 4px rgba(66,221,165,.1),0 0 15px rgba(66,221,165,.55)
+}
+.cloudDataNote{border-color:#285b4b!important;color:#83cbae!important;background:#0d211c!important}
+.cloudSaveStatus.syncing{color:#65aef2}
+@media(max-width:700px){
+ .headerCloudBadge{font-size:0;padding:8px}
+ .headerCloudBadge::after{content:"Bulut";font-size:9px}
+}
+
 </style>
-<meta name="portfolio-build" content="v7.5-login-visual-password-settings">
+<meta name="portfolio-build" content="v7.6-full-cloud-sync">
 </head>
 <body class="authLocked">
 
@@ -1502,9 +1520,9 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 <div class="app">
 <header>
   <div><h1>📈 Pozisyon Öneri ve Portföy Takip</h1><div class="muted">Genel pozisyon takibi ve model portföy track record ekranı</div></div>
-  <div>
-    <button class="secondary" id="exportBtn">Yedek Al</button>
-    <label class="fileBtn secondary">Yedek Yükle<input id="importInput" type="file" accept=".json" hidden></label>
+  <div class="headerCloudBadge" title="Hesap verileri otomatik olarak buluta kaydedilir">
+    <span class="headerCloudDot"></span>
+    Otomatik Bulut Senkronizasyonu
   </div>
 </header>
 
@@ -2035,7 +2053,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 </section>
 
 
-<div class="note">Veriler Chrome tarayıcısının yerel hafızasında tutulur. Düzenli olarak “Yedek Al” butonunu kullanın.</div>
+<div class="note cloudDataNote">Portfolio, Model Portföy, ayarlar, favoriler, eklenen piyasa ürünleri ve sohbet geçmişi hesabınıza otomatik kaydedilir. Aynı hesapla giriş yaptığınız diğer cihazlarda veriler yüklenir.</div>
 </div>
 <div id="bottomTicker" class="fixedTicker bottom"><div id="bottomTickerTrack" class="tickerTrack"><span class="tickerItem">Emtia ve döviz verileri yükleniyor…</span></div></div>
 
@@ -2126,7 +2144,7 @@ const MARKET_UNIVERSES={
 
 const TYPES=["Yurtiçi Hisse","Yurtdışı Hisse","ETF","Türev (VİOP/Vadeli)","Yurtdışı Futures","Emtia","Fon","Eurobond","Yurtiçi Opsiyon","Yurtdışı Opsiyon","Varant"];
 const GK="portfolio_general_v5", MK="portfolio_model_v5", SK="portfolio_model_settings_v5";
-let currentAuthUser=null,cloudStateReady=false,cloudSaveTimer=null,cloudSaveInFlight=false,adminUsersCache=[],adminSelectedUser=null,adminSelectedState=null,adminSelectedView="general";
+let currentAuthUser=null,cloudStateReady=false,cloudSaveTimer=null,cloudSaveInFlight=false,cloudRefreshInFlight=false,cloudDirty=false,cloudSaveRevision=0,cloudLastSavedAt=null,adminUsersCache=[],adminSelectedUser=null,adminSelectedState=null,adminSelectedView="general";
 let general=JSON.parse(localStorage.getItem(GK)||"[]");
 let model=JSON.parse(localStorage.getItem(MK)||"[]");
 const DEFAULT_MODEL_SETTINGS={
@@ -2199,30 +2217,80 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 function collectCloudState(){
  return{
-  schemaVersion:1,general,model,settings,
+  schemaVersion:2,
+  savedAt:new Date().toISOString(),
+  general,model,settings,
   marketFavorites:Array.isArray(window.marketFavorites)?window.marketFavorites:[],
   customMarketItems:window.customMarketItems&&typeof window.customMarketItems==="object"?window.customMarketItems:{},
   aiSessions:Array.isArray(window.aiSessions)?window.aiSessions:[]
  };
 }
+function cloudClock(value){
+ const date=value?new Date(value):new Date();
+ return Number.isNaN(date.getTime())?"":date.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+}
 function setCloudSaveStatus(text,tone=""){
  const el=$("cloudSaveStatus");if(!el)return;el.textContent=text;el.className="cloudSaveStatus "+tone;
 }
-function scheduleCloudSave(){
+function scheduleCloudSave(delay=700){
  if(!currentAuthUser||!cloudStateReady)return;
- clearTimeout(cloudSaveTimer);setCloudSaveStatus("Değişiklikler bekliyor","saving");
- cloudSaveTimer=setTimeout(saveCloudStateNow,700);
+ cloudDirty=true;cloudSaveRevision+=1;
+ clearTimeout(cloudSaveTimer);setCloudSaveStatus("Değişiklikler buluta hazırlanıyor","saving");
+ cloudSaveTimer=setTimeout(()=>saveCloudStateNow(),delay);
 }
-async function saveCloudStateNow(){
- if(!currentAuthUser||!cloudStateReady||cloudSaveInFlight)return;
+async function saveCloudStateNow(options={}){
+ const keepalive=Boolean(options.keepalive);
+ if(!currentAuthUser||!cloudStateReady)return false;
+ if(cloudSaveInFlight)return false;
+ if(!cloudDirty&&!options.force)return true;
+ clearTimeout(cloudSaveTimer);
+ const revisionAtStart=cloudSaveRevision;
+ const state=collectCloudState();
  cloudSaveInFlight=true;setCloudSaveStatus("Buluta kaydediliyor…","saving");
  try{
-  const response=await fetch("/api/state",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({state:collectCloudState()})});
-  const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.error||`HTTP ${response.status}`);
-  setCloudSaveStatus("Buluta kaydedildi","saved");
- }catch(error){setCloudSaveStatus("Kayıt hatası: "+error.message,"error")}
- finally{cloudSaveInFlight=false}
+  const response=await fetch("/api/state",{
+   method:"PUT",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({state}),
+   keepalive
+  });
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(payload.error||`HTTP ${response.status}`);
+  cloudLastSavedAt=payload.updatedAt||state.savedAt;
+  if(cloudSaveRevision===revisionAtStart)cloudDirty=false;
+  setCloudSaveStatus(`Bulut güncel · ${cloudClock(cloudLastSavedAt)}`,"saved");
+  return true;
+ }catch(error){
+  cloudDirty=true;
+  setCloudSaveStatus("Bulut kayıt hatası · yeniden denenecek","error");
+  if(document.visibilityState==="visible")cloudSaveTimer=setTimeout(()=>saveCloudStateNow(),5000);
+  return false;
+ }finally{
+  cloudSaveInFlight=false;
+  if(cloudDirty&&cloudSaveRevision!==revisionAtStart&&!cloudSaveTimer){
+   cloudSaveTimer=setTimeout(()=>saveCloudStateNow(),250);
+  }
+ }
 }
+async function refreshCloudStateIfNewer(){
+ if(!currentAuthUser||!cloudStateReady||cloudDirty||cloudSaveInFlight||cloudRefreshInFlight)return;
+ cloudRefreshInFlight=true;
+ try{
+  const payload=await authFetch("/api/state");
+  const remoteTime=payload.updatedAt?new Date(payload.updatedAt).getTime():0;
+  const localTime=cloudLastSavedAt?new Date(cloudLastSavedAt).getTime():0;
+  if(payload.hasState&&remoteTime>localTime+500){
+   applyCloudState(payload.state);
+   cloudLastSavedAt=payload.updatedAt;
+   refreshSettingsInputs();renderGeneral();renderModel();renderAiWorkspace();
+   if(document.querySelector("#markets.tab.active"))loadMarkets(activeMarketCategory||"all");
+   setCloudSaveStatus(`Diğer cihazdan güncellendi · ${cloudClock(payload.updatedAt)}`,"syncing");
+  }
+ }catch(error){
+  setCloudSaveStatus("Bulut kontrolü geçici olarak yapılamadı","error");
+ }finally{cloudRefreshInFlight=false}
+}
+
 function save(){localStorage.setItem(GK,JSON.stringify(general));localStorage.setItem(MK,JSON.stringify(model));localStorage.setItem(SK,JSON.stringify(settings));scheduleCloudSave()}
 const COMMISSION_DIVISORS={binde:1000,onbinde:10000,yuzbinde:100000};
 function commissionLabel(unit){return unit==="binde"?"Binde":unit==="yuzbinde"?"Yüzbinde":"Onbinde"}
@@ -4008,8 +4076,6 @@ setInterval(()=>{
 },60000);
 setInterval(()=>{if(document.visibilityState==="visible")refreshAllTickers()},180000);
 document.querySelectorAll(".tabBtn").forEach(b=>b.onclick=()=>showMainTab(b.dataset.tab));["activeSearch","activeType","activeDir"].forEach(x=>$(x).addEventListener("input",renderGeneral));$("refreshGeneral").onclick=renderGeneral;
-$("exportBtn").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({general,model,settings},null,2)],{type:"application/json"}));a.download="portfoy_yedek.json";a.click()};
-$("importInput").onchange=e=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);general=d.general||[];model=d.model||[];settings=d.settings||settings;save();location.reload()}catch{alert("Geçersiz yedek dosyası.")}};if(e.target.files[0])r.readAsText(e.target.files[0])};
 
 
 ["generalFormPanel","modelFormPanel","editPositionPanel"].forEach(key=>{
@@ -4112,7 +4178,13 @@ function authMessage(text,tone=""){$("authMessage").textContent=text;$('authMess
 function switchAuthView(view){document.querySelectorAll("[data-auth-view]").forEach(b=>b.classList.toggle("active",b.dataset.authView===view));document.querySelectorAll(".authForm").forEach(f=>f.classList.toggle("active",f.id===(view==="login"?"loginForm":"registerForm")));authMessage(view==="login"?"Kullanıcı adı ve şifrenizi girin.":"İsim, soyisim, kullanıcı adı ve şifre yeterlidir.")}
 document.querySelectorAll("[data-auth-view]").forEach(b=>b.addEventListener("click",()=>switchAuthView(b.dataset.authView)));
 async function authFetch(url,options={}){const response=await fetch(url,{...options,headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{})},cache:"no-store"});const payload=await response.json().catch(()=>({}));if(!response.ok){const error=new Error(payload.error||`HTTP ${response.status}`);error.status=response.status;error.payload=payload;throw error}return payload}
-function clearLocalPortfolioMemory(){general=[];model=[];settings={...DEFAULT_MODEL_SETTINGS,viopTransfers:[]};localStorage.removeItem(GK);localStorage.removeItem(MK);localStorage.removeItem(SK)}
+function clearLocalPortfolioMemory(){
+ general=[];model=[];settings={...DEFAULT_MODEL_SETTINGS,viopTransfers:[]};
+ marketFavorites=[];window.marketFavorites=[];
+ customMarketItems={};window.customMarketItems={};
+ aiSessions=[];window.aiSessions=[];activeAiSessionId=null;
+ [GK,MK,SK,"marketFavorites",CUSTOM_MARKET_KEY,AI_STORAGE_KEY].forEach(key=>localStorage.removeItem(key));
+}
 function applyCloudState(state){
  const s=state&&typeof state==="object"?state:{};
  general=Array.isArray(s.general)?s.general:[];model=Array.isArray(s.model)?s.model:[];
@@ -4128,13 +4200,24 @@ function refreshSettingsInputs(){
  $("referenceRateStatus").textContent=`Kayıtlı referans: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
 }
 async function loadOwnCloudState(){
- setCloudSaveStatus("Hesap verileri yükleniyor","saving");
+ setCloudSaveStatus("Hesap verileri buluttan yükleniyor","saving");
  const payload=await authFetch("/api/state");
- if(payload.hasState){applyCloudState(payload.state)}else{
+ if(payload.hasState){
+  applyCloudState(payload.state);
+  cloudLastSavedAt=payload.updatedAt||payload.state?.savedAt||null;
+  cloudDirty=false;
+ }else{
   const localHasData=(general.length||model.length)&&currentAuthUser?.role==="admin";
-  if(localHasData){cloudStateReady=true;await saveCloudStateNow()}else applyCloudState({});
+  if(localHasData){
+   cloudStateReady=true;cloudDirty=true;cloudSaveRevision+=1;
+   await saveCloudStateNow({force:true});
+  }else{
+   applyCloudState({});cloudLastSavedAt=null;cloudDirty=false;
+  }
  }
- cloudStateReady=true;refreshSettingsInputs();renderGeneral();renderModel();renderAiWorkspace();setCloudSaveStatus("Bulut bağlantısı hazır","saved");
+ cloudStateReady=true;
+ refreshSettingsInputs();renderGeneral();renderModel();renderAiWorkspace();
+ setCloudSaveStatus(cloudLastSavedAt?`Bulut güncel · ${cloudClock(cloudLastSavedAt)}`:"Bulut bağlantısı hazır","saved");
 }
 function userDisplayName(user){return`${user.firstName||""} ${user.lastName||""}`.trim()||user.username}
 async function completeAuthenticatedSession(user){
@@ -4205,7 +4288,7 @@ $("changePasswordForm")?.addEventListener("submit",async event=>{
  }
 });
 
-$("logoutBtn").addEventListener("click",async()=>{closeAccountSettings();try{await authFetch("/api/auth/logout",{method:"POST"})}catch{}cloudStateReady=false;currentAuthUser=null;clearLocalPortfolioMemory();location.reload()});
+$("logoutBtn").addEventListener("click",async()=>{closeAccountSettings();if(cloudDirty)await saveCloudStateNow({force:true});try{await authFetch("/api/auth/logout",{method:"POST"})}catch{}cloudStateReady=false;currentAuthUser=null;clearLocalPortfolioMemory();location.reload()});
 function adminPositionTable(rows){
  if(!rows.length)return'<div class="marketLoading">Bu bölümde pozisyon bulunmuyor.</div>';
  return`<table><thead><tr><th>Durum</th><th>Sembol</th><th>Ürün</th><th>Yön</th><th>Açılış</th><th>Güncel/Kapanış</th><th>Miktar</th><th>Pozisyon Büyüklüğü</th><th>K/Z</th><th>Tarih</th></tr></thead><tbody>${rows.map(p=>{const px=p.status==="Kapalı"?(p.closePrice??p.currentPrice??p.entry):(p.currentPrice??p.entry);const pnl=p.status==="Kapalı"?netClosedPnl(p):netLivePnl(p);return`<tr><td><span class="badge ${p.status==="Aktif"?"success":""}">${esc(p.status||"-")}</span></td><td><strong>${esc(p.viopContract||p.futuresContract||p.symbol)}</strong></td><td>${esc(p.assetClass||"-")}</td><td>${esc(p.direction||"-")}</td><td>${f(p.entry,4)} ${esc(p.currency||"")}</td><td>${f(px,4)} ${esc(p.currency||"")}</td><td>${f(p.qty,2)}</td><td>${f(tradeNotional(p,px),2)} ${esc(p.currency||"")}</td><td class="${pnl>=0?"positive":"negative"}">${f(pnl,2)} ${esc(p.currency||"")}</td><td>${formatDateTime(p.openDateTime||p.openDate)}</td></tr>`}).join("")}</tbody></table>`;
@@ -4249,6 +4332,17 @@ document.querySelectorAll("[data-model-anchor]").forEach(btn=>btn.addEventListen
  $(btn.dataset.modelAnchor)?.scrollIntoView({behavior:"smooth",block:"start"});
 }));
 syncModelViopVisibility();loadViopContracts();
+window.addEventListener("focus",()=>refreshCloudStateIfNewer());
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="hidden"){
+  if(cloudDirty)saveCloudStateNow({force:true,keepalive:true});
+ }else{
+  refreshCloudStateIfNewer();
+ }
+});
+window.addEventListener("pagehide",()=>{if(cloudDirty)saveCloudStateNow({force:true,keepalive:true})});
+setInterval(()=>{if(document.visibilityState==="visible")refreshCloudStateIfNewer()},30000);
+
 initAuth();
 </script>
 
