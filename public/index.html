@@ -1180,26 +1180,126 @@ body.authLocked .researchModal{visibility:hidden!important;pointer-events:none!i
 @media(max-width:760px){.authShell{grid-template-columns:1fr;max-width:520px}.authBrand{display:none}.authPanel{padding:25px 20px;min-height:560px}.authNameGrid{grid-template-columns:1fr}.adminStats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.authGate{padding:10px}.authPanel{padding:20px 14px}.adminStats{grid-template-columns:1fr}}
 
+
+/* v7.5 login visual and account settings */
+.authShell{
+ width:min(1120px,100%);grid-template-columns:1.18fr .82fr;min-height:650px;
+ background:#091522;border-color:#33516d
+}
+.authBrand{
+ padding:0;min-height:650px;position:relative;overflow:hidden;
+ background:#07111c url("/login-market-hero.svg") center center/cover no-repeat
+}
+.authBrand::before{
+ content:"";position:absolute;inset:0;
+ background:linear-gradient(90deg,rgba(2,8,14,.02),rgba(2,8,14,.08) 68%,rgba(2,8,14,.5));
+ pointer-events:none
+}
+.authBrand::after{
+ content:"";position:absolute;inset:0;
+ box-shadow:inset -35px 0 65px rgba(3,10,17,.52),inset 0 0 80px rgba(4,13,22,.28);
+ pointer-events:none
+}
+.authPanel{
+ padding:42px 42px;background:
+ radial-gradient(circle at 85% 8%,rgba(46,113,218,.12),transparent 32%),#0a1622
+}
+.authPanel::before{
+ content:"";display:block;width:42px;height:5px;border-radius:5px;
+ background:linear-gradient(90deg,#3987ff,#54d9b0);margin:0 0 24px
+}
+.authForm h2{font-size:27px}
+.authTabs{margin-bottom:26px}
+.authMessage:empty{display:none}
+.authSetupNote{display:none}
+
+.sidebarFooter{
+ grid-template-columns:minmax(0,1fr) auto;padding:8px;gap:7px
+}
+.sidebarFooterActions{display:flex;align-items:center;gap:5px}
+.sidebarSettings,.sidebarLogout{
+ height:31px;padding:0 9px!important;border-radius:7px!important;font-size:9px!important;
+ display:inline-flex;align-items:center;justify-content:center;gap:5px
+}
+.sidebarSettings{
+ background:#12283b!important;border:1px solid #31516d!important;color:#b9d7ee!important
+}
+.sidebarSettings:hover{background:#1a3b57!important;color:#fff!important}
+.sidebarLogout{background:#26151c!important;border:1px solid #56303e!important;color:#e6a0b2!important}
+.sidebar.closed .sidebarFooter{grid-template-columns:1fr;padding:6px}
+.sidebar.closed .sidebarUser{display:none}
+.sidebar.closed .sidebarFooterActions{display:grid;grid-template-columns:1fr;gap:4px}
+.sidebar.closed .sidebarSettings,.sidebar.closed .sidebarLogout{font-size:0;width:100%;padding:0!important}
+.sidebar.closed .sidebarSettings::after{content:"⚙";font-size:14px}
+.sidebar.closed .sidebarLogout::after{content:"↪";font-size:14px}
+
+.accountSettingsOverlay{
+ position:fixed;inset:0;z-index:2147483550;display:none;align-items:center;justify-content:center;
+ padding:20px;background:rgba(2,7,12,.78);backdrop-filter:blur(7px)
+}
+.accountSettingsOverlay.open{display:flex}
+.accountSettingsModal{
+ width:min(580px,100%);max-height:94vh;overflow:auto;background:#0a1723;
+ border:1px solid #31516d;border-radius:16px;box-shadow:0 25px 80px rgba(0,0,0,.62)
+}
+.accountSettingsHead{
+ display:flex;align-items:flex-start;justify-content:space-between;gap:15px;
+ padding:20px 22px;border-bottom:1px solid #253c51;
+ background:linear-gradient(135deg,#10283e,#0b1926)
+}
+.accountSettingsEyebrow{font-size:9px;letter-spacing:.15em;font-weight:900;color:#7db1ee}
+.accountSettingsHead h2{font-size:23px;margin:5px 0 0}
+.accountSettingsBody{padding:20px 22px 23px}
+.accountIdentity{
+ display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center;
+ padding:12px;border:1px solid #294258;background:#0d1d2b;border-radius:11px;margin-bottom:17px
+}
+.accountAvatar{
+ width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+ background:linear-gradient(135deg,#2b76e5,#2dbb94);color:#fff;font-size:18px;font-weight:900
+}
+.accountIdentity strong{display:block;font-size:13px;color:#eef6fd}
+.accountIdentity span{display:block;font-size:9px;color:#8199b0;margin-top:4px}
+.accountSettingsSectionTitle{font-size:12px;margin:0 0 5px}
+.accountSettingsDescription{font-size:9px;color:#8298ad;line-height:1.5;margin-bottom:14px}
+.passwordGrid{display:grid;gap:11px}
+.passwordField label{display:block;font-size:9px;color:#98aec4;margin-bottom:5px}
+.passwordField input{height:42px;font-size:12px}
+.passwordHint{
+ font-size:8.5px;line-height:1.5;color:#778fa6;padding:8px 10px;
+ border:1px dashed #2a465f;border-radius:8px;background:#0b1925
+}
+.accountSettingsActions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+.accountSettingsMessage{
+ min-height:36px;margin-top:12px;padding:9px 10px;border-radius:8px;font-size:10px;
+ line-height:1.45;background:#101f2d;border:1px solid #293f55;color:#98adc1
+}
+.accountSettingsMessage.error{background:#29141b;border-color:#633142;color:#ff9cad}
+.accountSettingsMessage.success{background:#10291f;border-color:#286b51;color:#83e0b9}
+body.authLocked .accountSettingsOverlay{display:none!important}
+
+@media(max-width:760px){
+ .authShell{grid-template-columns:1fr;max-width:520px;min-height:0}
+ .authBrand{display:block;min-height:205px;border-right:0;border-bottom:1px solid #29445e;background-position:center 32%}
+ .authBrand::before{background:linear-gradient(0deg,rgba(4,12,20,.52),rgba(4,12,20,.04))}
+ .authPanel{padding:25px 20px;min-height:515px}
+}
+@media(max-width:480px){
+ .authBrand{min-height:160px}
+ .authPanel{padding:22px 15px}
+ .accountSettingsOverlay{padding:9px}
+ .accountSettingsHead,.accountSettingsBody{padding-left:15px;padding-right:15px}
+ .accountSettingsActions{display:grid;grid-template-columns:1fr 1fr}
+}
+
 </style>
-<meta name="portfolio-build" content="v7.4-auth-cloud-accounts">
+<meta name="portfolio-build" content="v7.5-login-visual-password-settings">
 </head>
 <body class="authLocked">
 
 <div id="authGate" class="authGate">
  <div class="authShell">
-  <section class="authBrand">
-   <div>
-    <div class="authBrandMark">PORTFÖY TAKİP · CLOUD ACCOUNT</div>
-    <h1>Portföyünü her cihazdan yönet.</h1>
-    <p>Kullanıcı hesabınla giriş yap; Portfolio, Model Portföy ve ayarların güvenli biçimde veritabanında saklansın.</p>
-    <div class="authFeatureList">
-     <div class="authFeature"><span>✓</span><span>Telefon, iş bilgisayarı ve kişisel bilgisayarda aynı hesap</span></div>
-     <div class="authFeature"><span>✓</span><span>Şifreler tek yönlü scrypt özetiyle saklanır</span></div>
-     <div class="authFeature"><span>✓</span><span>Ana hesap yalnızca kayıtlı kullanıcı portföylerini görüntüler</span></div>
-    </div>
-   </div>
-   <div class="authLegal">Şifren tarayıcıda veya GitHub dosyalarında tutulmaz. “Kullanıcı adını hatırla” seçeneği yalnızca kullanıcı adını bu cihazda saklar.</div>
-  </section>
+  <section class="authBrand" aria-label="Finans piyasaları ve Wall Street temalı görsel"></section>
   <section class="authPanel">
    <div class="authTabs">
     <button type="button" class="authTab active" data-auth-view="login">Giriş Yap</button>
@@ -1226,6 +1326,39 @@ body.authLocked .researchModal{visibility:hidden!important;pointer-events:none!i
    <div id="authMessage" class="authMessage">Veritabanı ve oturum bağlantısı kontrol ediliyor…</div>
    <div class="authSetupNote">Ana hesap sunucuda güvenli şekilde oluşturulur. Kurulum değişkenleri yalnızca Render Environment bölümünde tutulmalıdır.</div>
   </section>
+ </div>
+</div>
+
+<div id="accountSettingsPanel" class="accountSettingsOverlay" role="dialog" aria-modal="true" aria-labelledby="accountSettingsTitle">
+ <div class="accountSettingsModal">
+  <div class="accountSettingsHead">
+   <div>
+    <div class="accountSettingsEyebrow">HESAP VE GÜVENLİK</div>
+    <h2 id="accountSettingsTitle">Ayarlar</h2>
+   </div>
+   <button type="button" id="closeAccountSettings" class="secondary">Kapat</button>
+  </div>
+  <div class="accountSettingsBody">
+   <div class="accountIdentity">
+    <div id="accountSettingsAvatar" class="accountAvatar">U</div>
+    <div><strong id="accountSettingsName">-</strong><span id="accountSettingsUsername">-</span></div>
+   </div>
+   <h3 class="accountSettingsSectionTitle">Şifreni değiştir</h3>
+   <div class="accountSettingsDescription">Mevcut şifren doğrulandıktan sonra yeni şifre güvenli biçimde scrypt özetiyle kaydedilir. Diğer cihazlardaki açık oturumlar kapatılır.</div>
+   <form id="changePasswordForm">
+    <div class="passwordGrid">
+     <div class="passwordField"><label>Mevcut Şifre</label><input id="currentAccountPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" required></div>
+     <div class="passwordField"><label>Yeni Şifre</label><input id="newAccountPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></div>
+     <div class="passwordField"><label>Yeni Şifreyi Doğrula</label><input id="confirmAccountPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></div>
+     <div class="passwordHint">En az 8 karakter kullan. Eski şifren ile aynı bir şifre belirleyemezsin. Şifre değiştiğinde bu cihazdaki oturumun açık kalır, diğer cihazlardaki oturumlar güvenlik amacıyla kapatılır.</div>
+    </div>
+    <div class="accountSettingsActions">
+     <button type="button" id="cancelAccountSettings" class="secondary">İptal</button>
+     <button type="submit" id="saveAccountPassword">Şifreyi Güncelle</button>
+    </div>
+    <div id="accountSettingsMessage" class="accountSettingsMessage">Şifre bilgilerin hiçbir zaman ekranda veya tarayıcı depolamasında saklanmaz.</div>
+   </form>
+  </div>
  </div>
 </div>
 
@@ -1262,7 +1395,10 @@ body.authLocked .researchModal{visibility:hidden!important;pointer-events:none!i
   </nav>
   <div class="sidebarFooter">
    <div class="sidebarUser"><strong id="sidebarUserName">-</strong><span id="sidebarUsername">-</span><div id="cloudSaveStatus" class="cloudSaveStatus">Bulut bağlantısı bekleniyor</div></div>
-   <button type="button" id="logoutBtn" class="sidebarLogout" title="Çıkış Yap">Çıkış</button>
+   <div class="sidebarFooterActions">
+    <button type="button" id="accountSettingsBtn" class="sidebarSettings" title="Hesap Ayarları">⚙ Ayarlar</button>
+    <button type="button" id="logoutBtn" class="sidebarLogout" title="Çıkış Yap">Çıkış</button>
+   </div>
   </div>
 </aside>
 
@@ -4023,7 +4159,53 @@ async function initAuth(){
 }
 $("loginForm").addEventListener("submit",async event=>{event.preventDefault();authMessage("Giriş kontrol ediliyor…");try{const username=$("loginUsername").value.trim();const payload=await authFetch("/api/auth/login",{method:"POST",body:JSON.stringify({username,password:$("loginPassword").value,remember:$("rememberUsername").checked})});if($("rememberUsername").checked)localStorage.setItem("rememberedPortfolioUsername",username);else localStorage.removeItem("rememberedPortfolioUsername");$("loginPassword").value="";await completeAuthenticatedSession(payload.user)}catch(error){authMessage(error.message,"error")}});
 $("registerForm").addEventListener("submit",async event=>{event.preventDefault();const password=$("registerPassword").value,confirmPassword=$("registerPasswordConfirm").value;if(password!==confirmPassword){authMessage("Şifreler birbiriyle aynı değil.","error");return}authMessage("Hesap oluşturuluyor…");try{const payload=await authFetch("/api/auth/register",{method:"POST",body:JSON.stringify({firstName:$("registerFirstName").value,lastName:$("registerLastName").value,username:$("registerUsername").value,password,passwordConfirm:confirmPassword})});$("registerForm").reset();authMessage("Hesap oluşturuldu.","success");await completeAuthenticatedSession(payload.user)}catch(error){authMessage(error.message,"error")}});
-$("logoutBtn").addEventListener("click",async()=>{try{await authFetch("/api/auth/logout",{method:"POST"})}catch{}cloudStateReady=false;currentAuthUser=null;clearLocalPortfolioMemory();location.reload()});
+function accountSettingsMessage(text,tone=""){
+ const el=$("accountSettingsMessage");if(!el)return;
+ el.textContent=text;el.className="accountSettingsMessage"+(tone?` ${tone}`:"");
+}
+function openAccountSettings(){
+ if(!currentAuthUser)return;
+ const fullName=[currentAuthUser.firstName,currentAuthUser.lastName].filter(Boolean).join(" ")||currentAuthUser.username;
+ $("accountSettingsName").textContent=fullName;
+ $("accountSettingsUsername").textContent=`@${currentAuthUser.username} · ${currentAuthUser.role==="admin"?"Ana Hesap":"Kullanıcı"}`;
+ $("accountSettingsAvatar").textContent=(currentAuthUser.firstName?.[0]||currentAuthUser.username?.[0]||"U").toLocaleUpperCase("tr-TR");
+ $("changePasswordForm").reset();
+ accountSettingsMessage("Şifre bilgilerin hiçbir zaman ekranda veya tarayıcı depolamasında saklanmaz.");
+ $("accountSettingsPanel").classList.add("open");
+ $("currentAccountPassword").focus();
+}
+function closeAccountSettings(){
+ $("accountSettingsPanel").classList.remove("open");
+ $("changePasswordForm").reset();
+}
+$("accountSettingsBtn")?.addEventListener("click",openAccountSettings);
+$("closeAccountSettings")?.addEventListener("click",closeAccountSettings);
+$("cancelAccountSettings")?.addEventListener("click",closeAccountSettings);
+$("accountSettingsPanel")?.addEventListener("click",event=>{if(event.target===$("accountSettingsPanel"))closeAccountSettings()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&$("accountSettingsPanel")?.classList.contains("open"))closeAccountSettings()});
+$("changePasswordForm")?.addEventListener("submit",async event=>{
+ event.preventDefault();
+ const currentPassword=$("currentAccountPassword").value;
+ const newPassword=$("newAccountPassword").value;
+ const confirmPassword=$("confirmAccountPassword").value;
+ if(newPassword!==confirmPassword){accountSettingsMessage("Yeni şifreler birbiriyle aynı değil.","error");return}
+ if(newPassword===currentPassword){accountSettingsMessage("Yeni şifre mevcut şifreden farklı olmalıdır.","error");return}
+ const button=$("saveAccountPassword");button.disabled=true;button.textContent="Güncelleniyor…";
+ accountSettingsMessage("Mevcut şifre doğrulanıyor…");
+ try{
+  const payload=await authFetch("/api/account/change-password",{
+   method:"POST",body:JSON.stringify({currentPassword,newPassword,confirmPassword})
+  });
+  $("changePasswordForm").reset();
+  accountSettingsMessage(payload.message||"Şifren başarıyla değiştirildi.","success");
+ }catch(error){
+  accountSettingsMessage(error.message||"Şifre güncellenemedi.","error");
+ }finally{
+  button.disabled=false;button.textContent="Şifreyi Güncelle";
+ }
+});
+
+$("logoutBtn").addEventListener("click",async()=>{closeAccountSettings();try{await authFetch("/api/auth/logout",{method:"POST"})}catch{}cloudStateReady=false;currentAuthUser=null;clearLocalPortfolioMemory();location.reload()});
 function adminPositionTable(rows){
  if(!rows.length)return'<div class="marketLoading">Bu bölümde pozisyon bulunmuyor.</div>';
  return`<table><thead><tr><th>Durum</th><th>Sembol</th><th>Ürün</th><th>Yön</th><th>Açılış</th><th>Güncel/Kapanış</th><th>Miktar</th><th>Pozisyon Büyüklüğü</th><th>K/Z</th><th>Tarih</th></tr></thead><tbody>${rows.map(p=>{const px=p.status==="Kapalı"?(p.closePrice??p.currentPrice??p.entry):(p.currentPrice??p.entry);const pnl=p.status==="Kapalı"?netClosedPnl(p):netLivePnl(p);return`<tr><td><span class="badge ${p.status==="Aktif"?"success":""}">${esc(p.status||"-")}</span></td><td><strong>${esc(p.viopContract||p.futuresContract||p.symbol)}</strong></td><td>${esc(p.assetClass||"-")}</td><td>${esc(p.direction||"-")}</td><td>${f(p.entry,4)} ${esc(p.currency||"")}</td><td>${f(px,4)} ${esc(p.currency||"")}</td><td>${f(p.qty,2)}</td><td>${f(tradeNotional(p,px),2)} ${esc(p.currency||"")}</td><td class="${pnl>=0?"positive":"negative"}">${f(pnl,2)} ${esc(p.currency||"")}</td><td>${formatDateTime(p.openDateTime||p.openDate)}</td></tr>`}).join("")}</tbody></table>`;
