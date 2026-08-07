@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pozisyon ve Model Portföy Takip · v7.3</title>
+<title>Model Portföy Takip · v7.7</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1310,8 +1310,30 @@ body.authLocked .accountSettingsOverlay{display:none!important}
  .headerCloudBadge::after{content:"Bulut";font-size:9px}
 }
 
+
+/* v7.7 Model Portföy, VİOP nema ve nakit ekstresi */
+.legacyPortfolioHidden{display:none!important}
+.modelFinanceGrid{grid-template-columns:repeat(4,minmax(155px,1fr))}
+.viopBalanceGrid{grid-template-columns:repeat(5,minmax(145px,1fr))}
+.cashStatementPanel{margin-top:16px}
+.cashStatementHead{align-items:center}
+.cashFilterButton{width:34px;height:34px;padding:0!important;border-radius:9px!important;background:#12283b!important;border:1px solid #31516d!important;color:#c8dff1!important;font-size:19px!important;line-height:1}
+.cashFilterButton:hover{background:#1b3b56!important}
+.cashStatementFilterPanel{display:grid;grid-template-columns:repeat(4,minmax(145px,1fr));gap:9px;padding:11px;margin-bottom:11px;border:1px solid #29445d;border-radius:10px;background:#0b1a27}
+.cashStatementFilterActions{display:flex;align-items:end;gap:7px}.cashStatementFilterActions button{flex:1}
+.cashStatementSummary{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px;margin-bottom:10px}
+.cashStatementSummary>div{padding:10px;border-radius:9px;border:1px solid #284157;background:#0d1c29}
+.cashStatementSummary span{display:block;font-size:8px;color:#8098af;text-transform:uppercase}
+.cashStatementSummary strong{display:block;font-size:14px;margin-top:5px}
+.cashAccountBadge{display:inline-flex;padding:3px 6px;border-radius:10px;font-size:8px;font-weight:800;border:1px solid #31516d;background:#11293e;color:#b7d6ed}
+.cashAccountBadge.viop{border-color:#326b59;background:#102a22;color:#91dfbe}
+.cashDebit{color:#ff8292;font-weight:800}.cashCredit{color:#4adead;font-weight:800}.cashBalance{font-weight:850;color:#e8f1fa}
+@media(max-width:1100px){.modelFinanceGrid{grid-template-columns:repeat(2,minmax(145px,1fr))}.viopBalanceGrid{grid-template-columns:repeat(3,minmax(140px,1fr))}}
+@media(max-width:760px){.cashStatementFilterPanel{grid-template-columns:1fr 1fr}.cashStatementSummary{grid-template-columns:1fr 1fr}.viopBalanceGrid{grid-template-columns:repeat(2,minmax(130px,1fr))}}
+@media(max-width:480px){.modelFinanceGrid,.viopBalanceGrid,.cashStatementFilterPanel,.cashStatementSummary{grid-template-columns:1fr}}
+
 </style>
-<meta name="portfolio-build" content="v7.6-full-cloud-sync">
+<meta name="portfolio-build" content="v7.7-model-only-nema-cash-ledger">
 </head>
 <body class="authLocked">
 
@@ -1387,8 +1409,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     <div class="sidebarBrand">DASHBOARD</div>
   </div>
   <nav class="sidebarNav">
-    <button class="sideMain active" data-side-tab="general"><span class="sideIcon">⌂</span><span class="sideLabel">Portfolio</span></button>
-    <button class="sideMain" data-side-tab="model"><span class="sideIcon">◫</span><span class="sideLabel">Model Portföy</span></button>
+    <button class="sideMain active" data-side-tab="model"><span class="sideIcon">◫</span><span class="sideLabel">Model Portföy</span></button>
     <div class="sideGroup">
       <button class="sideMain sideExpandable expanded" data-side-tab="markets" id="marketsSideButton"><span class="sideIcon">▦</span><span class="sideLabel">Markets</span><span class="sideChevron">⌄</span></button>
       <div id="marketsSubmenu" class="sideSubmenu open">
@@ -1422,15 +1443,11 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 
 <aside id="orderTerminal" class="orderTerminal">
   <div class="orderTerminalHead">
-    <div><div class="orderTerminalEyebrow">EMİR TERMİNALİ</div><h3 id="orderTerminalTitle">Portfolio Pozisyonu</h3></div>
+    <div><div class="orderTerminalEyebrow">EMİR TERMİNALİ</div><h3 id="orderTerminalTitle">Model Portföy Pozisyonu</h3></div>
     <button id="orderTerminalCollapse" type="button" class="secondary" aria-label="Emir terminalini daralt veya aç"><span aria-hidden="true">❯</span></button>
   </div>
-  <div class="orderTerminalTabs">
-    <button type="button" class="orderTerminalTab active" data-order-mode="general">Portfolio</button>
-    <button type="button" class="orderTerminalTab" data-order-mode="model">Model Portföy</button>
-  </div>
-  <div id="generalOrderTerminal" class="orderTerminalPane active"></div>
-  <div id="modelOrderTerminal" class="orderTerminalPane"></div>
+  <div id="generalOrderTerminal" class="orderTerminalPane legacyPortfolioHidden"></div>
+  <div id="modelOrderTerminal" class="orderTerminalPane active"></div>
 </aside>
 <div id="mobileBackdrop" class="mobileBackdrop"></div>
 <div class="mobileDock">
@@ -1519,7 +1536,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 <div id="topTicker" class="fixedTicker top"><div id="topTickerTrack" class="tickerTrack"><span class="tickerItem">BIST 100 verileri yükleniyor…</span></div></div>
 <div class="app">
 <header>
-  <div><h1>📈 Pozisyon Öneri ve Portföy Takip</h1><div class="muted">Genel pozisyon takibi ve model portföy track record ekranı</div></div>
+  <div><h1>📈 Model Portföy Takip</h1><div class="muted">Profesyonel track record, nakit, komisyon, kredi ve VİOP teminat yönetimi</div></div>
   <div class="headerCloudBadge" title="Hesap verileri otomatik olarak buluta kaydedilir">
     <span class="headerCloudDot"></span>
     Otomatik Bulut Senkronizasyonu
@@ -1527,8 +1544,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 </header>
 
 <div class="tabs legacyTopTabs">
-  <button class="tabBtn active" data-tab="general">Portfolio</button>
-  <button class="tabBtn" data-tab="model">Model Portföy</button>
+  <button class="tabBtn active" data-tab="model">Model Portföy</button>
   <button class="tabBtn" data-tab="markets">Markets</button>
   <button class="tabBtn" data-tab="calendar">Calendar</button>
   <button class="tabBtn" data-tab="askai">Soru Sor</button>
@@ -1544,7 +1560,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 
 
 
-<section id="general" class="tab active">
+<section id="general" class="tab legacyPortfolioHidden">
   <div class="sectionHead" style="margin-bottom:14px">
     <div><h2 style="margin-bottom:4px">Portfolio</h2><div class="muted">Aktif ve kapalı öneriler</div></div>
   </div>
@@ -1716,7 +1732,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
   </div>
 </section>
 
-<section id="model" class="tab">
+<section id="model" class="tab active">
   <div class="sectionHead" style="margin-bottom:6px">
     <div><h2 style="margin-bottom:4px">Model Portföy</h2><div class="muted">Profesyonel track record, nakit, kredi, komisyon ve VİOP teminat yönetimi</div></div>
   </div>
@@ -1726,6 +1742,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     <button type="button" data-model-anchor="modelPositionsAnchor">Pozisyonlar</button>
     <button type="button" data-model-anchor="modelViopWorkspace">VİOP Teminat</button>
     <button type="button" data-model-anchor="modelActivityAnchor">Hareketler</button>
+    <button type="button" data-model-anchor="cashStatementAnchor">Nakit Ekstresi</button>
   </div>
 
   <div id="modelOverview" class="modelKpiGrid">
@@ -1746,19 +1763,26 @@ body.authLocked .accountSettingsOverlay{display:none!important}
       <div><label>Referans Oran — Yıllık Bileşik (%)</label><input id="creditReferenceAnnual" type="number" step="0.01" value="45.15"></div>
       <div><label>Kredi Marjı (+ puan)</label><input id="creditSpread" type="number" step="0.01" value="10"></div>
       <div><label>T+ Kredi Gün Sayısı</label><input id="creditDays" type="number" min="1" step="1" value="2"></div>
-      <div style="display:flex;align-items:end"><button type="button" id="refreshReferenceRate" class="secondary" style="width:100%">TCMB Oranını Güncelle</button></div>
+      <div><label>Nema Referans Oranı — Yıllık (%)</label><input id="nemaAnnualRate" type="number" min="0" step="0.0001" value="0"></div>
+      <div><label>Nema Kesintisi / Kurum Farkı (puan)</label><input id="nemaDeduction" type="number" min="0" step="0.01" value="0"></div>
+      <div><label>Nema Başlangıç Tarihi</label><input id="nemaStartDate" type="date"></div>
+      <div style="display:flex;align-items:end"><button type="button" id="refreshReferenceRate" class="secondary" style="width:100%">TCMB Kredi Oranını Güncelle</button></div>
+      <div style="display:flex;align-items:end"><button type="button" id="refreshNemaRate" class="secondary" style="width:100%">Güncel Nema Oranını Al</button></div>
       <div style="display:flex;align-items:end"><button id="saveModelSettings" style="width:100%">Ayarları Kaydet</button></div>
     </div>
-    <div id="referenceRateStatus" class="referenceStatus">TCMB referans oranı kontrol edilmedi.</div>
+    <div id="referenceRateStatus" class="referenceStatus">TCMB kredi referans oranı kontrol edilmedi.</div>
+    <div id="nemaRateStatus" class="referenceStatus">Nema referansı kontrol edilmedi. Gerçek net oran kurum kesintilerine göre değişebilir.</div>
   </div>
 
   <div class="modelFinanceGrid">
-    <div class="modelFinanceCard good"><div class="k">Kullanılabilir Nakit</div><div class="v" id="mAvailableCash">0</div><div class="s">Açık nakit pozisyonları ve VİOP aktarımı sonrası</div></div>
-    <div class="modelFinanceCard danger"><div class="k">T+2 Kredi Bakiyesi</div><div class="v" id="mCreditBalance">0</div><div class="s">Portföy nakdi üzerinde kullanılan finansman</div></div>
-    <div class="modelFinanceCard warning"><div class="k">Yıllık Kredi Oranı</div><div class="v" id="mCreditRate">%0</div><div class="s">Referans yıllık bileşik + kredi marjı</div></div>
-    <div class="modelFinanceCard warning"><div class="k">Tahmini T+2 Kredi Maliyeti</div><div class="v" id="mCreditCost">0</div><div class="s">Bakiye × yıllık oran × gün / 365</div></div>
-    <div class="modelFinanceCard"><div class="k">VİOP Teminat Bakiyesi</div><div class="v" id="mViopCollateral">0</div><div class="s">Ana portföyden teminata aktarılan tutar</div></div>
-    <div class="modelFinanceCard"><div class="k">VİOP Serbest Teminat</div><div class="v" id="mViopFreeMargin">0</div><div class="s">Açık pozisyonların başlangıç teminatı sonrası</div></div>
+    <div class="modelFinanceCard good"><div class="k">Kullanılabilir Ana Nakit</div><div class="v" id="mAvailableCash">0</div><div class="s">Spot pozisyonlar, komisyonlar, kredi maliyeti ve teminat transferleri sonrası</div></div>
+    <div class="modelFinanceCard danger"><div class="k">T+2 Kredi Bakiyesi</div><div class="v" id="mCreditBalance">0</div><div class="s">Ana nakit hesabında kullanılan finansman</div></div>
+    <div class="modelFinanceCard warning"><div class="k">Yıllık Kredi Oranı</div><div class="v" id="mCreditRate">%0</div><div class="s">TCMB referans yıllık bileşik + kredi marjı</div></div>
+    <div class="modelFinanceCard warning"><div class="k">Tahmini T+2 Kredi Maliyeti</div><div class="v" id="mCreditCost">0</div><div class="s">Kredi bakiyesi × yıllık oran × gün / 365</div></div>
+    <div class="modelFinanceCard good"><div class="k">Tahakkuk Eden Nema</div><div class="v" id="mNemaIncome">0</div><div class="s">Tamamlanan günler için VİOP teminatına eklenen nema</div></div>
+    <div class="modelFinanceCard"><div class="k">Bugünkü Tahmini Nema</div><div class="v" id="mTodayNema">0</div><div class="s">Güncel net nema oranıyla gün sonu tahmini</div></div>
+    <div class="modelFinanceCard"><div class="k">VİOP Teminat Özvarlığı</div><div class="v" id="mViopCollateral">0</div><div class="s">Transfer + gerçekleşen K/Z + nema + açık güncel K/Z</div></div>
+    <div class="modelFinanceCard"><div class="k">VİOP Serbest Teminat</div><div class="v" id="mViopFreeMargin">0</div><div class="s">Güncel teminat özvarlığı eksi kullanılan başlangıç teminatı</div></div>
   </div>
 
   <div class="trackGrid">
@@ -1896,7 +1920,11 @@ body.authLocked .accountSettingsOverlay{display:none!important}
       <button type="button" id="refreshViopWorkspace" class="secondary">Kontratları Yenile</button>
     </div>
     <div class="viopBalanceGrid">
-      <div class="modelFinanceCard"><div class="k">Teminat Bakiyesi</div><div class="v" id="viopBalance">0</div></div>
+      <div class="modelFinanceCard"><div class="k">Net Teminat Transferi</div><div class="v" id="viopTransferredPrincipal">0</div></div>
+      <div class="modelFinanceCard good"><div class="k">Gerçekleşen VİOP K/Z</div><div class="v" id="viopRealizedPnl">0</div></div>
+      <div class="modelFinanceCard good"><div class="k">Tahakkuk Eden Nema</div><div class="v" id="viopNemaIncome">0</div></div>
+      <div class="modelFinanceCard"><div class="k">Açık VİOP Güncel K/Z</div><div class="v" id="viopLivePnl">0</div></div>
+      <div class="modelFinanceCard"><div class="k">Güncel Teminat Özvarlığı</div><div class="v" id="viopBalance">0</div></div>
       <div class="modelFinanceCard warning"><div class="k">Kullanılan Başlangıç Teminatı</div><div class="v" id="viopUsedMargin">0</div></div>
       <div class="modelFinanceCard good"><div class="k">Serbest Teminat</div><div class="v" id="viopFreeMargin">0</div></div>
       <div class="modelFinanceCard"><div class="k">VİOP Pozisyon Büyüklüğü</div><div class="v" id="viopNotional">0</div></div>
@@ -1906,15 +1934,15 @@ body.authLocked .accountSettingsOverlay{display:none!important}
       <div class="researchPanel">
         <h3>Teminat Aktarımı</h3>
         <div class="viopTransferGrid">
-          <div><label>Yön</label><select id="viopTransferDirection"><option value="toViop">Ana Portföy → VİOP</option><option value="fromViop">VİOP → Ana Portföy</option></select></div>
+          <div><label>Yön</label><select id="viopTransferDirection"><option value="toViop">Ana Nakit → VİOP</option><option value="fromViop">VİOP → Ana Nakit</option></select></div>
           <div><label>Tutar (TRY)</label><input id="viopTransferAmount" type="number" min="0" step="any"></div>
           <button type="button" id="viopTransferBtn">Aktar</button>
         </div>
-        <div id="viopTransferHint" class="referenceStatus">Aktarım, toplam portföy değerini değiştirmez; yalnızca nakit ve teminat alt hesapları arasında sınıflandırılır.</div>
+        <div id="viopTransferHint" class="referenceStatus">Aktarım, toplam özvarlığı değiştirmez; yalnızca ana nakit ile VİOP teminat alt hesapları arasında sınıflandırılır.</div>
       </div>
       <div class="researchPanel">
         <h3>Kaynak ve Risk Notu</h3>
-        <div id="viopWorkspaceSource" class="viopSource">Kaynak: Alnus Yatırım — İşlem Gören VİOP Kontratları. Başlangıç teminatları işlem kanalı, dayanak varlık ve saatlik risk parametresi güncellemelerine göre değişebilir; işlem öncesi kurum ekranından teyit edilmelidir.</div>
+        <div id="viopWorkspaceSource" class="viopSource">Teminat kaynağı: BISTECH/PSR tabanlı sözleşme hesaplamaları. Nema referansı öncelikle Borsa İstanbul TLREF; erişilemezse Takasbank günlük repo tahsis verisi proxy olarak kullanılır. Gerçek net nema vergi, yasal kesinti, Takasbank komisyonu ve kurum uygulamasına göre farklılaşabilir.</div>
       </div>
     </div>
     <div class="panel" style="margin:14px 0 0">
@@ -1961,6 +1989,23 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     </div>
     <div id="modelActivity"></div>
   </div>
+
+  <div id="cashStatementAnchor" class="panel cashStatementPanel">
+    <div class="sectionHead cashStatementHead">
+      <div><h3 style="margin-bottom:4px">Nakit Ekstresi</h3><div class="muted">Ana nakit ve VİOP teminat hesabındaki bütün para hareketleri</div></div>
+      <button type="button" id="cashStatementFilterBtn" class="cashFilterButton" title="Nakit ekstresi filtresi" aria-label="Nakit ekstresi filtresi"><svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17"><path d="M3 5h18l-7 8v5l-4 2v-7L3 5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div id="cashStatementFilterPanel" class="cashStatementFilterPanel hidden">
+      <div><label>Filtre Türü</label><select id="cashStatementFilterMode"><option value="all">Tüm Dönem</option><option value="day">Tek Gün</option><option value="range">Tarih Aralığı</option></select></div>
+      <div id="cashStatementSingleDateWrap" class="hidden"><label>Tarih</label><input id="cashStatementSingleDate" type="date"></div>
+      <div id="cashStatementStartWrap" class="hidden"><label>Başlangıç</label><input id="cashStatementStartDate" type="date"></div>
+      <div id="cashStatementEndWrap" class="hidden"><label>Bitiş</label><input id="cashStatementEndDate" type="date"></div>
+      <div class="cashStatementFilterActions"><button type="button" id="applyCashStatementFilter">Uygula</button><button type="button" id="resetCashStatementFilter" class="secondary">Temizle</button></div>
+    </div>
+    <div id="cashStatementSummary" class="cashStatementSummary"></div>
+    <div id="cashStatementTable"></div>
+  </div>
+
 </section>
 
 <section id="markets" class="tab">
@@ -2027,7 +2072,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
      <button type="button" id="aiSendBtn">Gönder</button>
     </div>
     <label style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:9px;color:#8ca4bc">
-     <input id="aiIncludePortfolio" type="checkbox" checked style="width:auto"> Aktif portföyümü analizde kullan
+     <input id="aiIncludePortfolio" type="checkbox" checked style="width:auto"> Aktif model portföyümü analizde kullan
     </label>
     <div class="aiQuickPrompts">
      <button type="button" data-ai-quick="KCHOL temel analiz yap; F/K, PD/DD, FD/FAVÖK, ROE ve borçluluğu yorumla.">Değerleme oranları</button>
@@ -2044,16 +2089,15 @@ body.authLocked .accountSettingsOverlay{display:none!important}
   <div class="adminIdentity"><div class="researchEyebrow">ANA HESAP · KULLANICI GÖRÜNTÜLEME</div><h2 id="adminViewerTitle">Bir hesap seçin</h2><div id="adminViewerMeta" class="adminIdentityMeta">Sol menüdeki Hesaplar bölümünden kayıtlı kullanıcı seçebilirsiniz.</div></div>
   <button type="button" id="adminRefreshUsers" class="secondary">Hesapları Yenile</button>
  </div>
- <div class="adminReadOnlyNotice">Bu alan salt okunurdur. Ana hesap diğer kullanıcıların Portfolio ve Model Portföy kayıtlarını görüntüler; onların adına işlem eklemez veya değiştirmez.</div>
+ <div class="adminReadOnlyNotice">Bu alan salt okunurdur. Ana hesap diğer kullanıcıların Model Portföy kayıtlarını görüntüler; onların adına işlem eklemez veya değiştirmez.</div>
  <div id="adminStats" class="adminStats">
-  <div class="adminStat"><span>Portfolio Pozisyonu</span><strong>-</strong></div><div class="adminStat"><span>Model Pozisyonu</span><strong>-</strong></div><div class="adminStat"><span>Aktif Pozisyon</span><strong>-</strong></div><div class="adminStat"><span>Son Kayıt</span><strong>-</strong></div>
+  <div class="adminStat"><span>Model Pozisyonu</span><strong>-</strong></div><div class="adminStat"><span>Aktif Pozisyon</span><strong>-</strong></div><div class="adminStat"><span>Kapalı Pozisyon</span><strong>-</strong></div><div class="adminStat"><span>Son Kayıt</span><strong>-</strong></div>
  </div>
- <div class="adminPortfolioTabs"><button type="button" class="adminPortfolioTab active" data-admin-view="general">Portfolio</button><button type="button" class="adminPortfolioTab" data-admin-view="model">Model Portföy</button></div>
  <div id="adminPortfolioViewer" class="adminPositionTable"><div class="marketLoading">Henüz kullanıcı seçilmedi.</div></div>
 </section>
 
 
-<div class="note cloudDataNote">Portfolio, Model Portföy, ayarlar, favoriler, eklenen piyasa ürünleri ve sohbet geçmişi hesabınıza otomatik kaydedilir. Aynı hesapla giriş yaptığınız diğer cihazlarda veriler yüklenir.</div>
+<div class="note cloudDataNote">Model Portföy, nakit ekstresi, VİOP teminat/nema kayıtları, ayarlar, favoriler, eklenen piyasa ürünleri ve sohbet geçmişi hesabınıza otomatik kaydedilir.</div>
 </div>
 <div id="bottomTicker" class="fixedTicker bottom"><div id="bottomTickerTrack" class="tickerTrack"><span class="tickerItem">Emtia ve döviz verileri yükleniyor…</span></div></div>
 
@@ -2144,17 +2188,21 @@ const MARKET_UNIVERSES={
 
 const TYPES=["Yurtiçi Hisse","Yurtdışı Hisse","ETF","Türev (VİOP/Vadeli)","Yurtdışı Futures","Emtia","Fon","Eurobond","Yurtiçi Opsiyon","Yurtdışı Opsiyon","Varant"];
 const GK="portfolio_general_v5", MK="portfolio_model_v5", SK="portfolio_model_settings_v5";
-let currentAuthUser=null,cloudStateReady=false,cloudSaveTimer=null,cloudSaveInFlight=false,cloudRefreshInFlight=false,cloudDirty=false,cloudSaveRevision=0,cloudLastSavedAt=null,adminUsersCache=[],adminSelectedUser=null,adminSelectedState=null,adminSelectedView="general";
+let currentAuthUser=null,cloudStateReady=false,cloudSaveTimer=null,cloudSaveInFlight=false,cloudRefreshInFlight=false,cloudDirty=false,cloudSaveRevision=0,cloudLastSavedAt=null,adminUsersCache=[],adminSelectedUser=null,adminSelectedState=null,adminSelectedView="model";
 let general=JSON.parse(localStorage.getItem(GK)||"[]");
 let model=JSON.parse(localStorage.getItem(MK)||"[]");
 const DEFAULT_MODEL_SETTINGS={
  capital:0,startDate:"",riskFree:0,
  creditReferenceMonthly:3.11,creditReferenceAnnual:45.15,creditSpread:10,creditDays:2,
  referencePeriod:"01/08/2026 - 31/08/2026",referenceUpdatedAt:"",
+ nemaAnnualRate:0,nemaDeduction:0,nemaStartDate:"",nemaUpdatedAt:"",nemaValueDate:"",
+ nemaSource:"",nemaRateHistory:[],nemaAccruals:[],
  viopCollateral:0,viopTransfers:[]
 };
 let settings={...DEFAULT_MODEL_SETTINGS,...JSON.parse(localStorage.getItem(SK)||"{}")};
 settings.viopTransfers=Array.isArray(settings.viopTransfers)?settings.viopTransfers:[];
+settings.nemaRateHistory=Array.isArray(settings.nemaRateHistory)?settings.nemaRateHistory:[];
+settings.nemaAccruals=Array.isArray(settings.nemaAccruals)?settings.nemaAccruals:[];
 const $=id=>document.getElementById(id), today=new Date().toISOString().slice(0,10);
 const localDateTimeValue=(date=new Date())=>{
  const p=n=>String(n).padStart(2,"0");
@@ -2170,11 +2218,10 @@ const moveOrderForms=()=>{
  if($("modelFormPanel"))$("modelFormPanel").style.display="none";
 };
 moveOrderForms();
-function setOrderMode(mode){
- document.querySelectorAll("[data-order-mode]").forEach(b=>b.classList.toggle("active",b.dataset.orderMode===mode));
- $("generalOrderTerminal").classList.toggle("active",mode==="general");
- $("modelOrderTerminal").classList.toggle("active",mode==="model");
- $("orderTerminalTitle").textContent=mode==="general"?"Portfolio Pozisyonu":"Model Portföy Pozisyonu";
+function setOrderMode(){
+ $("generalOrderTerminal")?.classList.remove("active");
+ $("modelOrderTerminal")?.classList.add("active");
+ $("orderTerminalTitle").textContent="Model Portföy Pozisyonu";
 }
 function syncMobileOverlay(){
  const open=$("sidebar")?.classList.contains("mobileOpen")||$("orderTerminal")?.classList.contains("mobileOpen");
@@ -2186,17 +2233,17 @@ function closeMobilePanels(){
  syncMobileOverlay();
 }
 function showMainTab(tabId){
+ if(tabId==="general")tabId="model";
  document.querySelectorAll(".tab").forEach(s=>{const on=s.id===tabId;s.classList.toggle("active",on);s.style.display=on?"block":"none"});
  document.querySelectorAll("[data-side-tab]").forEach(b=>b.classList.toggle("active",b.dataset.sideTab===tabId));
- const showTerminal=tabId==="general"||tabId==="model";
+ const showTerminal=tabId==="model";
  $("orderTerminal").style.display=showTerminal?"block":"none";
  document.body.classList.toggle("terminalHidden",!showTerminal);
- setOrderMode(tabId==="model"?"model":"general");
+ setOrderMode();
  if(tabId==="markets")setTimeout(()=>loadMarkets(activeMarketCategory||"all"),0);
  if(tabId==="askai")setTimeout(()=>{renderAiWorkspace();refreshAiStatus()},0);
  if(window.innerWidth<=900)closeMobilePanels();
 }
-document.querySelectorAll("[data-order-mode]").forEach(b=>b.addEventListener("click",()=>setOrderMode(b.dataset.orderMode)));
 if(localStorage.getItem("sidebarClosed")==="1"){$("sidebar").classList.add("closed");document.body.classList.add("sidebarClosed")}
 $("sidebarToggle").addEventListener("click",()=>{const c=$("sidebar").classList.toggle("closed");document.body.classList.toggle("sidebarClosed",c);localStorage.setItem("sidebarClosed",c?"1":"0")});
 if(localStorage.getItem("terminalCollapsed")==="1"){$("orderTerminal").classList.add("collapsed");document.body.classList.add("terminalCollapsed")}
@@ -2219,7 +2266,7 @@ function collectCloudState(){
  return{
   schemaVersion:2,
   savedAt:new Date().toISOString(),
-  general,model,settings,
+  general:[],model,settings,
   marketFavorites:Array.isArray(window.marketFavorites)?window.marketFavorites:[],
   customMarketItems:window.customMarketItems&&typeof window.customMarketItems==="object"?window.customMarketItems:{},
   aiSessions:Array.isArray(window.aiSessions)?window.aiSessions:[]
@@ -2282,7 +2329,7 @@ async function refreshCloudStateIfNewer(){
   if(payload.hasState&&remoteTime>localTime+500){
    applyCloudState(payload.state);
    cloudLastSavedAt=payload.updatedAt;
-   refreshSettingsInputs();renderGeneral();renderModel();renderAiWorkspace();
+   refreshSettingsInputs();renderModel();renderAiWorkspace();
    if(document.querySelector("#markets.tab.active"))loadMarkets(activeMarketCategory||"all");
    setCloudSaveStatus(`Diğer cihazdan güncellendi · ${cloudClock(payload.updatedAt)}`,"syncing");
   }
@@ -2340,6 +2387,7 @@ function reward(p){return p.target&&p.entry?((p.target-p.entry)/p.entry)*100*(p.
 function rr(p){if(!p.stop||!p.target)return null;const a=Math.abs(p.entry-p.stop),b=Math.abs(p.target-p.entry);return a?b/a:null}
 
 function creditAnnualRate(){return(Number(settings.creditReferenceAnnual)||0)+(Number(settings.creditSpread)||0)}
+function nemaNetAnnualRate(){return Math.max(0,(Number(settings.nemaAnnualRate)||0)-(Number(settings.nemaDeduction)||0))}
 function viopInitialMargin(p){
  if(!isViopPosition(p))return 0;
  if(Number.isFinite(Number(p.initialMarginRequired)))return Number(p.initialMarginRequired);
@@ -2347,30 +2395,196 @@ function viopInitialMargin(p){
  if(p.marginMode==="rate")return tradeNotional(p,p.entry)*(Number(p.marginRate)||0)/100;
  return qty*(Number(p.initialMargin)||0);
 }
-function modelRealizedNetPnl(){return model.filter(p=>p.status==="Kapalı").reduce((s,p)=>s+(netClosedPnl(p)||0),0)}
-function modelOpenCashCommitment(){
- return model.filter(p=>p.status==="Aktif"&&!isViopPosition(p)).reduce((s,p)=>s+tradeNotional(p,p.entry)+openCommissionValue(p),0);
+function modelTotalCommissions(extraPosition=null){
+ let total=model.reduce((sum,p)=>sum+openCommissionValue(p)+(p.status==="Kapalı"?estimatedCloseCommission(p,p.closePrice):0),0);
+ if(extraPosition)total+=openCommissionValue(extraPosition);
+ return total;
 }
-function modelUsedViopMargin(){return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((s,p)=>s+viopInitialMargin(p),0)}
-function modelViopNotional(){return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((s,p)=>s+positionSize(p),0)}
+function modelTotalCreditCosts(extraPosition=null){
+ let total=model.reduce((sum,p)=>sum+financingCostValue(p),0);
+ if(extraPosition)total+=financingCostValue(extraPosition);
+ return total;
+}
+function modelSpotRealizedGrossPnl(){
+ return model.filter(p=>p.status==="Kapalı"&&!isViopPosition(p)).reduce((sum,p)=>sum+grossPnlAt(p,p.closePrice),0);
+}
+function modelViopRealizedGrossPnl(){
+ return model.filter(p=>p.status==="Kapalı"&&isViopPosition(p)).reduce((sum,p)=>sum+grossPnlAt(p,p.closePrice),0);
+}
+function modelViopOpenGrossPnl(){
+ return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((sum,p)=>sum+grossPnlAt(p,p.currentPrice??p.entry),0);
+}
+function modelOpenCashCommitment(){
+ return model.filter(p=>p.status==="Aktif"&&!isViopPosition(p)).reduce((sum,p)=>sum+tradeNotional(p,p.entry),0);
+}
+function modelUsedViopMargin(){return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((sum,p)=>sum+viopInitialMargin(p),0)}
+function modelViopNotional(){return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((sum,p)=>sum+positionSize(p),0)}
+function postedNemaTotal(){return(settings.nemaAccruals||[]).reduce((sum,row)=>sum+(Number(row.amount)||0),0)}
+function viopTransferNet(){return Number(settings.viopCollateral)||0}
+function viopSettledEquity(){return viopTransferNet()+modelViopRealizedGrossPnl()+postedNemaTotal()}
+function viopCurrentEquity(){return viopSettledEquity()+modelViopOpenGrossPnl()}
+function modelRealizedNetPnl(){return model.filter(p=>p.status==="Kapalı").reduce((sum,p)=>sum+(netClosedPnl(p)||0),0)+postedNemaTotal()}
 function modelCashState(extraPosition=null){
- const capital=Number(settings.capital)||0,realized=modelRealizedNetPnl();
+ const capital=Number(settings.capital)||0;
+ const spotRealized=modelSpotRealizedGrossPnl();
  let cashCommitment=modelOpenCashCommitment();
- if(extraPosition&&!isViopPosition(extraPosition))cashCommitment+=tradeNotional(extraPosition,extraPosition.entry)+openCommissionValue(extraPosition);
- const raw=capital+realized-cashCommitment-(Number(settings.viopCollateral)||0);
+ if(extraPosition&&!isViopPosition(extraPosition))cashCommitment+=tradeNotional(extraPosition,extraPosition.entry);
+ const commissions=modelTotalCommissions(extraPosition);
+ const creditCosts=modelTotalCreditCosts(extraPosition);
+ const transfers=viopTransferNet();
+ const raw=capital+spotRealized-cashCommitment-commissions-creditCosts-transfers;
  const credit=Math.max(0,-raw),available=Math.max(0,raw);
  const rate=creditAnnualRate(),days=Math.max(1,Number(settings.creditDays)||2);
- return{capital,realized,cashCommitment,raw,credit,available,rate,days,t2Cost:credit*rate/100*days/365};
+ return{capital,spotRealized,cashCommitment,commissions,creditCosts,transfers,raw,credit,available,rate,days,t2Cost:credit*rate/100*days/365};
 }
 function incrementalCreditFor(position){
- const before=modelCashState().credit,after=modelCashState(position).credit;
+ const before=modelCashState().credit;
+ const estimated={...position,creditCost:0};
+ const after=modelCashState(estimated).credit;
  return Math.max(0,after-before);
+}
+function localIsoDate(value=new Date()){
+ const date=value instanceof Date?value:new Date(value);
+ const pad=num=>String(num).padStart(2,"0");
+ return`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+function addIsoDays(value,days){
+ const date=new Date(`${value}T12:00:00`);date.setDate(date.getDate()+days);return localIsoDate(date);
+}
+function nemaRateForDate(date){
+ const history=[...(settings.nemaRateHistory||[])].filter(row=>row?.date&&Number(row.annual)>=0).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ let selected=null;
+ for(const row of history){if(row.date<=date)selected=row;else break}
+ const annual=selected?Number(selected.annual):(Number(settings.nemaAnnualRate)||0);
+ return{annual,net:Math.max(0,annual-(Number(settings.nemaDeduction)||0)),source:selected?.source||settings.nemaSource||"Kayıtlı nema referansı"};
+}
+function viopTransferNetAt(date){
+ const end=`${date}T23:59:59`,transfers=settings.viopTransfers||[];
+ if(!transfers.length){
+  const effective=settings.nemaStartDate||settings.startDate||today;
+  return date>=effective?(Number(settings.viopCollateral)||0):0;
+ }
+ return transfers.filter(row=>String(row.dateTime||"")<=end).reduce((sum,row)=>sum+(row.direction==="toViop"?Number(row.amount)||0:-(Number(row.amount)||0)),0);
+}
+function viopRealizedGrossAt(date){
+ const end=`${date}T23:59:59`;
+ return model.filter(p=>p.status==="Kapalı"&&isViopPosition(p)&&String(p.closeDateTime||`${p.closeDate||today}T23:59:00`)<=end).reduce((sum,p)=>sum+grossPnlAt(p,p.closePrice),0);
+}
+function postedNemaBefore(date){return(settings.nemaAccruals||[]).filter(row=>row.date<date).reduce((sum,row)=>sum+(Number(row.amount)||0),0)}
+function ensureDailyNemaAccruals(){
+ settings.nemaRateHistory=Array.isArray(settings.nemaRateHistory)?settings.nemaRateHistory:[];
+ settings.nemaAccruals=Array.isArray(settings.nemaAccruals)?settings.nemaAccruals:[];
+ if(!settings.nemaStartDate||nemaNetAnnualRate()<=0)return false;
+ const yesterday=addIsoDays(localIsoDate(),-1);
+ if(settings.nemaStartDate>yesterday)return false;
+ const existing=new Set(settings.nemaAccruals.map(row=>row.date));
+ let date=settings.nemaStartDate,added=false,guard=0;
+ while(date<=yesterday&&guard<4000){
+  if(!existing.has(date)){
+   const rate=nemaRateForDate(date);
+   const base=viopTransferNetAt(date)+viopRealizedGrossAt(date)+postedNemaBefore(date);
+   if(base>0&&rate.net>0){
+    settings.nemaAccruals.push({id:`nema_${date}`,date,dateTime:`${date}T23:59:00`,base,annualRate:rate.annual,netAnnualRate:rate.net,amount:base*rate.net/100/365,source:rate.source});
+    existing.add(date);added=true;
+   }
+  }
+  date=addIsoDays(date,1);guard++;
+ }
+ if(added){
+  settings.nemaAccruals.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  localStorage.setItem(SK,JSON.stringify(settings));scheduleCloudSave();
+ }
+ return added;
+}
+function todayEstimatedNema(){
+ const base=viopSettledEquity(),rate=nemaNetAnnualRate();
+ return base>0&&rate>0?base*rate/100/365:0;
 }
 function formatDateTime(value){
  if(!value)return"-";
  const d=new Date(value.length===10?value+"T00:00:00":value);
  if(Number.isNaN(d.getTime()))return esc(value);
  return d.toLocaleString("tr-TR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+
+let cashStatementFilter={mode:"all",date:"",start:"",end:""};
+function cashStatementEntries(){
+ const rows=[];
+ const push=row=>rows.push({id:id(),currency:"TRY",...row});
+ const firstPositionDate=model.map(p=>p.openDate||String(p.openDateTime||"").slice(0,10)).filter(Boolean).sort()[0];
+ const startDate=settings.startDate||firstPositionDate||today;
+ if(Number(settings.capital)>0)push({dateTime:`${startDate}T00:00:00`,account:"cash",type:"Başlangıç Sermayesi",description:"Model portföy başlangıç sermayesi",amount:Number(settings.capital)});
+ for(const p of model){
+  const openDateTime=p.openDateTime||`${p.openDate||today}T00:00:00`;
+  const closeDateTime=p.closeDateTime||`${p.closeDate||today}T00:00:00`;
+  if(!isViopPosition(p)){
+   const entryPrincipal=tradeNotional(p,p.entry);
+   push({dateTime:openDateTime,account:"cash",type:"Pozisyon Açılışı",description:`${p.symbol} ${p.direction} açılışı`,amount:-entryPrincipal});
+   if(p.status==="Kapalı"&&p.closePrice!=null){
+    const settlement=entryPrincipal+grossPnlAt(p,p.closePrice);
+    push({dateTime:closeDateTime,account:"cash",type:"Pozisyon Kapanışı",description:`${p.symbol} anapara ve gerçekleşen K/Z tahsilatı`,amount:settlement});
+   }
+  }
+  const openCommission=openCommissionValue(p);
+  if(openCommission)push({dateTime:openDateTime,account:"cash",type:"Komisyon",description:`${p.viopContract||p.futuresContract||p.symbol} açılış komisyonu`,amount:-openCommission});
+  if(p.status==="Kapalı"){
+   const closeCommission=estimatedCloseCommission(p,p.closePrice);
+   if(closeCommission)push({dateTime:closeDateTime,account:"cash",type:"Komisyon",description:`${p.viopContract||p.futuresContract||p.symbol} kapanış komisyonu`,amount:-closeCommission});
+   if(isViopPosition(p)){
+    const pnlAmount=grossPnlAt(p,p.closePrice);
+    if(pnlAmount)push({dateTime:closeDateTime,account:"viop",type:"VİOP K/Z",description:`${p.viopContract||p.symbol} gerçekleşen kâr/zarar`,amount:pnlAmount});
+   }
+  }
+  const creditCost=financingCostValue(p);
+  if(creditCost)push({dateTime:openDateTime,account:"cash",type:"Kredi Maliyeti",description:`${p.symbol} T+${p.creditDays||settings.creditDays||2} finansman maliyeti`,amount:-creditCost});
+ }
+ const transfers=settings.viopTransfers||[];
+ if(!transfers.length&&Number(settings.viopCollateral)){
+  const amount=Number(settings.viopCollateral),dateTime=`${settings.nemaStartDate||settings.startDate||today}T00:01:00`;
+  push({dateTime,account:"cash",type:"Devreden Teminat",description:"Eski sürümden devreden VİOP teminat aktarımı",amount:-amount});
+  push({dateTime,account:"viop",type:"Devreden Teminat",description:"Eski sürümden devreden VİOP teminat bakiyesi",amount});
+ }
+ for(const transfer of transfers){
+  const dateTime=transfer.dateTime||nowLocal(),amount=Number(transfer.amount)||0;
+  if(transfer.direction==="toViop"){
+   push({dateTime,account:"cash",type:"Teminat Transferi",description:"Ana nakitten VİOP teminatına aktarım",amount:-amount});
+   push({dateTime,account:"viop",type:"Teminat Transferi",description:"Ana nakitten VİOP teminatına giriş",amount});
+  }else{
+   push({dateTime,account:"viop",type:"Teminat Transferi",description:"VİOP teminatından ana nakde çıkış",amount:-amount});
+   push({dateTime,account:"cash",type:"Teminat Transferi",description:"VİOP teminatından ana nakde giriş",amount});
+  }
+ }
+ for(const row of settings.nemaAccruals||[]){
+  push({dateTime:row.dateTime||`${row.date}T23:59:00`,account:"viop",type:"Nema Geliri",description:`Günlük nema · Matrah ${f(row.base,2)} TRY · Net yıllık %${f(row.netAnnualRate,4)}`,amount:Number(row.amount)||0});
+ }
+ rows.sort((a,b)=>String(a.dateTime).localeCompare(String(b.dateTime))||String(a.account).localeCompare(String(b.account))||String(a.type).localeCompare(String(b.type)));
+ const balances={cash:0,viop:0};
+ rows.forEach(row=>{balances[row.account]=(balances[row.account]||0)+row.amount;row.balanceAfter=balances[row.account]});
+ return rows;
+}
+function filteredCashStatementRows(){
+ const rows=cashStatementEntries(),mode=cashStatementFilter.mode;
+ if(mode==="day"&&cashStatementFilter.date)return rows.filter(row=>String(row.dateTime).slice(0,10)===cashStatementFilter.date);
+ if(mode==="range")return rows.filter(row=>{const date=String(row.dateTime).slice(0,10);return(!cashStatementFilter.start||date>=cashStatementFilter.start)&&(!cashStatementFilter.end||date<=cashStatementFilter.end)});
+ return rows;
+}
+function renderCashStatement(){
+ const rows=filteredCashStatementRows();
+ const credit=rows.filter(row=>row.amount>0).reduce((sum,row)=>sum+row.amount,0);
+ const debit=Math.abs(rows.filter(row=>row.amount<0).reduce((sum,row)=>sum+row.amount,0));
+ const all=cashStatementEntries();
+ const cashBalance=[...all].reverse().find(row=>row.account==="cash")?.balanceAfter||0;
+ const viopBalance=[...all].reverse().find(row=>row.account==="viop")?.balanceAfter||0;
+ $("cashStatementSummary").innerHTML=`<div><span>Filtrelenen Alacak</span><strong class="cashCredit">${f(credit,2)} TRY</strong></div><div><span>Filtrelenen Borç</span><strong class="cashDebit">${f(debit,2)} TRY</strong></div><div><span>Ana Nakit Defter Bakiyesi</span><strong>${f(cashBalance,2)} TRY</strong></div><div><span>VİOP Defter Bakiyesi</span><strong>${f(viopBalance,2)} TRY</strong></div>`;
+ if(!rows.length){$("cashStatementTable").innerHTML='<div class="muted" style="padding:22px;text-align:center">Seçilen dönemde nakit hareketi bulunmuyor.</div>';return}
+ const descending=[...rows].reverse();
+ $("cashStatementTable").innerHTML=`<div class="tableWrap"><table><thead><tr><th>Tarih / Saat</th><th>Hesap</th><th>Hareket</th><th>Açıklama</th><th>Borç</th><th>Alacak</th><th>Hesap Bakiyesi</th></tr></thead><tbody>${descending.map(row=>`<tr><td class="dateTimeCell">${formatDateTime(row.dateTime)}</td><td><span class="cashAccountBadge ${row.account==="viop"?"viop":""}">${row.account==="viop"?"VİOP Teminat":"Ana Nakit"}</span></td><td>${esc(row.type)}</td><td>${esc(row.description)}</td><td class="cashDebit">${row.amount<0?f(Math.abs(row.amount),2)+" TRY":"-"}</td><td class="cashCredit">${row.amount>0?f(row.amount,2)+" TRY":"-"}</td><td class="cashBalance">${f(row.balanceAfter,2)} TRY</td></tr>`).join("")}</tbody></table></div>`;
+}
+function syncCashStatementFilterUI(){
+ const mode=$("cashStatementFilterMode").value;
+ $("cashStatementSingleDateWrap").classList.toggle("hidden",mode!=="day");
+ $("cashStatementStartWrap").classList.toggle("hidden",mode!=="range");
+ $("cashStatementEndWrap").classList.toggle("hidden",mode!=="range");
 }
 
 function isOptionType(value){
@@ -2574,7 +2788,7 @@ function activityRows(list){
 function modelCashActivityRows(){
  return(settings.viopTransfers||[]).map(t=>({
   date:t.dateTime,type:t.direction==="toViop"?"buy":"sell",symbol:"VİOP TEMİNAT",
-  name:t.direction==="toViop"?"Ana Portföy → VİOP":"VİOP → Ana Portföy",
+  name:t.direction==="toViop"?"Ana Nakit → VİOP":"VİOP → Ana Nakit",
   qty:1,price:t.amount,currency:"TRY",note:t.note||"Teminat aktarımı",total:t.amount,commission:0,creditCost:0,margin:0
  }));
 }
@@ -2640,13 +2854,13 @@ function metrics(){
  const active=model.filter(p=>p.status==="Aktif"),start=Number(settings.capital)||0;
  let closedEq=start,peak=start,dd=0;const rs=[];
  c.forEach(p=>{const net=mpnl(p)||0,before=closedEq;closedEq+=net;if(before>0)rs.push(net/before);peak=Math.max(peak,closedEq);if(peak>0)dd=Math.max(dd,(peak-closedEq)/peak)});
- const activeNet=active.reduce((s,p)=>s+(netLivePnl(p)||0),0),eq=closedEq+activeNet;
+ const activeNet=active.reduce((s,p)=>s+(netLivePnl(p)||0),0),nema=postedNemaTotal(),eq=closedEq+activeNet+nema;
  const sdte=settings.startDate||c[0]?.openDateTime||c[0]?.openDate||today;
  const edte=c.at(-1)?.closeDateTime||c.at(-1)?.closeDate||today;
  const years=Math.max((new Date(edte)-new Date(sdte))/(365.25*86400000),1/365.25),ppy=rs.length/years;
  const rf=(settings.riskFree||0)/100,rfp=ppy?rf/ppy:0,ex=rs.map(r=>r-rfp),st=sd(ex),down=ex.filter(r=>r<0),downDev=down.length?Math.sqrt(down.reduce((s,r)=>s+r*r,0)/down.length):0;
  const paired=c.filter(p=>p.benchmark!==null&&p.benchmark!==undefined),pr=paired.map(mret),br=paired.map(p=>p.benchmark/100);
- return{eq,total:start?eq/start-1:null,cagr:start&&closedEq>0?Math.pow(closedEq/start,1/years)-1:null,sharpe:st?mean(ex)/st*Math.sqrt(ppy):null,sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,dd,beta:variance(br)?cov(pr,br)/variance(br):null,dur:duration(sdte,edte)}
+ return{eq,total:start?eq/start-1:null,cagr:start&&closedEq+nema>0?Math.pow((closedEq+nema)/start,1/years)-1:null,sharpe:st?mean(ex)/st*Math.sqrt(ppy):null,sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,dd,beta:variance(br)?cov(pr,br)/variance(br):null,dur:duration(sdte,edte)}
 }
 function modelTable(arr,closed){
  if(!arr.length)return'<div class="muted" style="padding:20px;text-align:center">Kayıt bulunmuyor.</div>';
@@ -2674,34 +2888,41 @@ function modelTable(arr,closed){
  }).join("")}</tbody></table></div>`}
 
 window.renderModel=function renderModel(){
- const m=metrics(),a=model.filter(p=>p.status==="Aktif"),c=model.filter(p=>p.status==="Kapalı");
- const closedReturns=c.map(mret).filter(x=>x!==null),cash=modelCashState();
- const usedMargin=modelUsedViopMargin(),collateral=Number(settings.viopCollateral)||0,freeMargin=collateral-usedMargin,viopNotional=modelViopNotional();
- const realized=modelRealizedNetPnl(),grossExposure=a.reduce((s,p)=>s+positionSize(p),0);
+ ensureDailyNemaAccruals();
+ const metricsData=metrics(),active=model.filter(p=>p.status==="Aktif"),closed=model.filter(p=>p.status==="Kapalı");
+ const closedReturns=closed.map(mret).filter(value=>value!==null),cash=modelCashState();
+ const usedMargin=modelUsedViopMargin(),transferred=viopTransferNet(),viopRealized=modelViopRealizedGrossPnl(),nema=postedNemaTotal(),viopLive=modelViopOpenGrossPnl();
+ const collateral=viopCurrentEquity(),freeMargin=collateral-usedMargin,viopNotional=modelViopNotional();
+ const realized=modelRealizedNetPnl(),grossExposure=active.reduce((sum,p)=>sum+positionSize(p),0),estimatedNema=todayEstimatedNema();
 
- $("mActiveCount").textContent=a.length;$("mClosedCount").textContent=c.length;
- $("mWinRate").textContent="%"+f(c.length?c.filter(p=>(netClosedPnl(p)||0)>0).length/c.length*100:0,1);
+ $("mActiveCount").textContent=active.length;$("mClosedCount").textContent=closed.length;
+ $("mWinRate").textContent="%"+f(closed.length?closed.filter(p=>(netClosedPnl(p)||0)>0).length/closed.length*100:0,1);
  $("mAverageReturn").textContent="%"+f(closedReturns.length?mean(closedReturns)*100:0,2);
  $("mRealizedPnl").textContent=f(realized,2);$("mGrossExposure").textContent=f(grossExposure,2);
 
  $("mAvailableCash").textContent=f(cash.available,2);$("mCreditBalance").textContent=f(cash.credit,2);
  $("mCreditRate").textContent="%"+f(cash.rate,2);$("mCreditCost").textContent=f(cash.t2Cost,2);
+ $("mNemaIncome").textContent=f(nema,2);$("mTodayNema").textContent=f(estimatedNema,2);
  $("mViopCollateral").textContent=f(collateral,2);$("mViopFreeMargin").textContent=f(freeMargin,2);
 
- $("mValue").textContent=settings.capital?f(m.eq,2):"-";$("mTotal").textContent=m.total===null?"-":"%"+f(m.total*100,2);
- $("mCagr").textContent=m.cagr===null?"-":"%"+f(m.cagr*100,2);$("mSharpe").textContent=m.sharpe===null?"-":f(m.sharpe,2);
- $("mSortino").textContent=m.sortino===null?"-":f(m.sortino,2);$("mDD").textContent="%"+f(m.dd*100,2);
- $("mBeta").textContent=m.beta===null?"-":f(m.beta,2);$("mDuration").textContent=m.dur;
+ $("mValue").textContent=settings.capital?f(metricsData.eq,2):"-";$("mTotal").textContent=metricsData.total===null?"-":"%"+f(metricsData.total*100,2);
+ $("mCagr").textContent=metricsData.cagr===null?"-":"%"+f(metricsData.cagr*100,2);$("mSharpe").textContent=metricsData.sharpe===null?"-":f(metricsData.sharpe,2);
+ $("mSortino").textContent=metricsData.sortino===null?"-":f(metricsData.sortino,2);$("mDD").textContent="%"+f(metricsData.dd*100,2);
+ $("mBeta").textContent=metricsData.beta===null?"-":f(metricsData.beta,2);$("mDuration").textContent=metricsData.dur;
 
- $("mActiveTable").innerHTML=modelTable(a,false);$("mClosedTable").innerHTML=modelTable(c,true);
- $("mCloseSelect").innerHTML=a.length?a.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';
+ $("mActiveTable").innerHTML=modelTable(active,false);$("mClosedTable").innerHTML=modelTable(closed,true);
+ $("mCloseSelect").innerHTML=active.length?active.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';
 
+ $("viopTransferredPrincipal").textContent=f(transferred,2);
+ $("viopRealizedPnl").textContent=f(viopRealized,2);$("viopRealizedPnl").className="v "+(viopRealized>=0?"positive":"negative");
+ $("viopNemaIncome").textContent=f(nema,2);
+ $("viopLivePnl").textContent=f(viopLive,2);$("viopLivePnl").className="v "+(viopLive>=0?"positive":"negative");
  $("viopBalance").textContent=f(collateral,2);$("viopUsedMargin").textContent=f(usedMargin,2);$("viopFreeMargin").textContent=f(freeMargin,2);
  $("viopNotional").textContent=f(viopNotional,2);$("viopUtilization").textContent="%"+f(collateral>0?usedMargin/collateral*100:0,1);
- $("viopOpenPositions").innerHTML=renderViopOpenPositions(a.filter(isViopPosition));
+ $("viopOpenPositions").innerHTML=renderViopOpenPositions(active.filter(isViopPosition));
  $("viopTransferHistory").innerHTML=renderViopTransferHistory();
 
- renderModelPie();renderModelPerformance();renderActivities();updateModelTradePreview();
+ renderModelPie();renderModelPerformance();renderActivities();renderCashStatement();updateModelTradePreview();
 }
 let viopContracts=[];
 let viopUnderlyings=[];
@@ -2974,7 +3195,7 @@ function renderViopTransferHistory(){
  const rows=[...(settings.viopTransfers||[])].sort((a,b)=>String(b.dateTime).localeCompare(String(a.dateTime)));
  if(!rows.length)return'<div class="muted" style="padding:20px;text-align:center">Henüz teminat aktarımı bulunmuyor.</div>';
  return`<div class="tableWrap"><table><thead><tr><th>Tarih / Saat</th><th>Yön</th><th>Tutar</th><th>Teminat Bakiyesi</th></tr></thead><tbody>
- ${rows.map(x=>`<tr><td>${formatDateTime(x.dateTime)}</td><td>${x.direction==="toViop"?"Ana Portföy → VİOP":"VİOP → Ana Portföy"}</td><td>${f(x.amount,2)} TRY</td><td>${f(x.balanceAfter,2)} TRY</td></tr>`).join("")}</tbody></table></div>`;
+ ${rows.map(x=>`<tr><td>${formatDateTime(x.dateTime)}</td><td>${x.direction==="toViop"?"Ana Nakit → VİOP":"VİOP → Ana Nakit"}</td><td>${f(x.amount,2)} TRY</td><td>${f(x.balanceAfter,2)} TRY</td></tr>`).join("")}</tbody></table></div>`;
 }
 
 $("modelForm").addEventListener("submit",e=>{
@@ -3003,7 +3224,7 @@ $("modelForm").addEventListener("submit",e=>{
  p.openCommission=commissionAmount(tradeNotional(p,p.entry),p.commissionUnit,p.commissionRate);
  p.initialMarginRequired=viopInitialMargin(p);
  if(isViopPosition(p)){
-  const free=(Number(settings.viopCollateral)||0)-modelUsedViopMargin();
+  const free=viopCurrentEquity()-modelUsedViopMargin();
   if(p.initialMarginRequired>free){
    alert(`Yetersiz VİOP serbest teminatı. Gerekli: ${f(p.initialMarginRequired,2)} TRY · Serbest: ${f(free,2)} TRY`);
    return;
@@ -3024,9 +3245,20 @@ $("saveModelSettings").onclick=()=>{
   capital:n($("startCapital").value)||0,startDate:$("modelStartDate").value||today,riskFree:n($("riskFree").value)||0,
   creditReferenceMonthly:n($("creditReferenceMonthly").value)||0,
   creditReferenceAnnual:n($("creditReferenceAnnual").value)||0,
-  creditSpread:n($("creditSpread").value)||0,creditDays:n($("creditDays").value)||2
+  creditSpread:n($("creditSpread").value)||0,creditDays:n($("creditDays").value)||2,
+  nemaAnnualRate:n($("nemaAnnualRate").value)||0,nemaDeduction:n($("nemaDeduction").value)||0,
+  nemaStartDate:$("nemaStartDate").value||settings.nemaStartDate||today
  };
- save();renderModel();alert("Model portföy, kredi ve teminat ayarları kaydedildi.");
+ settings.nemaRateHistory=Array.isArray(settings.nemaRateHistory)?settings.nemaRateHistory:[];
+ if(settings.nemaAnnualRate>0){
+  const rateDate=settings.nemaValueDate||localIsoDate(),existing=settings.nemaRateHistory.find(row=>row.date===rateDate);
+  if(!existing||Number(existing.annual)!==Number(settings.nemaAnnualRate)){
+   const row={date:rateDate,annual:settings.nemaAnnualRate,source:"Manuel nema oranı",proxy:true};
+   const index=settings.nemaRateHistory.findIndex(item=>item.date===rateDate);
+   if(index>=0)settings.nemaRateHistory[index]=row;else settings.nemaRateHistory.push(row);
+  }
+ }
+ ensureDailyNemaAccruals();save();renderModel();alert("Model portföy, kredi, teminat ve nema ayarları kaydedildi.");
 };
 $("refreshReferenceRate").onclick=async()=>{
  $("referenceRateStatus").textContent="TCMB referans oranı kontrol ediliyor…";
@@ -3042,6 +3274,32 @@ $("refreshReferenceRate").onclick=async()=>{
   save();renderModel();
  }catch(error){$("referenceRateStatus").textContent="TCMB oranı alınamadı: "+error.message+" Mevcut manuel değer korunuyor."}
 };
+async function refreshNemaRateData(showStatus=true){
+ if(showStatus)$("nemaRateStatus").textContent="Güncel nema referansı kontrol ediliyor…";
+ try{
+  const response=await fetch("/api/nema-rate",{cache:"no-store"}),payload=await response.json();
+  if(!response.ok)throw new Error(payload.error||"Nema oranı alınamadı");
+  const annual=Number(payload.annual);
+  if(!Number.isFinite(annual)||annual<0)throw new Error("Geçerli nema oranı bulunamadı");
+  settings.nemaAnnualRate=annual;
+  settings.nemaValueDate=payload.valueDate||localIsoDate();
+  settings.nemaUpdatedAt=payload.fetchedAt||new Date().toISOString();
+  settings.nemaSource=payload.source||"Borsa İstanbul TLREF";
+  settings.nemaStartDate=settings.nemaStartDate||localIsoDate();
+  settings.nemaRateHistory=Array.isArray(settings.nemaRateHistory)?settings.nemaRateHistory:[];
+  const rateRow={date:settings.nemaValueDate,annual,source:settings.nemaSource,proxy:Boolean(payload.proxy)};
+  const index=settings.nemaRateHistory.findIndex(row=>row.date===rateRow.date);
+  if(index>=0)settings.nemaRateHistory[index]=rateRow;else settings.nemaRateHistory.push(rateRow);
+  settings.nemaRateHistory.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  $("nemaAnnualRate").value=settings.nemaAnnualRate;$("nemaStartDate").value=settings.nemaStartDate;
+  $("nemaRateStatus").textContent=`${settings.nemaSource} · Değer tarihi ${settings.nemaValueDate||"-"} · Referans %${f(annual,4)} · Net nema %${f(nemaNetAnnualRate(),4)}${payload.proxy?" · Proxy veri":""}`;
+  ensureDailyNemaAccruals();save();renderModel();
+ }catch(error){
+  $("nemaRateStatus").textContent="Nema referansı alınamadı: "+error.message+" Kayıtlı oran korunuyor.";
+ }
+}
+$("refreshNemaRate").onclick=()=>refreshNemaRateData(true);
+
 $("mCloseBtn").onclick=()=>{
  const p=model.find(x=>x.id===$("mCloseSelect").value),price=n($("mClosePrice").value);
  if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}
@@ -3054,15 +3312,30 @@ $("mCloseBtn").onclick=()=>{
 $("viopTransferBtn").onclick=()=>{
  const amount=n($("viopTransferAmount").value),direction=$("viopTransferDirection").value;
  if(!amount||amount<=0){alert("Geçerli bir aktarım tutarı girin.");return}
- const state=modelCashState(),used=modelUsedViopMargin(),balance=Number(settings.viopCollateral)||0;
- if(direction==="toViop"&&amount>state.available){alert(`Kullanılabilir nakit yetersiz. Kullanılabilir: ${f(state.available,2)} TRY`);return}
- if(direction==="fromViop"&&amount>balance-used){alert(`Serbest teminat yetersiz. Serbest: ${f(balance-used,2)} TRY`);return}
- settings.viopCollateral=direction==="toViop"?balance+amount:balance-amount;
- settings.viopTransfers.unshift({id:id(),direction,amount,dateTime:nowLocal(),balanceAfter:settings.viopCollateral});
+ const state=modelCashState(),used=modelUsedViopMargin(),transferNet=viopTransferNet(),equity=viopCurrentEquity();
+ if(direction==="toViop"&&amount>state.available){alert(`Kullanılabilir ana nakit yetersiz. Kullanılabilir: ${f(state.available,2)} TRY`);return}
+ if(direction==="fromViop"&&amount>equity-used){alert(`Serbest teminat yetersiz. Serbest: ${f(equity-used,2)} TRY`);return}
+ settings.viopCollateral=direction==="toViop"?transferNet+amount:transferNet-amount;
+ const equityAfter=direction==="toViop"?equity+amount:equity-amount;
+ settings.viopTransfers.unshift({id:id(),direction,amount,dateTime:nowLocal(),transferNetAfter:settings.viopCollateral,balanceAfter:equityAfter});
  save();$("viopTransferAmount").value="";renderModel();
 };
 $("refreshViopWorkspace").onclick=()=>loadViopContracts(true);
 $("refreshViopContracts").onclick=()=>loadViopContracts(true);
+$("cashStatementFilterBtn").onclick=()=>$("cashStatementFilterPanel").classList.toggle("hidden");
+$("cashStatementFilterMode").onchange=syncCashStatementFilterUI;
+$("applyCashStatementFilter").onclick=()=>{
+ cashStatementFilter={mode:$("cashStatementFilterMode").value,date:$("cashStatementSingleDate").value,start:$("cashStatementStartDate").value,end:$("cashStatementEndDate").value};
+ renderCashStatement();
+};
+$("resetCashStatementFilter").onclick=()=>{
+ cashStatementFilter={mode:"all",date:"",start:"",end:""};
+ $("cashStatementFilterMode").value="all";$("cashStatementSingleDate").value=today;$("cashStatementStartDate").value=settings.startDate||today;$("cashStatementEndDate").value=today;
+ syncCashStatementFilterUI();renderCashStatement();
+};
+$("cashStatementSingleDate").value=today;$("cashStatementStartDate").value=settings.startDate||today;$("cashStatementEndDate").value=today;
+syncCashStatementFilterUI();
+
 
 window.deleteModel=x=>{if(confirm("Kayıt silinsin mi?")){model=model.filter(p=>p.id!==x);save();renderModel()}};
 
@@ -4067,13 +4340,8 @@ $("refreshMarkets").onclick=()=>loadMarkets();
 
 
 
-$("refreshGeneralQuotes").addEventListener("click",()=>refreshQuotes("general"));
 $("refreshModelQuotes").addEventListener("click",()=>refreshQuotes("model"));
-setInterval(()=>{
-  if(document.visibilityState==="visible"){
-    refreshQuotes("general");refreshQuotes("model");
-  }
-},60000);
+setInterval(()=>{if(document.visibilityState==="visible")refreshQuotes("model")},60000);
 setInterval(()=>{if(document.visibilityState==="visible")refreshAllTickers()},180000);
 document.querySelectorAll(".tabBtn").forEach(b=>b.onclick=()=>showMainTab(b.dataset.tab));["activeSearch","activeType","activeDir"].forEach(x=>$(x).addEventListener("input",renderGeneral));$("refreshGeneral").onclick=renderGeneral;
 
@@ -4126,7 +4394,7 @@ function renderAiMessages(){
 function renderAiWorkspace(){renderAiHistory();renderAiMessages()}
 function portfolioAiContext(){
  if(!$("aiIncludePortfolio")?.checked)return null;
- const active=[...general,...model].filter(p=>p.status==="Aktif").slice(0,40);
+ const active=model.filter(p=>p.status==="Aktif").slice(0,40);
  return{
   portfolioSettings:{modelCapital:Number(settings.capital)||0,currency:"TRY"},
   positions:active.map(p=>({
@@ -4186,37 +4454,37 @@ function clearLocalPortfolioMemory(){
  [GK,MK,SK,"marketFavorites",CUSTOM_MARKET_KEY,AI_STORAGE_KEY].forEach(key=>localStorage.removeItem(key));
 }
 function applyCloudState(state){
- const s=state&&typeof state==="object"?state:{};
- general=Array.isArray(s.general)?s.general:[];model=Array.isArray(s.model)?s.model:[];
- settings={...DEFAULT_MODEL_SETTINGS,...(s.settings&&typeof s.settings==="object"?s.settings:{})};settings.viopTransfers=Array.isArray(settings.viopTransfers)?settings.viopTransfers:[];
- marketFavorites=Array.isArray(s.marketFavorites)?s.marketFavorites:[];window.marketFavorites=marketFavorites;localStorage.setItem("marketFavorites",JSON.stringify(marketFavorites));
- customMarketItems=s.customMarketItems&&typeof s.customMarketItems==="object"?s.customMarketItems:{};window.customMarketItems=customMarketItems;localStorage.setItem(CUSTOM_MARKET_KEY,JSON.stringify(customMarketItems));
- aiSessions=Array.isArray(s.aiSessions)?s.aiSessions:[];window.aiSessions=aiSessions;activeAiSessionId=aiSessions[0]?.id||null;localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(aiSessions.slice(0,40)));
- localStorage.setItem(GK,JSON.stringify(general));localStorage.setItem(MK,JSON.stringify(model));localStorage.setItem(SK,JSON.stringify(settings));
+ const source=state&&typeof state==="object"?state:{};
+ general=[];model=Array.isArray(source.model)?source.model:[];
+ settings={...DEFAULT_MODEL_SETTINGS,...(source.settings&&typeof source.settings==="object"?source.settings:{})};
+ settings.viopTransfers=Array.isArray(settings.viopTransfers)?settings.viopTransfers:[];
+ settings.nemaRateHistory=Array.isArray(settings.nemaRateHistory)?settings.nemaRateHistory:[];
+ settings.nemaAccruals=Array.isArray(settings.nemaAccruals)?settings.nemaAccruals:[];
+ marketFavorites=Array.isArray(source.marketFavorites)?source.marketFavorites:[];window.marketFavorites=marketFavorites;localStorage.setItem("marketFavorites",JSON.stringify(marketFavorites));
+ customMarketItems=source.customMarketItems&&typeof source.customMarketItems==="object"?source.customMarketItems:{};window.customMarketItems=customMarketItems;localStorage.setItem(CUSTOM_MARKET_KEY,JSON.stringify(customMarketItems));
+ aiSessions=Array.isArray(source.aiSessions)?source.aiSessions:[];window.aiSessions=aiSessions;activeAiSessionId=aiSessions[0]?.id||null;localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(aiSessions.slice(0,40)));
+ localStorage.setItem(GK,"[]");localStorage.setItem(MK,JSON.stringify(model));localStorage.setItem(SK,JSON.stringify(settings));
 }
 function refreshSettingsInputs(){
  $("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.startDate||today;$("riskFree").value=settings.riskFree||0;
  $("creditReferenceMonthly").value=settings.creditReferenceMonthly??3.11;$("creditReferenceAnnual").value=settings.creditReferenceAnnual??45.15;$("creditSpread").value=settings.creditSpread??10;$("creditDays").value=settings.creditDays??2;
- $("referenceRateStatus").textContent=`Kayıtlı referans: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
+ $("nemaAnnualRate").value=settings.nemaAnnualRate??0;$("nemaDeduction").value=settings.nemaDeduction??0;$("nemaStartDate").value=settings.nemaStartDate||today;
+ $("referenceRateStatus").textContent=`Kayıtlı kredi referansı: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
+ $("nemaRateStatus").textContent=`Kayıtlı nema: ${settings.nemaSource||"-"} · ${settings.nemaValueDate||"-"} · Referans %${f(settings.nemaAnnualRate,4)} · Net %${f(nemaNetAnnualRate(),4)}`;
 }
 async function loadOwnCloudState(){
  setCloudSaveStatus("Hesap verileri buluttan yükleniyor","saving");
  const payload=await authFetch("/api/state");
  if(payload.hasState){
   applyCloudState(payload.state);
-  cloudLastSavedAt=payload.updatedAt||payload.state?.savedAt||null;
-  cloudDirty=false;
+  cloudLastSavedAt=payload.updatedAt||payload.state?.savedAt||null;cloudDirty=false;
  }else{
-  const localHasData=(general.length||model.length)&&currentAuthUser?.role==="admin";
-  if(localHasData){
-   cloudStateReady=true;cloudDirty=true;cloudSaveRevision+=1;
-   await saveCloudStateNow({force:true});
-  }else{
-   applyCloudState({});cloudLastSavedAt=null;cloudDirty=false;
-  }
+  const localHasData=model.length&&currentAuthUser?.role==="admin";
+  if(localHasData){cloudStateReady=true;cloudDirty=true;cloudSaveRevision+=1;await saveCloudStateNow({force:true})}
+  else{applyCloudState({});cloudLastSavedAt=null;cloudDirty=false}
  }
  cloudStateReady=true;
- refreshSettingsInputs();renderGeneral();renderModel();renderAiWorkspace();
+ refreshSettingsInputs();renderModel();renderAiWorkspace();
  setCloudSaveStatus(cloudLastSavedAt?`Bulut güncel · ${cloudClock(cloudLastSavedAt)}`:"Bulut bağlantısı hazır","saved");
 }
 function userDisplayName(user){return`${user.firstName||""} ${user.lastName||""}`.trim()||user.username}
@@ -4224,9 +4492,13 @@ async function completeAuthenticatedSession(user){
  currentAuthUser=user;$("authGate").classList.add("hidden");document.body.classList.remove("authLocked");
  $("sidebarUserName").textContent=userDisplayName(user);$("sidebarUsername").textContent=`@${user.username}${user.role==="admin"?" · Ana Hesap":""}`;
  $("adminAccountsGroup").classList.toggle("hidden",user.role!=="admin");
- await loadOwnCloudState();showMainTab("general");
+ await loadOwnCloudState();showMainTab("model");
  if(user.role==="admin")loadAdminUsers();
- setTimeout(()=>{refreshQuotes("general");refreshQuotes("model");loadMarkets("all");refreshAllTickers();},500);
+ setTimeout(()=>{
+  refreshQuotes("model");loadMarkets("all");refreshAllTickers();
+  const last=settings.nemaUpdatedAt?new Date(settings.nemaUpdatedAt).getTime():0;
+  if(!last||Date.now()-last>6*60*60*1000)refreshNemaRateData(false);
+ },500);
 }
 async function initAuth(){
  const remembered=localStorage.getItem("rememberedPortfolioUsername")||"";$("loginUsername").value=remembered;$("rememberUsername").checked=Boolean(remembered);
@@ -4294,21 +4566,29 @@ function adminPositionTable(rows){
  return`<table><thead><tr><th>Durum</th><th>Sembol</th><th>Ürün</th><th>Yön</th><th>Açılış</th><th>Güncel/Kapanış</th><th>Miktar</th><th>Pozisyon Büyüklüğü</th><th>K/Z</th><th>Tarih</th></tr></thead><tbody>${rows.map(p=>{const px=p.status==="Kapalı"?(p.closePrice??p.currentPrice??p.entry):(p.currentPrice??p.entry);const pnl=p.status==="Kapalı"?netClosedPnl(p):netLivePnl(p);return`<tr><td><span class="badge ${p.status==="Aktif"?"success":""}">${esc(p.status||"-")}</span></td><td><strong>${esc(p.viopContract||p.futuresContract||p.symbol)}</strong></td><td>${esc(p.assetClass||"-")}</td><td>${esc(p.direction||"-")}</td><td>${f(p.entry,4)} ${esc(p.currency||"")}</td><td>${f(px,4)} ${esc(p.currency||"")}</td><td>${f(p.qty,2)}</td><td>${f(tradeNotional(p,px),2)} ${esc(p.currency||"")}</td><td class="${pnl>=0?"positive":"negative"}">${f(pnl,2)} ${esc(p.currency||"")}</td><td>${formatDateTime(p.openDateTime||p.openDate)}</td></tr>`}).join("")}</tbody></table>`;
 }
 function renderAdminSelectedState(){
- const state=adminSelectedState||{},rows=adminSelectedView==="model"?(Array.isArray(state.model)?state.model:[]):(Array.isArray(state.general)?state.general:[]);
- document.querySelectorAll("[data-admin-view]").forEach(b=>b.classList.toggle("active",b.dataset.adminView===adminSelectedView));$("adminPortfolioViewer").innerHTML=adminPositionTable(rows);
+ const state=adminSelectedState||{},rows=Array.isArray(state.model)?state.model:[];
+ $("adminPortfolioViewer").innerHTML=adminPositionTable(rows);
 }
 async function openAdminUser(userId){
- try{showMainTab("adminAccounts");$("adminPortfolioViewer").innerHTML='<div class="marketLoading">Hesap verileri yükleniyor…</div>';const payload=await authFetch(`/api/admin/users/${encodeURIComponent(userId)}/state`);adminSelectedUser=payload.user;adminSelectedState=payload.state||{};$("adminViewerTitle").textContent=userDisplayName(payload.user);$("adminViewerMeta").textContent=`@${payload.user.username} · Kayıt: ${new Date(payload.user.createdAt).toLocaleString("tr-TR")} · Son kayıt: ${payload.updatedAt?new Date(payload.updatedAt).toLocaleString("tr-TR"):"Henüz yok"}`;const g=Array.isArray(adminSelectedState.general)?adminSelectedState.general:[],m=Array.isArray(adminSelectedState.model)?adminSelectedState.model:[],active=[...g,...m].filter(p=>p.status==="Aktif").length;$("adminStats").innerHTML=`<div class="adminStat"><span>Portfolio Pozisyonu</span><strong>${g.length}</strong></div><div class="adminStat"><span>Model Pozisyonu</span><strong>${m.length}</strong></div><div class="adminStat"><span>Aktif Pozisyon</span><strong>${active}</strong></div><div class="adminStat"><span>Son Kayıt</span><strong style="font-size:11px">${payload.updatedAt?new Date(payload.updatedAt).toLocaleString("tr-TR"):"-"}</strong></div>`;renderAdminSelectedState()}catch(error){$("adminPortfolioViewer").innerHTML=`<div class="marketEmpty">${esc(error.message)}</div>`}
+ try{
+  showMainTab("adminAccounts");$("adminPortfolioViewer").innerHTML='<div class="marketLoading">Hesap verileri yükleniyor…</div>';
+  const payload=await authFetch(`/api/admin/users/${encodeURIComponent(userId)}/state`);
+  adminSelectedUser=payload.user;adminSelectedState=payload.state||{};
+  $("adminViewerTitle").textContent=userDisplayName(payload.user);
+  $("adminViewerMeta").textContent=`@${payload.user.username} · Kayıt: ${new Date(payload.user.createdAt).toLocaleString("tr-TR")} · Son kayıt: ${payload.updatedAt?new Date(payload.updatedAt).toLocaleString("tr-TR"):"Henüz yok"}`;
+  const rows=Array.isArray(adminSelectedState.model)?adminSelectedState.model:[],active=rows.filter(p=>p.status==="Aktif").length,closed=rows.filter(p=>p.status==="Kapalı").length;
+  $("adminStats").innerHTML=`<div class="adminStat"><span>Model Pozisyonu</span><strong>${rows.length}</strong></div><div class="adminStat"><span>Aktif Pozisyon</span><strong>${active}</strong></div><div class="adminStat"><span>Kapalı Pozisyon</span><strong>${closed}</strong></div><div class="adminStat"><span>Son Kayıt</span><strong style="font-size:11px">${payload.updatedAt?new Date(payload.updatedAt).toLocaleString("tr-TR"):"-"}</strong></div>`;
+  renderAdminSelectedState();
+ }catch(error){$("adminPortfolioViewer").innerHTML=`<div class="marketEmpty">${esc(error.message)}</div>`}
 }
 async function loadAdminUsers(){
  if(currentAuthUser?.role!=="admin")return;
  try{const payload=await authFetch("/api/admin/users");adminUsersCache=payload.users||[];$("adminAccountsList").innerHTML=adminUsersCache.length?adminUsersCache.map(u=>`<button class="sideSub" data-admin-user-id="${u.id}"><span class="adminAccountName">${esc(userDisplayName(u))}</span><span class="adminAccountRole">${u.role==="admin"?"ANA":"@"+esc(u.username)}</span></button>`).join(""):'<div class="sideSub"><span class="adminAccountName">Kayıtlı hesap yok</span></div>';$("adminAccountsList").querySelectorAll("[data-admin-user-id]").forEach(b=>b.addEventListener("click",event=>{event.stopPropagation();openAdminUser(b.dataset.adminUserId)}))}catch(error){$("adminAccountsList").innerHTML=`<div class="sideSub"><span class="adminAccountName">${esc(error.message)}</span></div>`}
 }
-$("adminRefreshUsers").addEventListener("click",loadAdminUsers);$("adminAccountsButton").addEventListener("click",()=>{$("adminAccountsList").classList.toggle("open");showMainTab("adminAccounts")});document.querySelectorAll("[data-admin-view]").forEach(b=>b.addEventListener("click",()=>{adminSelectedView=b.dataset.adminView;renderAdminSelectedState()}));
-
+$("adminRefreshUsers").addEventListener("click",loadAdminUsers);$("adminAccountsButton").addEventListener("click",()=>{$("adminAccountsList").classList.toggle("open");showMainTab("adminAccounts")});
 fillTypes();populateEditTypes();
 
-showMainTab("general");
+showMainTab("model");
 
 $("assetClass").addEventListener("change",()=>{syncOptionVisibility();syncModelViopVisibility()});
 $("mAssetClass").addEventListener("change",()=>{syncOptionVisibility();syncModelViopVisibility()});
@@ -4317,8 +4597,10 @@ $("openDate").value=nowLocal();$("closeGeneralDate").value=nowLocal();$("mOpenDa
 $("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.startDate||today;$("riskFree").value=settings.riskFree||0;
 $("creditReferenceMonthly").value=settings.creditReferenceMonthly??3.11;$("creditReferenceAnnual").value=settings.creditReferenceAnnual??45.15;
 $("creditSpread").value=settings.creditSpread??10;$("creditDays").value=settings.creditDays??2;
-$("referenceRateStatus").textContent=`Kayıtlı referans: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
-["mAssetClass","mEntry","mQty","mCurrency","mCommissionUnit","mCommissionRate","mContractSize","mInitialMargin","mMaintenanceMargin","mViopReferencePrice"].forEach(k=>$(k)?.addEventListener("input",()=>{syncModelViopVisibility();updateModelTradePreview()}));
+$("nemaAnnualRate").value=settings.nemaAnnualRate??0;$("nemaDeduction").value=settings.nemaDeduction??0;$("nemaStartDate").value=settings.nemaStartDate||today;
+$("referenceRateStatus").textContent=`Kayıtlı kredi referansı: ${settings.referencePeriod||"-"} · Aylık %${f(settings.creditReferenceMonthly,2)} · Yıllık bileşik %${f(settings.creditReferenceAnnual,2)} · Kredi oranı %${f(creditAnnualRate(),2)}`;
+$("nemaRateStatus").textContent=`Kayıtlı nema: ${settings.nemaSource||"-"} · ${settings.nemaValueDate||"-"} · Referans %${f(settings.nemaAnnualRate,4)} · Net %${f(nemaNetAnnualRate(),4)}`;
+["mAssetClass","mEntry","mQty","mCurrency","mCommissionUnit","mCommissionRate","mContractSize","mInitialMargin","mMaintenanceMargin","mViopReferencePrice","nemaAnnualRate","nemaDeduction"].forEach(k=>$(k)?.addEventListener("input",()=>{syncModelViopVisibility();updateModelTradePreview()}));
 ["qty","entry","gContractSize","gInitialMargin","gMaintenanceMargin","gViopReferencePrice"].forEach(k=>$(k)?.addEventListener("input",()=>updateViopMarginSummary("general")));
 $("mViopContract")?.addEventListener("change",()=>applyViopContract("model"));
 $("gViopContract")?.addEventListener("change",()=>applyViopContract("general"));
