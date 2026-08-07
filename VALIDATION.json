@@ -1,27 +1,20 @@
 {
-  "version": "7.9",
+  "version": "8.0",
   "validated": true,
-  "help_tooltips": 39,
   "features": [
-    "Portfolio Health 0-100",
-    "Diversification Score",
-    "Liquidity Score",
-    "Risk Health Score",
-    "live market regime",
-    "bull bear sideways classification",
-    "high low volatility classification",
-    "risk-on risk-off proxy",
-    "regime performance",
-    "covariance risk contribution",
-    "factor exposure analysis",
-    "sector exposure",
-    "return attribution",
-    "stock selection",
-    "sector selection",
-    "sector allocation proxy",
-    "market timing proxy",
-    "leverage analysis"
+    "Composite policy benchmark",
+    "BIST 100 strategic sleeve",
+    "S&P 500 strategic sleeve",
+    "Gold strategic sleeve",
+    "Bond strategic sleeve",
+    "TRY base-currency conversion",
+    "automatic initial strategic weights",
+    "manual strategic weight override",
+    "monthly quarterly annual rebalancing",
+    "holding-period composite benchmark matching",
+    "composite rolling alpha and beta",
+    "composite attribution integration"
   ],
-  "app_sha256": "dfc89640bb5456babe6fd3a3699604f66614a03502eba81a8189bae759defccf",
-  "server_sha256": "06cf489f785907d942fe57d6d1173d49c2149460039f7b200008419e88db03ad"
+  "app_sha256": "dce9120222c8d5e765e774b100e6cd61adf2b54ee127124de9abcf785f522c6f",
+  "server_sha256": "88538146edf3f75e7fb16e0d1c8c7b35b9949b16294d6836ef621f4d2cdfce3a"
 }
