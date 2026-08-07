@@ -1,14 +1,19 @@
 {
-  "version": "7.6",
+  "version": "7.7",
   "validated": true,
   "features": [
-    "manual backup controls removed",
-    "automatic account cloud state",
-    "cross-device refresh on focus and polling",
-    "dirty-state retry protection",
-    "flush before logout and page hide",
-    "complete account cache cleanup"
+    "Portfolio UI removed",
+    "Model Portfolio only order terminal",
+    "commissions deducted from main cash",
+    "realized VIOP P/L credited to collateral",
+    "live VIOP P/L included in collateral equity",
+    "daily TLREF-linked nema accrual",
+    "Takasbank repo allocation proxy fallback",
+    "TCMB annual reference fallback",
+    "main cash and VIOP cash statement",
+    "single-day and date-range statement filters",
+    "automatic cloud persistence"
   ],
-  "app_sha256": "79549638b65f892dd3561715b56e0492d99e037115d5dc64b624fa8bb51bca64",
-  "server_sha256": "fc4988904dbe728f7c3fd63bcc28b7ddc47eedb83c6fa2e329d15e8584eb5b53"
+  "app_sha256": "0d05f207a28b20c6a8a86ccea22d57a77d9bbafce02060d6b7ea6d58719142d5",
+  "server_sha256": "56906631fae5d5b31257aa9977e64583485f44f0eea1a45381a548d467c7028e"
 }
