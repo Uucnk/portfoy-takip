@@ -1556,6 +1556,7 @@ app.get("/api/fundamentals",async(req,res)=>{
 const TCMB_REFERENCE_URL="https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Uye+Isyerlerine+Uygulanacak+Azami+Komisyon+Oranlari";
 const ALNUS_VIOP_URL="https://www.alnusyatirim.com/viop";
 const BIST_VIOP_MARKET_MAKING_URL="https://www.borsaistanbul.com/piyasalar/viop/piyasa-isleyisi/piyasa-yapicilik";
+const ISYATIRIM_VIOP_MARKET_URL="https://www.isyatirim.com.tr/en-us/analysis/Pages/derivatives-market.aspx";
 const OYAK_VIOP_MARGIN_URL="https://www.oyakyatirim.com.tr/viop/baslangic-teminatlari-kaldirac-oranlari";
 const DENIZ_VIOP_PSR_URL="https://www.denizyatirim.com/Teminatlar";
 
@@ -1761,12 +1762,9 @@ function parseDenizPsrRates(html){
 async function viopReferencePrices(underlyings){
  const result=new Map();
  await Promise.all([...new Set(underlyings)].map(async underlying=>{
-  const u=String(underlying||"").toUpperCase();
-  const yahoo=u==="USDTRY"?"USDTRY=X":u==="EURTRY"?"EURTRY=X":u==="XAUTRY"?"GC=F":u==="XU030"?"^XU030":`${u}.IS`;
-  try{
-   const quote=await fetchYahooChart(yahoo);
-   if(Number.isFinite(quote.price))result.set(u,{price:quote.price,yahooSymbol:yahoo});
-  }catch{}
+  const u=normalizeUnderlyingName(underlying);
+  const quote=await fetchBistSpotReference(u);
+  if(quote&&Number.isFinite(quote.price))result.set(u,quote);
  }));
  return result;
 }
@@ -1820,6 +1818,73 @@ function lastWeekdayOfMonth(year,monthIndex){
  const date=new Date(year,monthIndex+1,0);
  while(date.getDay()===0||date.getDay()===6)date.setDate(date.getDate()-1);
  return date;
+}
+
+
+const TR_MONTH_TO_NUMBER={
+ "ocak":"01","subat":"02","şubat":"02","mart":"03","nisan":"04","mayis":"05","mayıs":"05","haziran":"06",
+ "temmuz":"07","agustos":"08","ağustos":"08","eylul":"09","eylül":"09","ekim":"10","kasim":"11","kasım":"11","aralik":"12","aralık":"12"
+};
+function viopContractMonthKey(underlying,year,month){
+ return`${normalizeUnderlyingName(underlying)}|${year}-${String(month).padStart(2,"0")}`;
+}
+function contractMonthKeyFromContract(contract){
+ const expiry=String(contract?.expiryDate||"");
+ if(/^\d{4}-\d{2}/.test(expiry))return`${normalizeUnderlyingName(contract.underlying)}|${expiry.slice(0,7)}`;
+ const code=String(contract?.code||"").toUpperCase();
+ const match=code.match(/(\d{2})(\d{2})$/);
+ return match?`${normalizeUnderlyingName(contract.underlying)}|20${match[2]}-${match[1]}`:"";
+}
+function parseIsYatirimViopQuotes(html){
+ const quotes=new Map();
+ for(const rowMatch of String(html||"").matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)){
+  const cells=[...rowMatch[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)]
+   .map(match=>decodeBasicHtml(match[1]).replace(/\s+/g," ").trim());
+  if(cells.length<2)continue;
+  const label=cells[0];
+  const normalized=label.toLocaleLowerCase("tr-TR")
+   .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+   .replace(/ı/g,"i").replace(/ş/g,"s").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ö/g,"o").replace(/ç/g,"c");
+  const m=normalized.match(/\b([a-z0-9]{3,12})\s+(ocak|subat|mart|nisan|mayis|haziran|temmuz|agustos|eylul|ekim|kasim|aralik)\s+(\d{4})\s+vadeli\b/i);
+  if(!m)continue;
+  const underlying=normalizeUnderlyingName(m[1]),month=TR_MONTH_TO_NUMBER[m[2]],year=m[3];
+  if(!underlying||!month)continue;
+  const price=trNumber(cells[1]),changePercent=trNumber(cells[2]),volumeValue=trNumber(cells[4]),volumeLots=trNumber(cells[5]);
+  if(price==null||price<=0)continue;
+  quotes.set(viopContractMonthKey(underlying,year,month),{
+   underlying,year:Number(year),month:Number(month),price,changePercent,
+   volumeValue,volumeLots,label,source:"İş Yatırım VİOP piyasa tablosu"
+  });
+ }
+ return quotes;
+}
+async function fetchIsYatirimViopQuotes(){
+ const html=await fetchPublicText(ISYATIRIM_VIOP_MARKET_URL,30000);
+ return parseIsYatirimViopQuotes(html);
+}
+async function fetchBistSpotReference(underlying){
+ const u=normalizeUnderlyingName(underlying);
+ if(!u)return null;
+ if(u==="USDTRY"||u==="EURTRY"||u==="XAUTRY"||u==="XU030"){
+  const map=u==="USDTRY"?"USDTRY=X":u==="EURTRY"?"EURTRY=X":u==="XAUTRY"?"GC=F":"^XU030";
+  try{
+   const quote=await fetchYahooChart(map);
+   if(Number.isFinite(quote.price)&&quote.price>0)return{price:quote.price,yahooSymbol:map,source:"Yahoo Finance"};
+  }catch{}
+  return null;
+ }
+ // For BIST shares, prefer TradingView scanner because Yahoo's intraday
+ // metadata can occasionally return a mis-scaled value for local shares.
+ try{
+  const tv=await scanTradingViewColumns(`BIST:${u}`,["close","currency"],"turkey");
+  const price=Number(tv.close);
+  if(Number.isFinite(price)&&price>0)return{price,yahooSymbol:`${u}.IS`,source:"TradingView scanner"};
+ }catch{}
+ try{
+  const quote=await fetchYahooChart(`${u}.IS`);
+  if(Number.isFinite(quote.price)&&quote.price>0)return{price:quote.price,yahooSymbol:`${u}.IS`,source:"Yahoo Finance"};
+ }catch{}
+ return null;
 }
 
 function parseBistViopPayUnderlyings(html){
@@ -1942,8 +2007,9 @@ function viopUnderlyingRows(contracts){
 }
 async function getViopContracts(force=false){
  if(!force&&viopContractCache.contracts.length&&Date.now()-viopContractCache.at<15*60*1000)return viopContractCache;
- let contracts=[],live=false,error=null,marginError=null,fixedMargins=new Map(),psrRates=new Map();
+ let contracts=[],live=false,error=null,marginError=null,marketError=null,fixedMargins=new Map(),psrRates=new Map(),marketQuotes=new Map();
  const official=await getOfficialViopPayUnderlyings();
+ try{marketQuotes=await fetchIsYatirimViopQuotes()}catch(err){marketError=err.message}
  try{
   const html=await fetchPublicText(ALNUS_VIOP_URL,30000);
   contracts=parseAlnusViopRows(html);live=contracts.length>0;
@@ -1980,12 +2046,29 @@ async function getViopContracts(force=false){
   symbol=>!fixedMargins.has(symbol)&&(psrRates.has(symbol)||VIOP_PSR_FALLBACK[symbol]!=null)
  );
  const prices=await viopReferencePrices(priceNeeded);
- contracts=enrichViopMargins(contracts,psrRates,prices,fixedMargins);
+ contracts=enrichViopMargins(contracts,psrRates,prices,fixedMargins).map(contract=>{
+  const market=marketQuotes.get(contractMonthKeyFromContract(contract));
+  if(!market)return contract;
+  const size=Number(contract.contractSize)||contractSizeForUnderlying(contract.underlying);
+  const psr=Number(contract.marginRate)||0;
+  let initial=Number(contract.initialMargin)||0,marginSource=contract.marginSource;
+  if(initial<=0&&psr>0){
+   initial=market.price*size*psr/100;
+   marginSource=`${psrRates.has(normalizeUnderlyingName(contract.underlying))?"Deniz PSR":"PSR"} + İş Yatırım VİOP fiyatı`;
+  }
+  return{
+   ...contract,marketPrice:market.price,changePercent:market.changePercent,
+   marketVolume:market.volumeLots,priceSource:market.source,
+   referencePrice:market.price,initialMargin:initial||contract.initialMargin,
+   maintenanceMargin:initial>0?initial*.75:contract.maintenanceMargin,
+   marginSource:marginSource||contract.marginSource
+  };
+ });
  contracts.sort((a,b)=>String(a.underlying).localeCompare(String(b.underlying),"tr")||String(a.sortDate).localeCompare(String(b.sortDate)));
  viopContractCache={
   at:Date.now(),contracts,live:live||official.live||psrRates.size>0||fixedMargins.size>0,
-  error:[error,marginError,official.error].filter(Boolean).join(" | "),
-  psrCount:psrRates.size,fixedCount:fixedMargins.size,pricedCount:prices.size,
+  error:[error,marginError,marketError,official.error].filter(Boolean).join(" | "),
+  psrCount:psrRates.size,fixedCount:fixedMargins.size,pricedCount:prices.size,marketPriceCount:marketQuotes.size,
   officialCount:official.underlyings.size,officialLive:official.live
  };
  return viopContractCache;
@@ -1996,12 +2079,46 @@ app.get("/api/viop/contracts",async(req,res)=>{
  res.json({
   contracts:cache.contracts,underlyings:viopUnderlyingRows(cache.contracts),
   live:cache.live,error:cache.error,
-  sourceLabel:`Borsa İstanbul dayanak evreni (${cache.officialCount||0}) + Alnus vade + Deniz PSR + Yahoo referans fiyat + Oyak yedek`,
+  sourceLabel:`Borsa İstanbul dayanak evreni (${cache.officialCount||0}) + İş Yatırım VİOP fiyatı (${cache.marketPriceCount||0}) + Alnus vade + Deniz PSR + Oyak yedek`,
   sourceUrl:BIST_VIOP_MARKET_MAKING_URL,contractSourceUrl:ALNUS_VIOP_URL,
   marginSourceUrl:OYAK_VIOP_MARGIN_URL,psrSourceUrl:DENIZ_VIOP_PSR_URL,asOf:new Date(cache.at).toISOString(),
   warning:"Pay VİOP başlangıç teminatı sabit tutar bulunamazsa güncel referans fiyat × kontrat büyüklüğü × PSR oranı ile hesaplanır. Sürdürme teminatı %75 olarak gösterilir; işlem öncesi kurum ekranı teyit edilmelidir."
  });
 });
+app.get("/api/viop/quote",async(req,res)=>{
+ try{
+  const underlying=normalizeUnderlyingName(req.query.underlying||"");
+  const contractCode=String(req.query.contract||"").trim().toUpperCase();
+  if(!underlying&&!contractCode)return res.status(400).json({error:"underlying veya contract gerekli"});
+  const cache=await getViopContracts(req.query.refresh==="1");
+  let contract=contractCode?cache.contracts.find(c=>String(c.code).toUpperCase()===contractCode):null;
+  if(!contract&&underlying){
+   contract=cache.contracts.filter(c=>normalizeUnderlyingName(c.underlying)===underlying)
+    .sort((a,b)=>String(a.sortDate||"9999").localeCompare(String(b.sortDate||"9999")))
+    .find(c=>c.isActive!==false);
+  }
+  if(contract?.marketPrice){
+   return res.json({
+    underlying:contract.underlying,contract:contract.code,price:contract.marketPrice,
+    referencePrice:contract.referencePrice||contract.marketPrice,initialMargin:contract.initialMargin,
+    maintenanceMargin:contract.maintenanceMargin,marginRate:contract.marginRate,
+    source:contract.priceSource||"İş Yatırım VİOP piyasa tablosu",exactContract:true
+   });
+  }
+  const ref=await fetchBistSpotReference(underlying||contract?.underlying);
+  if(!ref)return res.status(404).json({error:"Referans fiyat bulunamadı"});
+  const size=Number(contract?.contractSize)||contractSizeForUnderlying(underlying||contract?.underlying);
+  const psr=Number(contract?.marginRate)||0;
+  const initial=Number(contract?.initialMargin)||(psr>0?ref.price*size*psr/100:null);
+  res.json({
+   underlying:underlying||contract?.underlying,contract:contract?.code||null,price:null,
+   referencePrice:ref.price,initialMargin:initial,
+   maintenanceMargin:initial?initial*.75:null,marginRate:psr,
+   source:`${ref.source} spot referansı`,exactContract:false
+  });
+ }catch(error){res.status(502).json({error:error.message||"VİOP fiyatı alınamadı"})}
+});
+
 app.get("/api/viop/search",async(req,res)=>{
  const q=String(req.query.q||"").trim().toUpperCase();
  if(!q)return res.json({items:[]});
@@ -2019,6 +2136,8 @@ const AMP_FUTURES_MARGIN_URL="https://www.ampfutures.com/trading-info/margins";
 const GLOBAL_FUTURES_CATALOG=[
  {id:"GC",code:"GC",name:"Gold Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"GC=F",tradingViewSymbol:"COMEX:GC1!",multiplier:100,marginRate:9,quoteCurrency:"USD",marginCurrency:"USD"},
  {id:"MGC",code:"MGC",name:"Micro Gold Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"MGC=F",tradingViewSymbol:"COMEX:MGC1!",multiplier:10,marginRate:9,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"QO",code:"QO",name:"E-mini Gold Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"QO=F",priceProxySymbol:"GC=F",tradingViewSymbol:"COMEX:QO1!",multiplier:50,marginRate:9,quoteCurrency:"USD",marginCurrency:"USD"},
+ {id:"1OZ",code:"1OZ",name:"1-Ounce Gold Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"GC=F",priceProxySymbol:"GC=F",tradingViewSymbol:"COMEX:1OZ1!",multiplier:1,marginRate:9,quoteCurrency:"USD",marginCurrency:"USD"},
  {id:"SI",code:"SI",name:"Silver Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"SI=F",tradingViewSymbol:"COMEX:SI1!",multiplier:5000,marginRate:18,quoteCurrency:"USD",marginCurrency:"USD"},
  {id:"SIL",code:"SIL",name:"Micro Silver Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"SIL=F",tradingViewSymbol:"COMEX:SIL1!",multiplier:1000,marginRate:18,quoteCurrency:"USD",marginCurrency:"USD"},
  {id:"HG",code:"HG",name:"Copper Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"HG=F",tradingViewSymbol:"COMEX:HG1!",multiplier:25000,marginRate:12,quoteCurrency:"USD",marginCurrency:"USD"},
@@ -2107,12 +2226,47 @@ function parseAmpMarginRows(html){
  }
  return map;
 }
+function globalFutureAliases(item){
+ const code=String(item.code||"").toUpperCase();
+ const group=String(item.group||"");
+ const aliases=[];
+ if(["GC","MGC","QO","1OZ"].includes(code))aliases.push("gold","gold futures","altın","altin","comex gold","precious metal");
+ if(code==="GC")aliases.push("standard gold","100 oz gold","100 ounce gold");
+ if(code==="MGC")aliases.push("micro gold","10 oz gold","10 ounce gold");
+ if(code==="QO")aliases.push("e-mini gold","mini gold","50 oz gold","50 ounce gold");
+ if(code==="1OZ")aliases.push("one ounce gold","1 ounce gold","1 oz gold");
+ if(code==="HG")aliases.push("copper","bakır","bakir","copper futures");
+ if(["SI","SIL"].includes(code))aliases.push("silver","gümüş","gumus");
+ if(["CL","MCL"].includes(code))aliases.push("crude oil","oil","petrol","wti");
+ if(code==="NG")aliases.push("natural gas","doğal gaz","dogal gaz");
+ if(group==="Rates")aliases.push("bond","treasury","tahvil","faiz");
+ if(group==="Equity Index")aliases.push("index","endeks");
+ return aliases;
+}
+function foldGlobalFutureSearch(value){
+ return String(value||"").toLocaleLowerCase("tr-TR")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .replace(/ı/g,"i").replace(/ş/g,"s").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ö/g,"o").replace(/ç/g,"c");
+}
+function globalFutureSearchScore(item,query){
+ const q=foldGlobalFutureSearch(query),code=foldGlobalFutureSearch(item.code),name=foldGlobalFutureSearch(item.name);
+ const group=foldGlobalFutureSearch(item.group),aliases=globalFutureAliases(item).map(foldGlobalFutureSearch);
+ if(code===q)return 0;
+ if(code.startsWith(q))return 1;
+ if(name.startsWith(q))return 2;
+ if(name.includes(q))return 3;
+ if(aliases.some(alias=>alias===q||alias.startsWith(q)))return 4;
+ if(aliases.some(alias=>alias.includes(q)))return 5;
+ if(group.includes(q))return 6;
+ return 99;
+}
+
 async function getGlobalFutures(force=false){
  if(!force&&globalFuturesCache.contracts.length&&Date.now()-globalFuturesCache.at<10*60*1000)return globalFuturesCache;
  let tradeMasterSpecs=new Map(),ampMargins=new Map(),errors=[];
  try{tradeMasterSpecs=parseTradeMasterFuturesRows(await fetchPublicText(TRADEMASTER_FUTURES_SPECS_URL,30000))}catch(err){errors.push(`TradeMaster: ${err.message}`)}
  try{ampMargins=parseAmpMarginRows(await fetchPublicText(AMP_FUTURES_MARGIN_URL,30000))}catch(err){errors.push(`AMP: ${err.message}`)}
- const settled=await Promise.allSettled(GLOBAL_FUTURES_CATALOG.map(item=>fetchYahooChart(item.yahooSymbol)));
+ const settled=await Promise.allSettled(GLOBAL_FUTURES_CATALOG.map(item=>fetchYahooChart(item.yahooSymbol||item.priceProxySymbol)));
  const contracts=GLOBAL_FUTURES_CATALOG.map((item,index)=>{
   const quote=settled[index].status==="fulfilled"?settled[index].value:null;
   const price=quote?.price??null,tm=tradeMasterSpecs.get(item.id),amp=ampMargins.get(item.id);
@@ -2122,7 +2276,8 @@ async function getGlobalFutures(force=false){
   const maintenance=(tm?.maintenance&&tm.maintenance>0)?tm.maintenance:(amp?.maintenance??(initial!=null?initial*.9:null));
   const marginSource=(tm?.initial||tm?.maintenance)?tm.source:(amp?.source??`Notional × %${item.marginRate} risk tahmini`);
   return{
-   ...item,multiplier,quoteCurrency:quote?.currency||item.quoteCurrency,marginCurrency:tm?.currency||item.marginCurrency,
+   ...item,multiplier,aliases:globalFutureAliases(item),
+   quoteCurrency:quote?.currency||item.quoteCurrency,marginCurrency:tm?.currency||item.marginCurrency,
    price,changePercent:quote?.changePercent??null,delayed:true,
    initialMargin:initial,maintenanceMargin:maintenance,
    marginSource,marginEstimated:!(tm?.initial||tm?.maintenance||amp),priceTime:quote?.marketTime??null
@@ -2141,12 +2296,17 @@ app.get("/api/global-futures/contracts",async(req,res)=>{
  });
 });
 app.get("/api/global-futures/search",async(req,res)=>{
- const q=String(req.query.q||"").trim().toUpperCase();
+ const q=String(req.query.q||"").trim();
  const cache=await getGlobalFutures(false);
- const items=cache.contracts.filter(x=>!q||x.code.startsWith(q)||x.name.toUpperCase().includes(q)||x.group.toUpperCase().includes(q)).slice(0,60)
-  .map(x=>({
+ const items=cache.contracts
+  .map(x=>({item:x,score:q?globalFutureSearchScore(x,q):0}))
+  .filter(row=>row.score<99)
+  .sort((a,b)=>a.score-b.score||String(a.item.code).localeCompare(String(b.item.code)))
+  .slice(0,60)
+  .map(({item:x})=>({
    ...x,symbol:x.code,yahooSymbol:x.yahooSymbol,type:`Yurtdışı Futures · ${x.group}`,
-   exchange:x.exchange,source:"Yahoo + TradeMaster/AMP",globalFutureId:x.id,futuresContract:x.code
+   exchange:x.exchange,aliases:x.aliases||globalFutureAliases(x),
+   source:"Yahoo + TradeMaster/AMP + CME catalog",globalFutureId:x.id,futuresContract:x.code
   }));
  res.json({query:q,count:items.length,items,live:cache.live});
 });
