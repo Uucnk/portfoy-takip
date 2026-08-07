@@ -1,19 +1,20 @@
 {
-  "version": "7.7",
+  "version": "7.8",
   "validated": true,
   "features": [
-    "Portfolio UI removed",
-    "Model Portfolio only order terminal",
-    "commissions deducted from main cash",
-    "realized VIOP P/L credited to collateral",
-    "live VIOP P/L included in collateral equity",
-    "daily TLREF-linked nema accrual",
-    "Takasbank repo allocation proxy fallback",
-    "TCMB annual reference fallback",
-    "main cash and VIOP cash statement",
-    "single-day and date-range statement filters",
-    "automatic cloud persistence"
+    "Portfolio Management System main section",
+    "Track Record moved from Model Portfolio to PMS",
+    "Benchmark comparisons moved to PMS",
+    "professional performance and risk metrics",
+    "rolling Sharpe",
+    "rolling Sortino",
+    "rolling Alpha",
+    "rolling Beta",
+    "equity versus benchmark chart",
+    "drawdown chart",
+    "trade quality analytics",
+    "historical VaR and CVaR"
   ],
-  "app_sha256": "0d05f207a28b20c6a8a86ccea22d57a77d9bbafce02060d6b7ea6d58719142d5",
+  "app_sha256": "332fc93495e427c5740f6875a67654c505d9c12a7dce583530c34b82b4fc916f",
   "server_sha256": "56906631fae5d5b31257aa9977e64583485f44f0eea1a45381a548d467c7028e"
 }
