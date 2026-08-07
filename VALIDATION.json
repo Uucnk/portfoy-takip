@@ -1,20 +1,20 @@
 {
-  "version": "8.0",
+  "version": "8.1",
   "validated": true,
   "features": [
-    "Composite policy benchmark",
-    "BIST 100 strategic sleeve",
-    "S&P 500 strategic sleeve",
-    "Gold strategic sleeve",
-    "Bond strategic sleeve",
-    "TRY base-currency conversion",
-    "automatic initial strategic weights",
-    "manual strategic weight override",
-    "monthly quarterly annual rebalancing",
-    "holding-period composite benchmark matching",
-    "composite rolling alpha and beta",
-    "composite attribution integration"
+    "native instrument currency enforcement",
+    "multi-currency cash wallets",
+    "FX exchange panel",
+    "manual FX spread and fixed fee",
+    "Yahoo delayed FX rates",
+    "TRY mark-to-market portfolio equity",
+    "position FX P/L decomposition",
+    "TradeMaster futures specs priority",
+    "AMP margin fallback",
+    "Yahoo delayed global futures prices",
+    "native-currency futures collateral validation",
+    "multi-currency cash statement"
   ],
-  "app_sha256": "dce9120222c8d5e765e774b100e6cd61adf2b54ee127124de9abcf785f522c6f",
-  "server_sha256": "88538146edf3f75e7fb16e0d1c8c7b35b9949b16294d6836ef621f4d2cdfce3a"
+  "app_sha256": "2717b4e30a04c84dae9c1c989aa1102b9067cc8b0b5c1cc0fee08a9884615b39",
+  "server_sha256": "855106f9a883d7beee96886f480da5930c628f6fa4276e285a80c7be1e980169"
 }
