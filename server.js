@@ -2349,11 +2349,12 @@ async function pmsHistorySeries(symbol,range="1y"){
  if(!response.ok)throw new Error(`Yahoo chart HTTP ${response.status}`);
  const json=await response.json(),result=json?.chart?.result?.[0];
  if(!result)throw new Error(json?.chart?.error?.description||"Geçmiş fiyat bulunamadı");
- const quote=result.indicators?.quote?.[0]||{},timestamps=result.timestamp||[],closes=quote.close||[],volumes=quote.volume||[];
+ const quote=result.indicators?.quote?.[0]||{},adjusted=result.indicators?.adjclose?.[0]?.adjclose||[],timestamps=result.timestamp||[],closes=quote.close||[],volumes=quote.volume||[];
  const rows=[];
  for(let i=0;i<timestamps.length;i++){
   const close=Number(closes[i]);if(!Number.isFinite(close)||close<=0)continue;
-  rows.push({date:new Date(Number(timestamps[i])*1000).toISOString().slice(0,10),close,volume:Number.isFinite(Number(volumes[i]))?Number(volumes[i]):null});
+  const adjustedClose=Number(adjusted[i]);
+  rows.push({date:new Date(Number(timestamps[i])*1000).toISOString().slice(0,10),close,adjustedClose:Number.isFinite(adjustedClose)&&adjustedClose>0?adjustedClose:close,volume:Number.isFinite(Number(volumes[i]))?Number(volumes[i]):null});
  }
  return{symbol,currency:result.meta?.currency||"",price:rows.at(-1)?.close??result.meta?.regularMarketPrice??null,rows};
 }
@@ -2376,7 +2377,8 @@ async function pmsAssetSnapshot(symbol){
 function pmsReturnMap(series){
  const map=new Map(),rows=series?.rows||[];
  for(let i=1;i<rows.length;i++){
-  const a=rows[i-1].close,b=rows[i].close;if(a>0&&b>0)map.set(rows[i].date,b/a-1);
+  const a=Number(rows[i-1].adjustedClose??rows[i-1].close),b=Number(rows[i].adjustedClose??rows[i].close);
+  if(a>0&&b>0)map.set(rows[i].date,b/a-1);
  }
  return map;
 }
@@ -2426,6 +2428,99 @@ function pmsHealthComment(overall,diversification,liquidity,risk){
  if(!rows.length)return"Canlı piyasa coverage yetersiz olduğu için sağlık yorumu üretilemedi.";
  return`Portföy sağlığı ${overall.toFixed(0)}/100 ile ${label} bölgede. En güçlü bileşen ${strong[0]} (${strong[1].toFixed(0)}/100), geliştirilmesi en çok gereken alan ${weak[0]} (${weak[1].toFixed(0)}/100). Skorlar portföy yapısını değerlendirir; beklenen getiriyi tahmin etmez.`;
 }
+
+async function pmsCachedHistory(symbol,range="10y"){
+ const key=`pmsbench:${symbol}:${range}`,cached=pmsLiveCache.get(key);
+ if(cached&&Date.now()-cached.at<30*60*1000)return cached.data;
+ const data=await pmsHistorySeries(symbol,range);
+ pmsLiveCache.set(key,{at:Date.now(),data});return data;
+}
+function pmsPolicyPeriodKey(date,frequency){
+ const [y,m]=String(date).split("-").map(Number);
+ if(frequency==="monthly")return`${y}-${String(m).padStart(2,"0")}`;
+ if(frequency==="annual")return String(y);
+ return`${y}-Q${Math.floor((m-1)/3)+1}`;
+}
+function pmsPolicyNormalizeWeights(input){
+ const raw={
+  bist:Math.max(0,Number(input?.bist)||0),sp500:Math.max(0,Number(input?.sp500)||0),
+  gold:Math.max(0,Number(input?.gold)||0),bond:Math.max(0,Number(input?.bond)||0)
+ };
+ const total=raw.bist+raw.sp500+raw.gold+raw.bond;
+ if(total<=0)return{bist:.25,sp500:.25,gold:.25,bond:.25};
+ return Object.fromEntries(Object.entries(raw).map(([k,v])=>[k,v/total]));
+}
+function pmsSeriesPriceMap(series,adjusted=false){
+ return new Map((series?.rows||[]).map(row=>[row.date,Number(adjusted?(row.adjustedClose??row.close):row.close)]).filter(([,v])=>Number.isFinite(v)&&v>0));
+}
+function pmsCompositeIndexAtServer(history,date){
+ if(!date||!history.length)return null;
+ let lo=0,hi=history.length-1,best=null;
+ while(lo<=hi){const mid=(lo+hi)>>1,row=history[mid];if(row.date<=date){best=row;lo=mid+1}else hi=mid-1}
+ return best?.index??null;
+}
+async function pmsCompositeBenchmark(config={},modelStartDate=""){
+ const weights=pmsPolicyNormalizeWeights(config?.weights),rebalance=["monthly","quarterly","annual"].includes(config?.rebalance)?config.rebalance:"quarterly";
+ const [bist,sp500,gold,bond,usdtry]=await Promise.all([
+  pmsCachedHistory("XU100.IS","10y"),
+  pmsCachedHistory("SPY","10y"),
+  pmsCachedHistory("GC=F","10y"),
+  pmsCachedHistory("AGG","10y"),
+  pmsCachedHistory("TRY=X","10y")
+ ]);
+ const maps={
+  bist:pmsSeriesPriceMap(bist,false),
+  sp500:pmsSeriesPriceMap(sp500,true),
+  gold:pmsSeriesPriceMap(gold,false),
+  bond:pmsSeriesPriceMap(bond,true),
+  fx:pmsSeriesPriceMap(usdtry,false)
+ };
+ const dates=[...new Set([...maps.bist.keys(),...maps.sp500.keys(),...maps.gold.keys(),...maps.bond.keys(),...maps.fx.keys()])].sort();
+ const last={bist:null,sp500:null,gold:null,bond:null,fx:null},previousLevel={bist:null,sp500:null,gold:null,bond:null};
+ let sleeves=null,previousIndex=null,previousPeriod=null;
+ const history=[];
+ for(const date of dates){
+  for(const key of ["bist","sp500","gold","bond","fx"]){const value=maps[key].get(date);if(Number.isFinite(value)&&value>0)last[key]=value}
+  if(!last.bist||!last.sp500||!last.gold||!last.bond||!last.fx)continue;
+  const levels={
+   bist:last.bist,
+   sp500:last.sp500*last.fx,
+   gold:last.gold*last.fx,
+   bond:last.bond*last.fx
+  };
+  if(!previousLevel.bist){
+   previousLevel.bist=levels.bist;previousLevel.sp500=levels.sp500;previousLevel.gold=levels.gold;previousLevel.bond=levels.bond;
+   sleeves={bist:100*weights.bist,sp500:100*weights.sp500,gold:100*weights.gold,bond:100*weights.bond};
+   previousIndex=100;previousPeriod=pmsPolicyPeriodKey(date,rebalance);
+   history.push({date,index:100,dailyReturn:0,components:{...levels}});
+   continue;
+  }
+  const period=pmsPolicyPeriodKey(date,rebalance);
+  if(period!==previousPeriod){
+   const total=Object.values(sleeves).reduce((a,b)=>a+b,0);
+   sleeves={bist:total*weights.bist,sp500:total*weights.sp500,gold:total*weights.gold,bond:total*weights.bond};
+   previousPeriod=period;
+  }
+  const componentReturns={};
+  for(const key of ["bist","sp500","gold","bond"]){
+   componentReturns[key]=previousLevel[key]>0?levels[key]/previousLevel[key]-1:0;
+   sleeves[key]*=1+componentReturns[key];previousLevel[key]=levels[key];
+  }
+  const index=Object.values(sleeves).reduce((a,b)=>a+b,0),dailyReturn=previousIndex>0?index/previousIndex-1:0;
+  history.push({date,index,dailyReturn,components:{...levels},componentReturns});
+  previousIndex=index;
+ }
+ if(!history.length)throw new Error("Composite benchmark geçmişi oluşturulamadı.");
+ const valueDate=history.at(-1).date,indexLevel=history.at(-1).index;
+ const ytdStart=`${valueDate.slice(0,4)}-01-01`,ytdBase=pmsCompositeIndexAtServer(history,ytdStart),ytd=ytdBase?indexLevel/ytdBase-1:null;
+ const modelBase=modelStartDate?pmsCompositeIndexAtServer(history,String(modelStartDate).slice(0,10)):history[0].index;
+ const sinceModelStart=modelBase?indexLevel/modelBase-1:null;
+ return{
+  source:"Yahoo Finance delayed · XU100.IS + SPY Adj Close + GC=F + AGG Adj Close + TRY=X",
+  baseCurrency:"TRY",rebalance,weights,valueDate,indexLevel,ytd,sinceModelStart,history
+ };
+}
+
 async function pmsMarketRegime(){
  const [spx,vix,hyg,ief]=await Promise.all([
   pmsHistorySeries("^GSPC","5y"),pmsHistorySeries("^VIX","5y"),pmsHistorySeries("HYG","5y"),pmsHistorySeries("IEF","5y")
@@ -2543,7 +2638,10 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
   }
   factorExposure.coverage=factorCoverageWeight*100;factorExposure.sectors=sectors;
 
-  const regime=await pmsMarketRegime();
+  const [regime,compositeBenchmark]=await Promise.all([
+   pmsMarketRegime(),
+   pmsCompositeBenchmark(req.body?.benchmark||{},req.body?.modelStartDate||"")
+  ]);
   res.set("Cache-Control","no-store");
   res.json({
    fetchedAt:new Date().toISOString(),
@@ -2552,7 +2650,8 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
    risk:{portfolioVolatility,coverage:riskCoverage,rows:riskRows},
    portfolioHealth:{overall,diversification,liquidity,risk,coverage,comment:pmsHealthComment(overall,diversification,liquidity,risk),effectivePositions:effN,maxWeight:maxW,stopCoverage,leverage},
    factorExposure,
-   regime
+   regime,
+   compositeBenchmark
   });
  }catch(error){
   console.error("PMS live analytics error:",error);
