@@ -1,22 +1,18 @@
 {
-  "version": "8.2-clean",
-  "base": "8.1",
+  "version": "8.2.1",
+  "base": "8.2-clean",
   "validated": true,
-  "model_portfolio_unchanged": true,
-  "model_cash_statement_preserved": true,
-  "model_submenu_items": [
-    "Reports"
+  "fixes": [
+    "ODAS and official BIST pay futures universe searchable",
+    "Borsa Istanbul official VIOP underlying source + fallback",
+    "missing VIOP contracts synthesized for near expiries",
+    "lazy margin/reference-price hydration",
+    "Model Portfolio sidebar matches Markets style",
+    "boxed Model Portfolio arrow removed",
+    "Model Portfolio blue active fill removed",
+    "Reports remains the only Model Portfolio submenu"
   ],
-  "features": [
-    "Reports-only Model Portfolio submenu",
-    "Model Portfolio main button preserved",
-    "v8.1 Cash Statement preserved",
-    "Cash Flow report",
-    "Transactions report",
-    "Account Movements report",
-    "Commission History report",
-    "historical filters"
-  ],
-  "app_sha256": "e949e7e6b1e24fa211ba173eaaff33adcd5d9db2dc97d30e6c1bd454a90a1450",
-  "server_sha256": "855106f9a883d7beee96886f480da5930c628f6fa4276e285a80c7be1e980169"
+  "official_pay_underlying_fallback_count": 48,
+  "app_sha256": "788fdeade609f13c28ece9e96eabd81d169df67117fac18822b9695df7b7b023",
+  "server_sha256": "266276123a23267cbd1745a1b90918e779a8c5843c7e7717e13e31a762d529f8"
 }
