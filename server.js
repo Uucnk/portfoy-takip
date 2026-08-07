@@ -800,6 +800,7 @@ async function searchYahooProducts(query){
   name:q.longname||q.shortname||q.symbol,
   type:q.quoteType||q.typeDisp||"Ürün",
   exchange:q.exchDisp||q.exchange||"",
+  currency:q.currency||null,
   source:"Yahoo Finance"
  })).filter(x=>x.symbol);
  yahooSearchCache.set(key,{at:Date.now(),items});
@@ -1945,6 +1946,7 @@ app.get("/api/viop/search",async(req,res)=>{
 });
 
 
+const TRADEMASTER_FUTURES_SPECS_URL="https://trademaster.com.tr/yurtdisi/vadeli-islem-kontrat-ozellik-listesi";
 const AMP_FUTURES_MARGIN_URL="https://www.ampfutures.com/trading-info/margins";
 const GLOBAL_FUTURES_CATALOG=[
  {id:"GC",code:"GC",name:"Gold Futures",group:"Metals",exchange:"COMEX",yahooSymbol:"GC=F",tradingViewSymbol:"COMEX:GC1!",multiplier:100,marginRate:9,quoteCurrency:"USD",marginCurrency:"USD"},
@@ -1992,6 +1994,35 @@ const GLOBAL_FUTURES_CATALOG=[
 ];
 let globalFuturesCache={at:0,contracts:[],live:false,error:null};
 
+function normalizedHeader(value=""){
+ return decodeBasicHtml(value).toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ı/g,"i").replace(/ş/g,"s").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ö/g,"o").replace(/ç/g,"c");
+}
+function parseTradeMasterFuturesRows(html){
+ const map=new Map();
+ for(const table of String(html||"").matchAll(/<table[^>]*>([\s\S]*?)<\/table>/gi)){
+  const rows=[...table[1].matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)].map(row=>[...row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x=>decodeBasicHtml(x[1])));
+  if(rows.length<2)continue;
+  const headers=rows[0].map(normalizedHeader);
+  const codeIx=headers.findIndex(x=>/kod|sembol|kontrat/.test(x));
+  const initIx=headers.findIndex(x=>/baslangic.*teminat|initial.*margin/.test(x));
+  const maintIx=headers.findIndex(x=>/surdurme.*teminat|maintenance.*margin/.test(x));
+  const multIx=headers.findIndex(x=>/lot.*buyuk|kontrat.*buyuk|carpan|multiplier/.test(x));
+  const curIx=headers.findIndex(x=>/para.*birimi|currency|teminat.*para/.test(x));
+  for(const cells of rows.slice(1)){
+   const text=cells.join(" ").toUpperCase();
+   const item=GLOBAL_FUTURES_CATALOG.find(x=>{
+    const code=String(cells[codeIx]||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    return code===x.code||new RegExp(`(^|[^A-Z0-9])${x.code}([^A-Z0-9]|$)`).test(text)||text.includes(x.name.toUpperCase());
+   });
+   if(!item)continue;
+   const initial=initIx>=0?trNumber(cells[initIx]):null,maintenance=maintIx>=0?trNumber(cells[maintIx]):null,multiplier=multIx>=0?trNumber(cells[multIx]):null;
+   const currency=curIx>=0?String(cells[curIx]||"").toUpperCase().match(/\b(USD|EUR|GBP|CHF|JPY|CAD|AUD|HKD|CNY)\b/)?.[1]:null;
+   map.set(item.id,{initial,maintenance,multiplier,currency,source:"TradeMaster International kontrat özellik listesi",estimated:false});
+  }
+ }
+ return map;
+}
+
 function parseAmpMarginRows(html){
  const map=new Map();
  for(const row of String(html||"").matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)){
@@ -2010,23 +2041,26 @@ function parseAmpMarginRows(html){
 }
 async function getGlobalFutures(force=false){
  if(!force&&globalFuturesCache.contracts.length&&Date.now()-globalFuturesCache.at<10*60*1000)return globalFuturesCache;
- let ampMargins=new Map(),error=null;
- try{ampMargins=parseAmpMarginRows(await fetchPublicText(AMP_FUTURES_MARGIN_URL,30000))}catch(err){error=err.message}
+ let tradeMasterSpecs=new Map(),ampMargins=new Map(),errors=[];
+ try{tradeMasterSpecs=parseTradeMasterFuturesRows(await fetchPublicText(TRADEMASTER_FUTURES_SPECS_URL,30000))}catch(err){errors.push(`TradeMaster: ${err.message}`)}
+ try{ampMargins=parseAmpMarginRows(await fetchPublicText(AMP_FUTURES_MARGIN_URL,30000))}catch(err){errors.push(`AMP: ${err.message}`)}
  const settled=await Promise.allSettled(GLOBAL_FUTURES_CATALOG.map(item=>fetchYahooChart(item.yahooSymbol)));
  const contracts=GLOBAL_FUTURES_CATALOG.map((item,index)=>{
   const quote=settled[index].status==="fulfilled"?settled[index].value:null;
-  const price=quote?.price??null,amp=ampMargins.get(item.id);
-  const calculated=price!=null?Math.abs(price*item.multiplier*item.marginRate/100):null;
-  const initial=amp?.initial??calculated;
-  const maintenance=amp?.maintenance??(initial!=null?initial*.9:null);
+  const price=quote?.price??null,tm=tradeMasterSpecs.get(item.id),amp=ampMargins.get(item.id);
+  const multiplier=tm?.multiplier||item.multiplier;
+  const calculated=price!=null?Math.abs(price*multiplier*item.marginRate/100):null;
+  const initial=(tm?.initial&&tm.initial>0)?tm.initial:(amp?.initial??calculated);
+  const maintenance=(tm?.maintenance&&tm.maintenance>0)?tm.maintenance:(amp?.maintenance??(initial!=null?initial*.9:null));
+  const marginSource=(tm?.initial||tm?.maintenance)?tm.source:(amp?.source??`Notional × %${item.marginRate} risk tahmini`);
   return{
-   ...item,price,changePercent:quote?.changePercent??null,delayed:true,
+   ...item,multiplier,quoteCurrency:quote?.currency||item.quoteCurrency,marginCurrency:tm?.currency||item.marginCurrency,
+   price,changePercent:quote?.changePercent??null,delayed:true,
    initialMargin:initial,maintenanceMargin:maintenance,
-   marginSource:amp?.source??`Notional × %${item.marginRate} risk tahmini`,
-   marginEstimated:!amp,priceTime:quote?.marketTime??null
+   marginSource,marginEstimated:!(tm?.initial||tm?.maintenance||amp),priceTime:quote?.marketTime??null
   };
  });
- globalFuturesCache={at:Date.now(),contracts,live:contracts.some(x=>x.price!=null),error,ampCount:ampMargins.size};
+ globalFuturesCache={at:Date.now(),contracts,live:contracts.some(x=>x.price!=null),error:errors.join(" · ")||null,tradeMasterCount:tradeMasterSpecs.size,ampCount:ampMargins.size};
  return globalFuturesCache;
 }
 app.get("/api/global-futures/contracts",async(req,res)=>{
@@ -2034,8 +2068,8 @@ app.get("/api/global-futures/contracts",async(req,res)=>{
  res.set("Cache-Control","public, max-age=120, s-maxage=120");
  res.json({
   contracts:cache.contracts,live:cache.live,error:cache.error,
-  sourceLabel:`Yahoo gecikmeli fiyat + ${cache.ampCount?"AMP maintenance":"CME tarzı risk oranı tahmini"}`,
-  sourceUrl:AMP_FUTURES_MARGIN_URL,asOf:new Date(cache.at).toISOString()
+  sourceLabel:`Yahoo gecikmeli fiyat + ${cache.tradeMasterCount?`TradeMaster specs (${cache.tradeMasterCount}) + `:""}${cache.ampCount?"AMP margin":"risk oranı tahmini"}`,
+  sourceUrl:TRADEMASTER_FUTURES_SPECS_URL,fallbackSourceUrl:AMP_FUTURES_MARGIN_URL,asOf:new Date(cache.at).toISOString()
  });
 });
 app.get("/api/global-futures/search",async(req,res)=>{
@@ -2044,7 +2078,7 @@ app.get("/api/global-futures/search",async(req,res)=>{
  const items=cache.contracts.filter(x=>!q||x.code.startsWith(q)||x.name.toUpperCase().includes(q)||x.group.toUpperCase().includes(q)).slice(0,60)
   .map(x=>({
    ...x,symbol:x.code,yahooSymbol:x.yahooSymbol,type:`Yurtdışı Futures · ${x.group}`,
-   exchange:x.exchange,source:"Yahoo + AMP/CME",globalFutureId:x.id,futuresContract:x.code
+   exchange:x.exchange,source:"Yahoo + TradeMaster/AMP",globalFutureId:x.id,futuresContract:x.code
   }));
  res.json({query:q,count:items.length,items,live:cache.live});
 });
@@ -2661,6 +2695,32 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "portfolio-tracker", databaseConfigured: Boolean(DATABASE_URL), databaseReady });
+});
+
+
+const FX_RATE_SYMBOLS={
+ USD:"TRY=X",EUR:"EURTRY=X",GBP:"GBPTRY=X",CHF:"CHFTRY=X",JPY:"JPYTRY=X",
+ CAD:"CADTRY=X",AUD:"AUDTRY=X",HKD:"HKDTRY=X",CNY:"CNYTRY=X"
+};
+let fxRateCache={at:0,rates:null};
+app.get("/api/fx/rates",async(req,res)=>{
+ try{
+  if(req.query.refresh!=="1"&&fxRateCache.rates&&Date.now()-fxRateCache.at<30*1000){
+   return res.json({source:"Yahoo Finance delayed FX",fetchedAt:new Date(fxRateCache.at).toISOString(),rates:fxRateCache.rates});
+  }
+  const entries=Object.entries(FX_RATE_SYMBOLS);
+  const settled=await Promise.allSettled(entries.map(([,symbol])=>fetchYahooChart(symbol)));
+  const rates={TRY:{rate:1,symbol:"TRY",marketTime:new Date().toISOString(),delay:0}};
+  settled.forEach((result,index)=>{
+   const [currency,symbol]=entries[index];
+   if(result.status==="fulfilled"&&Number.isFinite(Number(result.value?.price))&&Number(result.value.price)>0){
+    rates[currency]={rate:Number(result.value.price),symbol,marketTime:result.value.marketTime,delay:result.value.delay};
+   }
+  });
+  fxRateCache={at:Date.now(),rates};
+  res.set("Cache-Control","public, max-age=20, s-maxage=20");
+  res.json({source:"Yahoo Finance delayed FX",fetchedAt:new Date(fxRateCache.at).toISOString(),rates});
+ }catch(error){res.status(502).json({error:error.message||"FX kurları alınamadı"})}
 });
 
 app.get("/api/quotes", async (req, res) => {
