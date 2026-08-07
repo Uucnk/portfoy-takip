@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Model Portföy Takip · v7.7</title>
+<title>Model Portföy Takip · v7.8</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1332,8 +1332,62 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 @media(max-width:760px){.cashStatementFilterPanel{grid-template-columns:1fr 1fr}.cashStatementSummary{grid-template-columns:1fr 1fr}.viopBalanceGrid{grid-template-columns:repeat(2,minmax(130px,1fr))}}
 @media(max-width:480px){.modelFinanceGrid,.viopBalanceGrid,.cashStatementFilterPanel,.cashStatementSummary{grid-template-columns:1fr}}
 
+
+/* v7.8 Portfolio Management System */
+.pmsHeader{margin-bottom:10px;align-items:center}
+.pmsEyebrow{font-size:8px;letter-spacing:.16em;font-weight:900;color:#6ca9ed;text-transform:uppercase}
+.pmsHeader h2{font-size:24px;margin:4px 0 3px}
+.pmsHeaderStatus{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid #285a4c;background:#0d211c;border-radius:10px;color:#87d6b7;font-size:9px;font-weight:800}
+.pmsWorkspaceNav{display:flex;gap:6px;overflow-x:auto;margin:8px 0 12px;padding-bottom:3px}
+.pmsWorkspaceNav button{white-space:nowrap;padding:7px 11px;background:#0f1e2c;border:1px solid #29445b;color:#9eb4c8;font-size:9px;border-radius:8px}
+.pmsWorkspaceNav button.active{background:#173c68;border-color:#3e78b3;color:#fff}
+.pmsKpiGrid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:9px;margin-bottom:12px}
+.pmsKpi{padding:13px 14px;border-radius:10px;border:1px solid #29445b;background:linear-gradient(145deg,#0d1d2a,#0a1621);min-width:0}
+.pmsKpi span{display:block;color:#839ab0;font-size:8px;text-transform:uppercase;letter-spacing:.05em}
+.pmsKpi strong{display:block;color:#eff6fd;font-size:19px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmsKpi small{display:block;color:#678096;font-size:8px;margin-top:5px;line-height:1.35}
+.pmsSectionBlock{margin-top:14px;scroll-margin-top:65px}
+.pmsSectionTitle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.pmsSectionTitle h3{margin:3px 0 0;font-size:17px}
+.pmsBadge{display:inline-flex;padding:5px 8px;border-radius:12px;background:#102b43;border:1px solid #315a7b;color:#a9cff0;font-size:8px;font-weight:800}
+.pmsTrackGrid{margin-bottom:10px}
+.pmsMetricGrid{display:grid;grid-template-columns:repeat(4,minmax(145px,1fr));gap:8px}
+.pmsMetricCard{padding:11px;border:1px solid #294258;border-radius:9px;background:#0d1b28;min-width:0}
+.pmsMetricCard span{display:block;color:#8299af;font-size:8px;text-transform:uppercase}
+.pmsMetricCard strong{display:block;font-size:16px;color:#edf5fc;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmsMetricCard small{display:block;color:#667d93;font-size:8px;line-height:1.35;margin-top:4px}
+.pmsDataNotice{margin-top:8px;padding:9px 11px;border-radius:8px;border:1px solid #34495d;background:#101c27;color:#8197aa;font-size:8.5px;line-height:1.5}
+.pmsChartGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pmsChartPanel,.pmsRollingPanel{overflow:hidden}
+.pmsChartHead{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:8px}
+.pmsChartHead h3{font-size:12px;margin:0}
+.pmsChartHead span{display:block;color:#778ea4;font-size:8px;margin-top:3px}
+.pmsCanvas{display:block;width:100%;height:230px}
+.pmsRollingControls{display:flex;align-items:center;gap:7px}
+.pmsRollingControls label{font-size:8px;color:#8098ae}
+.pmsRollingControls select{height:32px;min-width:110px;font-size:9px}
+.pmsRollingLatest{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:8px;margin-bottom:9px}
+.pmsRollingLatest>div{padding:10px 11px;border:1px solid #2b455c;background:#0d1c29;border-radius:9px}
+.pmsRollingLatest span{display:block;color:#8198ae;font-size:8px;text-transform:uppercase}
+.pmsRollingLatest strong{display:block;font-size:17px;color:#eff6fd;margin-top:5px}
+.pmsRollingGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pmsRollingCanvas{display:block;width:100%;height:190px}
+.pmsPositive{color:#48dca9!important}.pmsNegative{color:#ff8293!important}
+@media(max-width:1150px){
+ .pmsKpiGrid,.pmsMetricGrid{grid-template-columns:repeat(2,minmax(145px,1fr))}
+}
+@media(max-width:850px){
+ .pmsChartGrid,.pmsRollingGrid{grid-template-columns:1fr}
+ .pmsRollingLatest{grid-template-columns:repeat(2,minmax(130px,1fr))}
+}
+@media(max-width:560px){
+ .pmsKpiGrid,.pmsMetricGrid,.pmsRollingLatest{grid-template-columns:1fr}
+ .pmsHeaderStatus{display:none}
+ .pmsCanvas{height:200px}.pmsRollingCanvas{height:175px}
+}
+
 </style>
-<meta name="portfolio-build" content="v7.7-model-only-nema-cash-ledger">
+<meta name="portfolio-build" content="v7.8-portfolio-management-system">
 </head>
 <body class="authLocked">
 
@@ -1410,6 +1464,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
   </div>
   <nav class="sidebarNav">
     <button class="sideMain active" data-side-tab="model"><span class="sideIcon">◫</span><span class="sideLabel">Model Portföy</span></button>
+    <button class="sideMain" data-side-tab="pms"><span class="sideIcon">◈</span><span class="sideLabel">Portfolio Management System (PMS)</span></button>
     <div class="sideGroup">
       <button class="sideMain sideExpandable expanded" data-side-tab="markets" id="marketsSideButton"><span class="sideIcon">▦</span><span class="sideLabel">Markets</span><span class="sideChevron">⌄</span></button>
       <div id="marketsSubmenu" class="sideSubmenu open">
@@ -1545,6 +1600,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 
 <div class="tabs legacyTopTabs">
   <button class="tabBtn active" data-tab="model">Model Portföy</button>
+  <button class="tabBtn" data-tab="pms">Portfolio Management System (PMS)</button>
   <button class="tabBtn" data-tab="markets">Markets</button>
   <button class="tabBtn" data-tab="calendar">Calendar</button>
   <button class="tabBtn" data-tab="askai">Soru Sor</button>
@@ -1785,29 +1841,6 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     <div class="modelFinanceCard"><div class="k">VİOP Serbest Teminat</div><div class="v" id="mViopFreeMargin">0</div><div class="s">Güncel teminat özvarlığı eksi kullanılan başlangıç teminatı</div></div>
   </div>
 
-  <div class="trackGrid">
-    <div class="panel">
-      <h3>Otomatik Hesaplanan Track Record</h3>
-      <div class="metricRow"><span>Güncel Portföy Değeri</span><strong id="mValue">-</strong></div>
-      <div class="metricRow"><span>Toplam Getiri</span><strong id="mTotal">-</strong></div>
-      <div class="metricRow"><span>CAGR</span><strong id="mCagr">-</strong></div>
-      <div class="metricRow"><span>Sharpe</span><strong id="mSharpe">-</strong></div>
-      <div class="metricRow"><span>Sortino</span><strong id="mSortino">-</strong></div>
-      <div class="metricRow"><span>Max Drawdown</span><strong id="mDD">-</strong></div>
-      <div class="metricRow"><span>Beta</span><strong id="mBeta">-</strong></div>
-      <div class="metricRow"><span>Süre</span><strong id="mDuration">-</strong></div>
-    </div>
-    <div class="panel">
-      <h3>Benchmark Kıyasları</h3>
-      <div class="metricRow"><span>CAGR <span class="infoTip" data-tip="Bileşik yıllık büyüme oranıdır. Portföyün başlangıçtan sona yıllıklandırılmış ortalama büyümesini gösterir.">i</span></span><strong>%12–%18</strong></div>
-      <div class="metricRow"><span>Sharpe <span class="infoTip" data-tip="Portföyün risksiz faiz üzerindeki getirisini toplam volatilitesine böler. Daha yüksek değer, alınan risk başına daha iyi getiri anlamına gelir.">i</span></span><strong>1.5+</strong></div>
-      <div class="metricRow"><span>Sortino <span class="infoTip" data-tip="Sharpe oranına benzer; ancak yalnızca negatif oynaklığı risk kabul eder. Aşağı yönlü risk başına getiriyi ölçer.">i</span></span><strong>2.0+</strong></div>
-      <div class="metricRow"><span>Max Drawdown <span class="infoTip" data-tip="Portföy değerinin bir zirveden sonraki en düşük seviyeye kadar yaşadığı en büyük yüzdesel kayıptır.">i</span></span><strong>&lt;%15</strong></div>
-      <div class="metricRow"><span>Beta <span class="infoTip" data-tip="Portföyün benchmark hareketlerine duyarlılığını ölçer. 1 benchmark ile aynı, 1’in altı daha düşük sistematik risk anlamına gelir.">i</span></span><strong>&lt;0.70</strong></div>
-      <div class="metricRow"><span>Süre <span class="infoTip" data-tip="Track recordun kapsadığı zamandır. Daha uzun dönem, performansın farklı piyasa koşullarında değerlendirilmesini kolaylaştırır.">i</span></span><strong>3+ yıl</strong></div>
-    </div>
-  </div>
-
   <div id="modelFormPanel" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modelModalTitle"><div class="modalBox">
     <div class="modalHead"><h3 id="modelModalTitle">Model Portföye Pozisyon Ekle</h3><button type="button" class="secondary" id="closeModelForm">Kapat</button></div>
     <form id="modelForm">
@@ -2006,6 +2039,142 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     <div id="cashStatementTable"></div>
   </div>
 
+</section>
+
+
+<section id="pms" class="tab">
+  <div class="sectionHead pmsHeader">
+    <div>
+      <div class="pmsEyebrow">PORTFOLIO MANAGEMENT SYSTEM</div>
+      <h2>Portfolio Management System (PMS)</h2>
+      <div class="muted">Model Portföyde gerçekleşen işlemlerden otomatik üretilen performans, risk, benchmark ve rolling analytics terminali</div>
+    </div>
+    <div class="pmsHeaderStatus"><span class="headerCloudDot"></span><span>Model Portföy ile canlı senkron</span></div>
+  </div>
+
+  <div class="pmsWorkspaceNav">
+    <button type="button" class="active" data-pms-anchor="pmsOverview">Overview</button>
+    <button type="button" data-pms-anchor="pmsTrackRecord">Track Record</button>
+    <button type="button" data-pms-anchor="pmsBenchmark">Benchmark</button>
+    <button type="button" data-pms-anchor="pmsRolling">Rolling Metrics</button>
+    <button type="button" data-pms-anchor="pmsRisk">Risk & Trade Quality</button>
+  </div>
+
+  <div id="pmsOverview" class="pmsKpiGrid">
+    <div class="pmsKpi"><span>Güncel Portföy Değeri</span><strong id="pmsPortfolioValue">-</strong><small>Model Portföy özvarlığı</small></div>
+    <div class="pmsKpi"><span>Toplam Getiri</span><strong id="pmsTotalReturn">-</strong><small>Başlangıçtan bugüne</small></div>
+    <div class="pmsKpi"><span>CAGR</span><strong id="pmsCagr">-</strong><small>Yıllıklandırılmış bileşik getiri</small></div>
+    <div class="pmsKpi"><span>Annualized Volatility</span><strong id="pmsVolatility">-</strong><small>Trade-return volatilitesi</small></div>
+    <div class="pmsKpi"><span>Sharpe</span><strong id="pmsSharpe">-</strong><small>Toplam risk başına excess return</small></div>
+    <div class="pmsKpi"><span>Sortino</span><strong id="pmsSortino">-</strong><small>Aşağı yönlü risk başına getiri</small></div>
+    <div class="pmsKpi"><span>Max Drawdown</span><strong id="pmsMaxDrawdown">-</strong><small>Zirveden dip seviyeye maksimum kayıp</small></div>
+    <div class="pmsKpi"><span>Calmar</span><strong id="pmsCalmar">-</strong><small>CAGR / Max Drawdown</small></div>
+  </div>
+
+  <div id="pmsTrackRecord" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div><div class="pmsEyebrow">PERFORMANCE HISTORY</div><h3>Track Record</h3></div>
+      <span id="pmsTrackCoverage" class="pmsBadge">0 kapalı işlem</span>
+    </div>
+
+    <div class="trackGrid pmsTrackGrid">
+      <div class="panel">
+        <h3>Otomatik Hesaplanan Track Record</h3>
+        <div class="metricRow"><span>Güncel Portföy Değeri</span><strong id="mValue">-</strong></div>
+        <div class="metricRow"><span>Toplam Getiri</span><strong id="mTotal">-</strong></div>
+        <div class="metricRow"><span>CAGR</span><strong id="mCagr">-</strong></div>
+        <div class="metricRow"><span>Annualized Volatility</span><strong id="pmsTrackVolatility">-</strong></div>
+        <div class="metricRow"><span>Sharpe</span><strong id="mSharpe">-</strong></div>
+        <div class="metricRow"><span>Sortino</span><strong id="mSortino">-</strong></div>
+        <div class="metricRow"><span>Calmar</span><strong id="pmsTrackCalmar">-</strong></div>
+        <div class="metricRow"><span>Max Drawdown</span><strong id="mDD">-</strong></div>
+        <div class="metricRow"><span>Recovery Factor</span><strong id="pmsRecoveryFactor">-</strong></div>
+        <div class="metricRow"><span>Beta</span><strong id="mBeta">-</strong></div>
+        <div class="metricRow"><span>Süre</span><strong id="mDuration">-</strong></div>
+      </div>
+
+      <div class="panel">
+        <h3>Profesyonel Hedef Kıyasları</h3>
+        <div class="metricRow"><span>CAGR <span class="infoTip" data-tip="Bileşik yıllık büyüme oranıdır. Track recordun yıllıklandırılmış büyümesini gösterir.">i</span></span><strong>%12–%18</strong></div>
+        <div class="metricRow"><span>Sharpe <span class="infoTip" data-tip="Risksiz faiz üzerindeki getiriyi toplam volatiliteye böler. Daha yüksek değer risk başına daha güçlü performans anlamına gelir.">i</span></span><strong>1.5+</strong></div>
+        <div class="metricRow"><span>Sortino <span class="infoTip" data-tip="Yalnızca aşağı yönlü volatiliteyi risk kabul eder.">i</span></span><strong>2.0+</strong></div>
+        <div class="metricRow"><span>Max Drawdown <span class="infoTip" data-tip="Bir zirveden sonraki en büyük yüzdesel portföy kaybıdır.">i</span></span><strong>&lt;%15</strong></div>
+        <div class="metricRow"><span>Beta <span class="infoTip" data-tip="Portföyün benchmark hareketlerine duyarlılığıdır.">i</span></span><strong>&lt;0.70</strong></div>
+        <div class="metricRow"><span>Süre <span class="infoTip" data-tip="Daha uzun track record farklı piyasa rejimlerinde tutarlılığın değerlendirilmesini kolaylaştırır.">i</span></span><strong>3+ yıl</strong></div>
+      </div>
+    </div>
+
+    <div class="pmsChartGrid">
+      <div class="panel pmsChartPanel">
+        <div class="pmsChartHead"><div><h3>Equity Curve vs Benchmark</h3><span>Başlangıç değeri 100'e endekslenmiştir</span></div></div>
+        <canvas id="pmsEquityBenchmarkChart" class="pmsCanvas"></canvas>
+      </div>
+      <div class="panel pmsChartPanel">
+        <div class="pmsChartHead"><div><h3>Drawdown Profile</h3><span>Gerçekleşen kapalı işlemlerden hesaplanır</span></div></div>
+        <canvas id="pmsDrawdownChart" class="pmsCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div id="pmsBenchmark" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div><div class="pmsEyebrow">RELATIVE PERFORMANCE</div><h3>Benchmark Kıyasları</h3></div>
+      <span id="pmsBenchmarkCoverage" class="pmsBadge">Benchmark coverage %0</span>
+    </div>
+    <div class="pmsMetricGrid">
+      <div class="pmsMetricCard"><span>Portföy Getirisi*</span><strong id="pmsPairedPortfolioReturn">-</strong><small>Benchmark girilmiş işlemler</small></div>
+      <div class="pmsMetricCard"><span>Benchmark Getirisi*</span><strong id="pmsBenchmarkReturn">-</strong><small>Bileşik benchmark return</small></div>
+      <div class="pmsMetricCard"><span>Active Return</span><strong id="pmsActiveReturn">-</strong><small>Portföy − benchmark</small></div>
+      <div class="pmsMetricCard"><span>Annualized Alpha</span><strong id="pmsAlpha">-</strong><small>Risk-adjusted excess return</small></div>
+      <div class="pmsMetricCard"><span>Beta</span><strong id="pmsBenchmarkBeta">-</strong><small>Systematic risk</small></div>
+      <div class="pmsMetricCard"><span>Correlation</span><strong id="pmsCorrelation">-</strong><small>Portföy / benchmark ilişkisi</small></div>
+      <div class="pmsMetricCard"><span>R²</span><strong id="pmsRSquared">-</strong><small>Benchmark açıklama gücü</small></div>
+      <div class="pmsMetricCard"><span>Tracking Error</span><strong id="pmsTrackingError">-</strong><small>Active-return volatilitesi</small></div>
+      <div class="pmsMetricCard"><span>Information Ratio</span><strong id="pmsInformationRatio">-</strong><small>Active return / tracking error</small></div>
+      <div class="pmsMetricCard"><span>Treynor Ratio</span><strong id="pmsTreynor">-</strong><small>Beta başına excess return</small></div>
+      <div class="pmsMetricCard"><span>Upside Capture</span><strong id="pmsUpsideCapture">-</strong><small>Benchmark yükselirken capture</small></div>
+      <div class="pmsMetricCard"><span>Downside Capture</span><strong id="pmsDownsideCapture">-</strong><small>Benchmark düşerken capture</small></div>
+    </div>
+    <div class="pmsDataNotice">* Benchmark hesapları, Model Portföyde pozisyon kapatılırken kaydedilen <strong>Benchmark %</strong> değerlerine göre otomatik hesaplanır. Benchmark verisi bulunmayan işlemler relative-performance metriklerine dahil edilmez.</div>
+  </div>
+
+  <div id="pmsRolling" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div><div class="pmsEyebrow">WINDOW ANALYTICS</div><h3>Rolling Metrics</h3></div>
+      <div class="pmsRollingControls"><label>Rolling Window</label><select id="pmsRollingWindow"><option value="5">5 işlem</option><option value="10" selected>10 işlem</option><option value="20">20 işlem</option><option value="30">30 işlem</option></select></div>
+    </div>
+    <div class="pmsRollingLatest">
+      <div><span>Rolling Sharpe</span><strong id="pmsRollingSharpeLatest">-</strong></div>
+      <div><span>Rolling Sortino</span><strong id="pmsRollingSortinoLatest">-</strong></div>
+      <div><span>Rolling Alpha</span><strong id="pmsRollingAlphaLatest">-</strong></div>
+      <div><span>Rolling Beta</span><strong id="pmsRollingBetaLatest">-</strong></div>
+    </div>
+    <div class="pmsRollingGrid">
+      <div class="panel pmsRollingPanel"><div class="pmsChartHead"><div><h3>Rolling Sharpe</h3><span id="pmsRollingSharpeMeta">-</span></div></div><canvas id="pmsRollingSharpeChart" class="pmsRollingCanvas"></canvas></div>
+      <div class="panel pmsRollingPanel"><div class="pmsChartHead"><div><h3>Rolling Sortino</h3><span id="pmsRollingSortinoMeta">-</span></div></div><canvas id="pmsRollingSortinoChart" class="pmsRollingCanvas"></canvas></div>
+      <div class="panel pmsRollingPanel"><div class="pmsChartHead"><div><h3>Rolling Alpha</h3><span id="pmsRollingAlphaMeta">Annualized</span></div></div><canvas id="pmsRollingAlphaChart" class="pmsRollingCanvas"></canvas></div>
+      <div class="panel pmsRollingPanel"><div class="pmsChartHead"><div><h3>Rolling Beta</h3><span id="pmsRollingBetaMeta">Benchmark duyarlılığı</span></div></div><canvas id="pmsRollingBetaChart" class="pmsRollingCanvas"></canvas></div>
+    </div>
+    <div class="pmsDataNotice">Rolling Sharpe ve Sortino seçilen son kapalı işlem penceresi üzerinden hesaplanır. Rolling Alpha ve Beta için aynı pencere içinde benchmark verisi bulunan en az 3 işlem gerekir.</div>
+  </div>
+
+  <div id="pmsRisk" class="pmsSectionBlock">
+    <div class="pmsSectionTitle"><div><div class="pmsEyebrow">RISK & EXECUTION QUALITY</div><h3>Risk & Trade Quality</h3></div></div>
+    <div class="pmsMetricGrid">
+      <div class="pmsMetricCard"><span>Win Rate</span><strong id="pmsWinRate">-</strong><small>Kârlı kapalı işlem oranı</small></div>
+      <div class="pmsMetricCard"><span>Profit Factor</span><strong id="pmsProfitFactor">-</strong><small>Gross profit / gross loss</small></div>
+      <div class="pmsMetricCard"><span>Payoff Ratio</span><strong id="pmsPayoffRatio">-</strong><small>Avg win / |avg loss|</small></div>
+      <div class="pmsMetricCard"><span>Expectancy / Trade</span><strong id="pmsExpectancy">-</strong><small>Ortalama net K/Z</small></div>
+      <div class="pmsMetricCard"><span>Average Win</span><strong id="pmsAverageWin">-</strong><small>Kârlı işlemlerin ortalaması</small></div>
+      <div class="pmsMetricCard"><span>Average Loss</span><strong id="pmsAverageLoss">-</strong><small>Zararlı işlemlerin ortalaması</small></div>
+      <div class="pmsMetricCard"><span>Best Trade</span><strong id="pmsBestTrade">-</strong><small>En iyi net trade return</small></div>
+      <div class="pmsMetricCard"><span>Worst Trade</span><strong id="pmsWorstTrade">-</strong><small>En kötü net trade return</small></div>
+      <div class="pmsMetricCard"><span>Downside Deviation</span><strong id="pmsDownsideDeviation">-</strong><small>Yıllıklandırılmış downside risk</small></div>
+      <div class="pmsMetricCard"><span>Historical VaR 95%</span><strong id="pmsVar95">-</strong><small>Trade-return dağılımı</small></div>
+      <div class="pmsMetricCard"><span>Historical CVaR 95%</span><strong id="pmsCvar95">-</strong><small>Worst-tail ortalama kayıp</small></div>
+      <div class="pmsMetricCard"><span>Benchmark Data Coverage</span><strong id="pmsBenchmarkCoverageRisk">-</strong><small>Relative analytics veri kalitesi</small></div>
+    </div>
+  </div>
 </section>
 
 <section id="markets" class="tab">
@@ -2241,6 +2410,7 @@ function showMainTab(tabId){
  document.body.classList.toggle("terminalHidden",!showTerminal);
  setOrderMode();
  if(tabId==="markets")setTimeout(()=>loadMarkets(activeMarketCategory||"all"),0);
+ if(tabId==="pms")setTimeout(()=>renderPMS(),0);
  if(tabId==="askai")setTimeout(()=>{renderAiWorkspace();refreshAiStatus()},0);
  if(window.innerWidth<=900)closeMobilePanels();
 }
@@ -2249,6 +2419,11 @@ $("sidebarToggle").addEventListener("click",()=>{const c=$("sidebar").classList.
 if(localStorage.getItem("terminalCollapsed")==="1"){$("orderTerminal").classList.add("collapsed");document.body.classList.add("terminalCollapsed")}
 $("orderTerminalCollapse").addEventListener("click",()=>{const c=$("orderTerminal").classList.toggle("collapsed");document.body.classList.toggle("terminalCollapsed",c);localStorage.setItem("terminalCollapsed",c?"1":"0")});
 document.querySelectorAll("[data-side-tab]").forEach(b=>b.addEventListener("click",()=>{const tab=b.dataset.sideTab;if(tab==="markets"){const sm=$("marketsSubmenu");const open=!sm.classList.contains("open");sm.classList.toggle("open",open);b.classList.toggle("expanded",open)}showMainTab(tab)}));
+document.querySelectorAll("[data-pms-anchor]").forEach(button=>button.addEventListener("click",()=>{
+ document.querySelectorAll("[data-pms-anchor]").forEach(x=>x.classList.toggle("active",x===button));
+ const target=$(button.dataset.pmsAnchor);if(target)target.scrollIntoView({behavior:"smooth",block:"start"});
+}));
+
 $("mobileMenuBtn")?.addEventListener("click",()=>{
  $("sidebar").classList.toggle("mobileOpen");$("orderTerminal").classList.remove("mobileOpen");syncMobileOverlay();
 });
@@ -2862,6 +3037,255 @@ function metrics(){
  const paired=c.filter(p=>p.benchmark!==null&&p.benchmark!==undefined),pr=paired.map(mret),br=paired.map(p=>p.benchmark/100);
  return{eq,total:start?eq/start-1:null,cagr:start&&closedEq+nema>0?Math.pow((closedEq+nema)/start,1/years)-1:null,sharpe:st?mean(ex)/st*Math.sqrt(ppy):null,sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,dd,beta:variance(br)?cov(pr,br)/variance(br):null,dur:duration(sdte,edte)}
 }
+
+function pmsFinite(value){return Number.isFinite(Number(value))}
+function pmsCompound(returns){
+ return returns.reduce((acc,r)=>acc*(1+Number(r||0)),1)-1;
+}
+function pmsPercentile(values,p){
+ const rows=values.filter(pmsFinite).map(Number).sort((a,b)=>a-b);
+ if(!rows.length)return null;
+ const index=(rows.length-1)*p,lo=Math.floor(index),hi=Math.ceil(index);
+ if(lo===hi)return rows[lo];
+ const weight=index-lo;return rows[lo]*(1-weight)+rows[hi]*weight;
+}
+function pmsCorrelation(a,b){
+ if(a.length<2||a.length!==b.length)return null;
+ const sa=sd(a),sb=sd(b);return sa&&sb?cov(a,b)/(sa*sb):null;
+}
+function pmsClosedTrades(){
+ return model.filter(p=>p.status==="Kapalı"&&pmsFinite(mret(p)))
+  .sort((a,b)=>String(a.closeDateTime||a.closeDate||"").localeCompare(String(b.closeDateTime||b.closeDate||"")));
+}
+function pmsAnalysis(){
+ const closed=pmsClosedTrades(),returns=closed.map(p=>Number(mret(p)));
+ const start=Number(settings.capital)||0;
+ const startDate=settings.startDate||closed[0]?.openDateTime||closed[0]?.openDate||today;
+ const endDate=closed.at(-1)?.closeDateTime||closed.at(-1)?.closeDate||today;
+ const years=Math.max((new Date(endDate)-new Date(startDate))/(365.25*86400000),1/365.25);
+ const ppy=returns.length?Math.max(1,returns.length/years):1;
+ const rfAnnual=(Number(settings.riskFree)||0)/100,rfPeriod=rfAnnual/ppy;
+ const excess=returns.map(r=>r-rfPeriod);
+ const annualVol=returns.length>1?sd(returns)*Math.sqrt(ppy):null;
+ const downsidePeriods=excess.map(r=>Math.min(0,r));
+ const downsideDev=downsidePeriods.some(r=>r<0)?Math.sqrt(mean(downsidePeriods.map(r=>r*r)))*Math.sqrt(ppy):null;
+
+ let equity=start,peak=start,maxDdPct=0,maxDdAmount=0;
+ const equitySeries=[{label:startDate,index:100,equity:start||100,benchmarkIndex:100,drawdown:0}];
+ let benchmarkIndex=100,portfolioIndex=100;
+ for(const trade of closed){
+  const pnl=Number(netClosedPnl(trade)||0);
+  equity+=pnl;
+  peak=Math.max(peak,equity);
+  const ddAmount=Math.max(0,peak-equity),ddPct=peak>0?ddAmount/peak:0;
+  maxDdPct=Math.max(maxDdPct,ddPct);maxDdAmount=Math.max(maxDdAmount,ddAmount);
+  const r=Number(mret(trade)||0);
+  portfolioIndex*=1+r;
+  if(pmsFinite(trade.benchmark))benchmarkIndex*=1+Number(trade.benchmark)/100;
+  equitySeries.push({
+   label:String(trade.closeDateTime||trade.closeDate||"").slice(0,10),
+   index:portfolioIndex,
+   equity,
+   benchmarkIndex,
+   drawdown:-ddPct*100
+  });
+ }
+
+ const nema=postedNemaTotal(),live=model.filter(p=>p.status==="Aktif").reduce((s,p)=>s+(netLivePnl(p)||0),0);
+ const currentEquity=equity+nema+live;
+ const totalReturn=start?currentEquity/start-1:null;
+ const cagr=start&&equity+nema>0?Math.pow((equity+nema)/start,1/years)-1:null;
+ const sharpe=excess.length>1&&sd(excess)?mean(excess)/sd(excess)*Math.sqrt(ppy):null;
+ const downsideRaw=excess.filter(r=>r<0);
+ const downsidePerPeriod=downsideRaw.length?Math.sqrt(mean(downsideRaw.map(r=>r*r))):0;
+ const sortino=downsidePerPeriod?mean(excess)/downsidePerPeriod*Math.sqrt(ppy):null;
+ const calmar=cagr!==null&&maxDdPct>0?cagr/maxDdPct:null;
+
+ const pnls=closed.map(p=>Number(netClosedPnl(p)||0));
+ const wins=pnls.filter(x=>x>0),losses=pnls.filter(x=>x<0);
+ const grossProfit=wins.reduce((s,x)=>s+x,0),grossLoss=Math.abs(losses.reduce((s,x)=>s+x,0));
+ const avgWin=mean(wins),avgLoss=mean(losses);
+ const profitFactor=grossLoss?grossProfit/grossLoss:null;
+ const payoff=losses.length&&avgLoss?avgWin/Math.abs(avgLoss):null;
+ const expectancy=mean(pnls);
+ const bestTrade=returns.length?Math.max(...returns):null,worstTrade=returns.length?Math.min(...returns):null;
+ const q05=pmsPercentile(returns,.05);
+ const tail=q05===null?[]:returns.filter(r=>r<=q05);
+ const var95=q05===null?null:Math.max(0,-q05);
+ const cvar95=tail.length?Math.max(0,-mean(tail)):null;
+ const netProfit=pnls.reduce((s,x)=>s+x,0)+nema;
+ const recoveryFactor=maxDdAmount>0?netProfit/maxDdAmount:null;
+
+ const paired=closed.filter(p=>pmsFinite(p.benchmark)&&pmsFinite(mret(p)));
+ const pr=paired.map(p=>Number(mret(p))),br=paired.map(p=>Number(p.benchmark)/100);
+ const coverage=closed.length?paired.length/closed.length:0;
+ let beta=null,alpha=null,corr=null,r2=null,trackingError=null,informationRatio=null,treynor=null,upsideCapture=null,downsideCapture=null;
+ let pairedPortfolioReturn=null,benchmarkReturn=null,activeReturn=null;
+ if(paired.length){
+  pairedPortfolioReturn=pmsCompound(pr);benchmarkReturn=pmsCompound(br);activeReturn=pairedPortfolioReturn-benchmarkReturn;
+ }
+ if(paired.length>=2){
+  const bvar=variance(br);
+  beta=bvar?cov(pr,br)/bvar:null;
+  corr=pmsCorrelation(pr,br);r2=corr===null?null:corr*corr;
+  const active=pr.map((r,i)=>r-br[i]);
+  trackingError=active.length>1?sd(active)*Math.sqrt(ppy):null;
+  informationRatio=active.length>1&&sd(active)?mean(active)/sd(active)*Math.sqrt(ppy):null;
+  if(beta!==null){
+   const alphaPerTrade=(mean(pr)-rfPeriod)-beta*(mean(br)-rfPeriod);
+   alpha=alphaPerTrade*ppy;
+   treynor=beta?((mean(pr)-rfPeriod)*ppy)/beta:null;
+  }
+  const up=paired.filter(p=>Number(p.benchmark)>0);
+  const down=paired.filter(p=>Number(p.benchmark)<0);
+  if(up.length){
+   const upr=up.map(p=>Number(mret(p))),upb=up.map(p=>Number(p.benchmark)/100);
+   const den=mean(upb);upsideCapture=den?mean(upr)/den*100:null;
+  }
+  if(down.length){
+   const dpr=down.map(p=>Number(mret(p))),db=down.map(p=>Number(p.benchmark)/100);
+   const den=mean(db);downsideCapture=den?mean(dpr)/den*100:null;
+  }
+ }
+
+ return{
+  closed,returns,start,years,ppy,rfAnnual,currentEquity,totalReturn,cagr,annualVol,downsideDev,
+  sharpe,sortino,maxDdPct,maxDdAmount,calmar,recoveryFactor,equitySeries,
+  wins,losses,grossProfit,grossLoss,avgWin,avgLoss,profitFactor,payoff,expectancy,bestTrade,worstTrade,var95,cvar95,
+  paired,coverage,pairedPortfolioReturn,benchmarkReturn,activeReturn,beta,alpha,corr,r2,trackingError,informationRatio,treynor,upsideCapture,downsideCapture
+ };
+}
+function pmsRollingMetrics(windowSize,analysis=pmsAnalysis()){
+ const closed=analysis.closed,ppy=analysis.ppy||1,rfPeriod=(analysis.rfAnnual||0)/ppy;
+ const points=[];
+ for(let i=windowSize-1;i<closed.length;i++){
+  const slice=closed.slice(i-windowSize+1,i+1),rs=slice.map(p=>Number(mret(p))).filter(pmsFinite);
+  if(rs.length<windowSize)continue;
+  const ex=rs.map(r=>r-rfPeriod),sigma=sd(ex);
+  const negative=ex.filter(r=>r<0),downDev=negative.length?Math.sqrt(mean(negative.map(r=>r*r))):0;
+  const paired=slice.filter(p=>pmsFinite(p.benchmark)&&pmsFinite(mret(p)));
+  let beta=null,alpha=null;
+  if(paired.length>=3){
+   const pr=paired.map(p=>Number(mret(p))),br=paired.map(p=>Number(p.benchmark)/100),bvar=variance(br);
+   beta=bvar?cov(pr,br)/bvar:null;
+   if(beta!==null)alpha=((mean(pr)-rfPeriod)-beta*(mean(br)-rfPeriod))*ppy;
+  }
+  points.push({
+   label:String(slice.at(-1).closeDateTime||slice.at(-1).closeDate||"").slice(0,10),
+   sharpe:sigma?mean(ex)/sigma*Math.sqrt(ppy):null,
+   sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,
+   alpha,beta
+  });
+ }
+ return points;
+}
+function pmsSetValue(id,value,options={}){
+ const el=$(id);if(!el)return;
+ const {percent=false,money=false,decimals=2,sign=false}=options;
+ if(value===null||value===undefined||!Number.isFinite(Number(value))){el.textContent="-";el.classList.remove("pmsPositive","pmsNegative");return}
+ const n=Number(value);
+ el.textContent=money?`${f(n,decimals)} TRY`:percent?`${sign&&n>0?"+":""}%${f(n*100,decimals)}`:`${sign&&n>0?"+":""}${f(n,decimals)}`;
+ el.classList.toggle("pmsPositive",sign&&n>0);el.classList.toggle("pmsNegative",sign&&n<0);
+}
+function pmsCanvasSetup(id,height=200){
+ const canvas=$(id);if(!canvas)return null;
+ const rect=canvas.getBoundingClientRect(),width=Math.max(320,rect.width||canvas.parentElement?.clientWidth||600),dpr=window.devicePixelRatio||1;
+ canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);canvas.style.height=height+"px";
+ const ctx=canvas.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);
+ return{canvas,ctx,width,height};
+}
+function pmsDrawSingleSeries(id,points,key,formatter=(v)=>f(v,2),lineColor="#5fa4ff",height=190){
+ const setup=pmsCanvasSetup(id,height);if(!setup)return;
+ const {ctx,width}=setup,h=height,pad={l:44,r:14,t:18,b:29};
+ ctx.clearRect(0,0,width,h);ctx.font="9px Arial";ctx.fillStyle="#7990a6";
+ const data=points.map(p=>({label:p.label,value:p[key]})).filter(x=>pmsFinite(x.value));
+ if(data.length<1){ctx.fillText("Hesaplama için yeterli veri yok",pad.l,42);return}
+ let min=Math.min(...data.map(x=>Number(x.value))),max=Math.max(...data.map(x=>Number(x.value)));
+ if(min===max){min-=Math.abs(min||1)*.15;max+=Math.abs(max||1)*.15}
+ const margin=(max-min)*.12||1;min-=margin;max+=margin;
+ const x=i=>pad.l+(width-pad.l-pad.r)*(data.length===1?.5:i/(data.length-1));
+ const y=v=>pad.t+(h-pad.t-pad.b)*(1-(v-min)/(max-min));
+ ctx.strokeStyle="#24384b";ctx.lineWidth=1;
+ for(let i=0;i<=4;i++){const yy=pad.t+(h-pad.t-pad.b)*i/4;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(width-pad.r,yy);ctx.stroke();ctx.fillStyle="#70879d";ctx.fillText(formatter(max-(max-min)*i/4),3,yy+3)}
+ ctx.beginPath();ctx.strokeStyle=lineColor;ctx.lineWidth=2;
+ data.forEach((p,i)=>{const xx=x(i),yy=y(Number(p.value));if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy)});ctx.stroke();
+ ctx.fillStyle="#7d93a8";ctx.textAlign="left";ctx.fillText(data[0].label,pad.l,h-8);
+ ctx.textAlign="right";ctx.fillText(data.at(-1).label,width-pad.r,h-8);ctx.textAlign="left";
+}
+function pmsDrawIndexedChart(analysis){
+ const setup=pmsCanvasSetup("pmsEquityBenchmarkChart",230);if(!setup)return;
+ const {ctx,width}=setup,h=230,pad={l:46,r:14,t:22,b:30},data=analysis.equitySeries;
+ ctx.clearRect(0,0,width,h);ctx.font="9px Arial";ctx.fillStyle="#7890a6";
+ if(data.length<2){ctx.fillText("Equity curve için kapalı işlem gerekiyor",pad.l,45);return}
+ const all=[...data.map(x=>x.index),...data.map(x=>x.benchmarkIndex)].filter(pmsFinite);
+ let min=Math.min(...all),max=Math.max(...all);const margin=(max-min)*.12||5;min-=margin;max+=margin;
+ const x=i=>pad.l+(width-pad.l-pad.r)*i/(data.length-1),y=v=>pad.t+(h-pad.t-pad.b)*(1-(v-min)/(max-min));
+ ctx.strokeStyle="#24384b";for(let i=0;i<=4;i++){const yy=pad.t+(h-pad.t-pad.b)*i/4;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(width-pad.r,yy);ctx.stroke();ctx.fillStyle="#71889e";ctx.fillText(f(max-(max-min)*i/4,1),5,yy+3)}
+ const draw=(key,color)=>{ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;data.forEach((p,i)=>{const yy=y(Number(p[key]));if(i===0)ctx.moveTo(x(i),yy);else ctx.lineTo(x(i),yy)});ctx.stroke()};
+ draw("index","#51dcae");draw("benchmarkIndex","#69a7ff");
+ ctx.fillStyle="#51dcae";ctx.fillRect(pad.l,6,10,3);ctx.fillStyle="#91a7bc";ctx.fillText("Portföy",pad.l+15,11);
+ ctx.fillStyle="#69a7ff";ctx.fillRect(pad.l+75,6,10,3);ctx.fillStyle="#91a7bc";ctx.fillText("Benchmark",pad.l+90,11);
+ ctx.fillStyle="#758ca1";ctx.fillText(data[0].label,pad.l,h-8);ctx.textAlign="right";ctx.fillText(data.at(-1).label,width-pad.r,h-8);ctx.textAlign="left";
+}
+function pmsDrawDrawdown(analysis){
+ pmsDrawSingleSeries("pmsDrawdownChart",analysis.equitySeries,"drawdown",v=>`${f(v,1)}%`,"#ff7d8f",230);
+}
+window.renderPMS=function renderPMS(){
+ const a=pmsAnalysis(),base=metrics();
+ pmsSetValue("pmsPortfolioValue",a.currentEquity,{money:true});
+ pmsSetValue("pmsTotalReturn",a.totalReturn,{percent:true,sign:true});
+ pmsSetValue("pmsCagr",a.cagr,{percent:true,sign:true});
+ pmsSetValue("pmsVolatility",a.annualVol,{percent:true});
+ pmsSetValue("pmsSharpe",a.sharpe);pmsSetValue("pmsSortino",a.sortino);
+ pmsSetValue("pmsMaxDrawdown",a.maxDdPct,{percent:true});pmsSetValue("pmsCalmar",a.calmar);
+
+ pmsSetValue("pmsTrackVolatility",a.annualVol,{percent:true});
+ pmsSetValue("pmsTrackCalmar",a.calmar);pmsSetValue("pmsRecoveryFactor",a.recoveryFactor);
+ $("pmsTrackCoverage").textContent=`${a.closed.length} kapalı işlem · ${duration(settings.startDate||a.closed[0]?.openDate||today,a.closed.at(-1)?.closeDate||today)}`;
+
+ pmsSetValue("pmsPairedPortfolioReturn",a.pairedPortfolioReturn,{percent:true,sign:true});
+ pmsSetValue("pmsBenchmarkReturn",a.benchmarkReturn,{percent:true,sign:true});
+ pmsSetValue("pmsActiveReturn",a.activeReturn,{percent:true,sign:true});
+ pmsSetValue("pmsAlpha",a.alpha,{percent:true,sign:true});pmsSetValue("pmsBenchmarkBeta",a.beta);
+ pmsSetValue("pmsCorrelation",a.corr);pmsSetValue("pmsRSquared",a.r2);
+ pmsSetValue("pmsTrackingError",a.trackingError,{percent:true});pmsSetValue("pmsInformationRatio",a.informationRatio);
+ pmsSetValue("pmsTreynor",a.treynor);pmsSetValue("pmsUpsideCapture",a.upsideCapture===null?null:a.upsideCapture/100,{percent:true});
+ pmsSetValue("pmsDownsideCapture",a.downsideCapture===null?null:a.downsideCapture/100,{percent:true});
+ $("pmsBenchmarkCoverage").textContent=`Benchmark coverage %${f(a.coverage*100,1)}`;
+ pmsSetValue("pmsBenchmarkCoverageRisk",a.coverage,{percent:true});
+
+ pmsSetValue("pmsWinRate",a.closed.length?a.wins.length/a.closed.length:null,{percent:true});
+ pmsSetValue("pmsProfitFactor",a.profitFactor);pmsSetValue("pmsPayoffRatio",a.payoff);
+ pmsSetValue("pmsExpectancy",a.expectancy,{money:true});pmsSetValue("pmsAverageWin",a.wins.length?a.avgWin:null,{money:true});
+ pmsSetValue("pmsAverageLoss",a.losses.length?a.avgLoss:null,{money:true});
+ pmsSetValue("pmsBestTrade",a.bestTrade,{percent:true,sign:true});pmsSetValue("pmsWorstTrade",a.worstTrade,{percent:true,sign:true});
+ pmsSetValue("pmsDownsideDeviation",a.downsideDev,{percent:true});pmsSetValue("pmsVar95",a.var95,{percent:true});pmsSetValue("pmsCvar95",a.cvar95,{percent:true});
+
+ const windowSize=Number($("pmsRollingWindow")?.value)||10,rolling=pmsRollingMetrics(windowSize,a),latest=rolling.at(-1)||{};
+ pmsSetValue("pmsRollingSharpeLatest",latest.sharpe);pmsSetValue("pmsRollingSortinoLatest",latest.sortino);
+ pmsSetValue("pmsRollingAlphaLatest",latest.alpha,{percent:true,sign:true});pmsSetValue("pmsRollingBetaLatest",latest.beta);
+ $("pmsRollingSharpeMeta").textContent=`${windowSize} kapalı işlem penceresi`;
+ $("pmsRollingSortinoMeta").textContent=`${windowSize} kapalı işlem penceresi`;
+
+ // Existing Track Record IDs live in PMS from v7.8 onward.
+ $("mValue").textContent=settings.capital?f(a.currentEquity,2):"-";
+ $("mTotal").textContent=a.totalReturn===null?"-":"%"+f(a.totalReturn*100,2);
+ $("mCagr").textContent=a.cagr===null?"-":"%"+f(a.cagr*100,2);
+ $("mSharpe").textContent=a.sharpe===null?"-":f(a.sharpe,2);
+ $("mSortino").textContent=a.sortino===null?"-":f(a.sortino,2);
+ $("mDD").textContent="%"+f(a.maxDdPct*100,2);
+ $("mBeta").textContent=a.beta===null?"-":f(a.beta,2);
+ $("mDuration").textContent=base.dur||"-";
+
+ if($("pms")?.classList.contains("active")){
+  pmsDrawIndexedChart(a);pmsDrawDrawdown(a);
+  pmsDrawSingleSeries("pmsRollingSharpeChart",rolling,"sharpe",v=>f(v,2),"#62a7ff");
+  pmsDrawSingleSeries("pmsRollingSortinoChart",rolling,"sortino",v=>f(v,2),"#4bdcab");
+  pmsDrawSingleSeries("pmsRollingAlphaChart",rolling,"alpha",v=>`${f(v*100,1)}%`,"#bd8aff");
+  pmsDrawSingleSeries("pmsRollingBetaChart",rolling,"beta",v=>f(v,2),"#ffb45f");
+ }
+}
+
 function modelTable(arr,closed){
  if(!arr.length)return'<div class="muted" style="padding:20px;text-align:center">Kayıt bulunmuyor.</div>';
  const wrapClass=closed?"tableWrap":"tableWrap compactPositions";
@@ -2922,7 +3346,7 @@ window.renderModel=function renderModel(){
  $("viopOpenPositions").innerHTML=renderViopOpenPositions(active.filter(isViopPosition));
  $("viopTransferHistory").innerHTML=renderViopTransferHistory();
 
- renderModelPie();renderModelPerformance();renderActivities();renderCashStatement();updateModelTradePreview();
+ renderModelPie();renderModelPerformance();renderActivities();renderCashStatement();updateModelTradePreview();renderPMS();
 }
 let viopContracts=[];
 let viopUnderlyings=[];
@@ -3322,6 +3746,8 @@ $("viopTransferBtn").onclick=()=>{
 };
 $("refreshViopWorkspace").onclick=()=>loadViopContracts(true);
 $("refreshViopContracts").onclick=()=>loadViopContracts(true);
+$("pmsRollingWindow")?.addEventListener("change",renderPMS);
+window.addEventListener("resize",()=>{if($("pms")?.classList.contains("active"))renderPMS()});
 $("cashStatementFilterBtn").onclick=()=>$("cashStatementFilterPanel").classList.toggle("hidden");
 $("cashStatementFilterMode").onchange=syncCashStatementFilterUI;
 $("applyCashStatementFilter").onclick=()=>{
