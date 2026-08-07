@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Model Portföy Takip · v7.9</title>
+<title>Model Portföy Takip · v8.0</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1480,8 +1480,40 @@ body.authLocked .accountSettingsOverlay{display:none!important}
  .pmsHelp:hover::after,.pmsHelp:focus::after{transform:translateY(0)}
 }
 
+
+/* v8.0 Composite Policy Benchmark */
+.compositeBenchmarkPanel{padding:13px;border:1px solid #31516d;background:linear-gradient(145deg,#0d1e2c,#0a1722);border-radius:12px;margin-bottom:10px}
+.compositeBenchmarkTop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.compositeBenchmarkTop h4{margin:0 0 4px;font-size:12px}
+.compositeBenchmarkActions{display:flex;gap:7px;flex-wrap:wrap}
+.compositeBenchmarkActions button{font-size:8.5px!important}
+.compositeWeightGrid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px}
+.compositeWeightCard{padding:11px;border:1px solid #29445b;background:#0c1a27;border-radius:9px}
+.compositeWeightCard>div{min-height:38px}
+.compositeWeightCard strong{display:block;font-size:11px;color:#e8f3fc}
+.compositeWeightCard span{display:block;font-size:8px;color:#718aa0;margin-top:3px}
+.compositeWeightCard label{display:block;font-size:8px;color:#879db0;margin:6px 0 4px}
+.compositeWeightCard input{height:36px;font-size:12px;font-weight:800}
+.compositeBenchmarkControls{display:grid;grid-template-columns:repeat(4,minmax(135px,1fr));gap:8px;margin-top:8px}
+.compositeBenchmarkControls>div{padding:9px 10px;border:1px solid #273f54;background:#0b1925;border-radius:8px}
+.compositeBenchmarkControls label{display:block;font-size:7.5px;color:#7b93a9;text-transform:uppercase;margin-bottom:4px}
+.compositeBenchmarkControls strong{font-size:12px}.compositeBenchmarkControls select{height:30px;font-size:9px}
+.compositeBenchmarkSnapshot{display:grid;grid-template-columns:repeat(4,minmax(135px,1fr));gap:8px;margin-top:8px}
+.compositeBenchmarkSnapshot>div{padding:10px;border:1px solid #2b465e;background:#0d1c29;border-radius:8px}
+.compositeBenchmarkSnapshot span{display:block;font-size:8px;color:#8198ad;text-transform:uppercase}
+.compositeBenchmarkSnapshot strong{display:block;font-size:15px;margin-top:5px}
+.compositeWeightInvalid{color:#ff8494!important}.compositeWeightValid{color:#50d9aa!important}
+@media(max-width:1050px){
+ .compositeWeightGrid,.compositeBenchmarkControls,.compositeBenchmarkSnapshot{grid-template-columns:repeat(2,minmax(140px,1fr))}
+}
+@media(max-width:600px){
+ .compositeBenchmarkTop{display:block}
+ .compositeBenchmarkActions{margin-top:8px}
+ .compositeWeightGrid,.compositeBenchmarkControls,.compositeBenchmarkSnapshot{grid-template-columns:1fr}
+}
+
 </style>
-<meta name="portfolio-build" content="v7.9-pms-diagnostics-regime-factor-attribution">
+<meta name="portfolio-build" content="v8.0-composite-policy-benchmark">
 </head>
 <body class="authLocked">
 
@@ -2221,24 +2253,88 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 
   <div id="pmsBenchmark" class="pmsSectionBlock">
     <div class="pmsSectionTitle">
-      <div><div class="pmsEyebrow">RELATIVE PERFORMANCE</div><h3>Benchmark Kıyasları</h3></div>
-      <span id="pmsBenchmarkCoverage" class="pmsBadge">Benchmark coverage %0</span>
+      <div>
+        <div class="pmsEyebrow">POLICY BENCHMARK / RELATIVE PERFORMANCE</div>
+        <h3>Composite Benchmark <button class="pmsHelp" type="button" data-help="Composite Benchmark; portföyün tek bir endekse değil, stratejik varlık dağılımına uygun dört politika bileşenine karşı ölçülmesini sağlar. BIST 100 TRY bazlıdır; S&P 500, Altın ve Tahvil bileşenleri USD/TRY ile TRY'ye çevrilir.">?</button></h3>
+      </div>
+      <span id="pmsBenchmarkCoverage" class="pmsBadge">Composite coverage %0</span>
     </div>
+
+    <div class="compositeBenchmarkPanel">
+      <div class="compositeBenchmarkTop">
+        <div>
+          <h4>Stratejik Politika Ağırlıkları <button class="pmsHelp" type="button" data-help="İlk kurulumda sistem aktif Model Portföy pozisyonlarını BIST, global hisse, altın ve tahvil sepetlerine sınıflandırarak stratejik ağırlıkları otomatik önerir. Benchmarkın geriye dönük tarihini değiştirmemek için bu ağırlıklar daha sonra kendiliğinden değişmez.">?</button></h4>
+          <div id="compositeBenchmarkMethod" class="muted">İlk stratejik ağırlık seti otomatik hazırlanıyor.</div>
+        </div>
+        <div class="compositeBenchmarkActions">
+          <button type="button" id="compositeAutoWeights" class="secondary">Portföyden Otomatik Hesapla</button>
+          <button type="button" id="compositeSaveWeights">Ağırlıkları Kaydet</button>
+        </div>
+      </div>
+
+      <div class="compositeWeightGrid">
+        <div class="compositeWeightCard">
+          <div><strong>BIST 100</strong><span>XU100.IS · TRY</span></div>
+          <label>Ağırlık (%) <button class="pmsHelp" type="button" data-help="Türkiye hisse senedi politika bileşenidir. Yahoo Finance XU100.IS BIST 100 fiyat endeksi proxy'si kullanılır ve zaten TRY cinsindedir.">?</button></label>
+          <input id="compositeWeightBist" type="number" min="0" max="100" step="0.1">
+        </div>
+        <div class="compositeWeightCard">
+          <div><strong>S&P 500</strong><span>SPY Adj. Close × USDTRY</span></div>
+          <label>Ağırlık (%) <button class="pmsHelp" type="button" data-help="ABD büyük ölçekli hisse senedi politika bileşenidir. SPY düzeltilmiş fiyatı kullanılarak temettü etkisi proxy olarak dahil edilir; USD/TRY ile TRY bazına çevrilir.">?</button></label>
+          <input id="compositeWeightSp500" type="number" min="0" max="100" step="0.1">
+        </div>
+        <div class="compositeWeightCard">
+          <div><strong>Altın</strong><span>GC=F × USDTRY</span></div>
+          <label>Ağırlık (%) <button class="pmsHelp" type="button" data-help="Altın politika bileşenidir. COMEX Gold futures (GC=F) fiyatı USD/TRY ile TRY bazına çevrilir. Böylece portföyün ana para birimiyle kıyaslanır.">?</button></label>
+          <input id="compositeWeightGold" type="number" min="0" max="100" step="0.1">
+        </div>
+        <div class="compositeWeightCard">
+          <div><strong>Tahvil</strong><span>AGG Adj. Close × USDTRY</span></div>
+          <label>Ağırlık (%) <button class="pmsHelp" type="button" data-help="Geniş ABD investment-grade tahvil piyasası için AGG proxy'si kullanılır. Düzeltilmiş fiyat dağıtımları proxy olarak içerir ve USD/TRY ile TRY bazına çevrilir.">?</button></label>
+          <input id="compositeWeightBond" type="number" min="0" max="100" step="0.1">
+        </div>
+      </div>
+
+      <div class="compositeBenchmarkControls">
+        <div><label>Toplam Stratejik Ağırlık</label><strong id="compositeWeightTotal">%100.0</strong></div>
+        <div>
+          <label>Rebalancing <button class="pmsHelp" type="button" data-help="Policy benchmark hedef ağırlıklarına belirli aralıklarla geri döndürülür. Çeyreklik yeniden dengeleme, günlük rebalancing'in yapay etkisini azaltırken stratejik ağırlıkları koruyan kurumsal bir varsayımdır.">?</button></label>
+          <select id="compositeRebalance">
+            <option value="monthly">Aylık</option>
+            <option value="quarterly">Çeyreklik</option>
+            <option value="annual">Yıllık</option>
+          </select>
+        </div>
+        <div><label>Benchmark Para Birimi <button class="pmsHelp" type="button" data-help="Model Portföy TRY ile takip edildiği için yabancı benchmark bileşenleri USD/TRY üzerinden TRY'ye çevrilir. Böylece kur getirisi de benchmark performansının parçası olur.">?</button></label><strong>TRY</strong></div>
+        <div><label>Auto Classification Coverage</label><strong id="compositeAutoCoverage">-</strong></div>
+      </div>
+
+      <div class="compositeBenchmarkSnapshot">
+        <div><span>Composite Benchmark Getirisi <button class="pmsHelp" type="button" data-help="Model Portföy başlangıç tarihinden bugüne stratejik ağırlıklı benchmarkın TRY bazlı bileşik getirisidir.">?</button></span><strong id="compositeSinceInception">-</strong></div>
+        <div><span>Yılbaşından Bugüne <button class="pmsHelp" type="button" data-help="İçinde bulunulan takvim yılının ilk benchmark değerinden son değere kadar hesaplanan TRY bazlı Composite Benchmark getirisidir.">?</button></span><strong id="compositeYtd">-</strong></div>
+        <div><span>Son Değer Tarihi</span><strong id="compositeValueDate">-</strong></div>
+        <div><span>Benchmark Index</span><strong id="compositeIndexLevel">-</strong></div>
+      </div>
+
+      <div id="compositeBenchmarkSource" class="pmsDataNotice">Kaynak yükleniyor: BIST 100 + SPY + Gold + AGG + USD/TRY.</div>
+    </div>
+
     <div class="pmsMetricGrid">
-      <div class="pmsMetricCard"><span>Portföy Getirisi*</span><strong id="pmsPairedPortfolioReturn">-</strong><small>Benchmark girilmiş işlemler</small></div>
-      <div class="pmsMetricCard"><span>Benchmark Getirisi*</span><strong id="pmsBenchmarkReturn">-</strong><small>Bileşik benchmark return</small></div>
-      <div class="pmsMetricCard"><span>Active Return</span><strong id="pmsActiveReturn">-</strong><small>Portföy − benchmark</small></div>
-      <div class="pmsMetricCard"><span>Annualized Alpha</span><strong id="pmsAlpha">-</strong><small>Risk-adjusted excess return</small></div>
-      <div class="pmsMetricCard"><span>Beta</span><strong id="pmsBenchmarkBeta">-</strong><small>Systematic risk</small></div>
-      <div class="pmsMetricCard"><span>Correlation</span><strong id="pmsCorrelation">-</strong><small>Portföy / benchmark ilişkisi</small></div>
-      <div class="pmsMetricCard"><span>R²</span><strong id="pmsRSquared">-</strong><small>Benchmark açıklama gücü</small></div>
+      <div class="pmsMetricCard"><span>Portföy Getirisi <button class="pmsHelp" type="button" data-help="Model Portföyün gerçek özvarlık değişiminden hesaplanan başlangıçtan bugüne toplam getiridir.">?</button></span><strong id="pmsPairedPortfolioReturn">-</strong><small>Model Portföy track record</small></div>
+      <div class="pmsMetricCard"><span>Composite Benchmark Getirisi <button class="pmsHelp" type="button" data-help="Aynı dönem için stratejik BIST + S&P 500 + Altın + Tahvil benchmarkının TRY bazlı getirisidir.">?</button></span><strong id="pmsBenchmarkReturn">-</strong><small>Aynı tarih aralığı</small></div>
+      <div class="pmsMetricCard"><span>Active Return</span><strong id="pmsActiveReturn">-</strong><small>Portföy − Composite Benchmark</small></div>
+      <div class="pmsMetricCard"><span>Annualized Alpha</span><strong id="pmsAlpha">-</strong><small>Composite benchmarka göre risk-adjusted excess return</small></div>
+      <div class="pmsMetricCard"><span>Beta</span><strong id="pmsBenchmarkBeta">-</strong><small>Composite benchmark duyarlılığı</small></div>
+      <div class="pmsMetricCard"><span>Correlation</span><strong id="pmsCorrelation">-</strong><small>Portföy / composite ilişkisi</small></div>
+      <div class="pmsMetricCard"><span>R²</span><strong id="pmsRSquared">-</strong><small>Composite benchmark açıklama gücü</small></div>
       <div class="pmsMetricCard"><span>Tracking Error</span><strong id="pmsTrackingError">-</strong><small>Active-return volatilitesi</small></div>
       <div class="pmsMetricCard"><span>Information Ratio</span><strong id="pmsInformationRatio">-</strong><small>Active return / tracking error</small></div>
-      <div class="pmsMetricCard"><span>Treynor Ratio</span><strong id="pmsTreynor">-</strong><small>Beta başına excess return</small></div>
-      <div class="pmsMetricCard"><span>Upside Capture</span><strong id="pmsUpsideCapture">-</strong><small>Benchmark yükselirken capture</small></div>
-      <div class="pmsMetricCard"><span>Downside Capture</span><strong id="pmsDownsideCapture">-</strong><small>Benchmark düşerken capture</small></div>
+      <div class="pmsMetricCard"><span>Treynor Ratio</span><strong id="pmsTreynor">-</strong><small>Composite beta başına excess return</small></div>
+      <div class="pmsMetricCard"><span>Upside Capture</span><strong id="pmsUpsideCapture">-</strong><small>Composite yükselirken capture</small></div>
+      <div class="pmsMetricCard"><span>Downside Capture</span><strong id="pmsDownsideCapture">-</strong><small>Composite düşerken capture</small></div>
     </div>
-    <div class="pmsDataNotice">* Benchmark hesapları, Model Portföyde pozisyon kapatılırken kaydedilen <strong>Benchmark %</strong> değerlerine göre otomatik hesaplanır. Benchmark verisi bulunmayan işlemler relative-performance metriklerine dahil edilmez.</div>
+
+    <div class="pmsDataNotice">Composite Benchmark otomatik olarak dört politika sepetini kullanır. Trade bazlı Alpha/Beta/Rolling metriklerinde her kapalı işlemin açılış ve kapanış tarihleri arasındaki Composite Benchmark getirisi eşleştirilir. Eski manuel <strong>Benchmark %</strong> kayıtları yalnızca canlı composite veri henüz yoksa geriye dönük yedek olarak kullanılır.</div>
   </div>
 
   <div id="pmsRolling" class="pmsSectionBlock">
@@ -2258,7 +2354,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
       <div class="panel pmsRollingPanel"><div class="pmsChartHead"><div><h3>Rolling Alpha</h3><span id="pmsRollingAlphaMeta">Annualized</span></div></div><canvas id="pmsRollingAlphaChart" class="pmsRollingCanvas"></canvas></div>
       <div class="panel pmsRollingPanel"><div class="pmsChartHead"><div><h3>Rolling Beta</h3><span id="pmsRollingBetaMeta">Benchmark duyarlılığı</span></div></div><canvas id="pmsRollingBetaChart" class="pmsRollingCanvas"></canvas></div>
     </div>
-    <div class="pmsDataNotice">Rolling Sharpe ve Sortino seçilen son kapalı işlem penceresi üzerinden hesaplanır. Rolling Alpha ve Beta için aynı pencere içinde benchmark verisi bulunan en az 3 işlem gerekir.</div>
+    <div class="pmsDataNotice">Rolling Sharpe ve Sortino seçilen son kapalı işlem penceresi üzerinden hesaplanır. Rolling Alpha ve Beta için aynı pencere içinde Composite Benchmark tarih eşleşmesi bulunan en az 3 işlem gerekir.</div>
   </div>
 
   <div id="pmsRisk" class="pmsSectionBlock">
@@ -2400,11 +2496,11 @@ body.authLocked .accountSettingsOverlay{display:none!important}
         <div id="pmsReturnSources" class="pmsReturnSources"></div>
       </div>
       <div class="pmsAttributionCard">
-        <span>Stock Selection <button class="pmsHelp" type="button" data-help="Benchmark % verisi bulunan kapalı işlemlerde portföy trade getirisi ile benchmark getirisi arasındaki fark, işlem büyüklükleriyle ağırlıklandırılır. Pozitif değer seçim etkisinin benchmarkı aştığını gösterir.">?</button></span>
+        <span>Stock Selection <button class="pmsHelp" type="button" data-help="Kapalı işlemlerde portföy trade getirisi ile aynı holding-period Composite Benchmark getirisi arasındaki fark, işlem büyüklükleriyle ağırlıklandırılır. Pozitif değer seçim etkisinin benchmarkı aştığını gösterir.">?</button></span>
         <strong id="pmsStockSelectionEffect">-</strong><small id="pmsStockSelectionComment">-</small>
       </div>
       <div class="pmsAttributionCard">
-        <span>Sector Selection <button class="pmsHelp" type="button" data-help="Benchmark verisi bulunan işlemlerin aktif getirileri sektör bazında gruplanır. En güçlü ve en zayıf sektör seçim etkisi gösterilir.">?</button></span>
+        <span>Sector Selection <button class="pmsHelp" type="button" data-help="Composite Benchmark tarih eşleşmesi bulunan işlemlerin aktif getirileri sektör bazında gruplanır. En güçlü ve en zayıf sektör seçim etkisi gösterilir.">?</button></span>
         <strong id="pmsSectorSelectionEffect">-</strong><small id="pmsSectorSelectionComment">-</small>
       </div>
       <div class="pmsAttributionCard">
@@ -2612,12 +2708,17 @@ const DEFAULT_MODEL_SETTINGS={
  referencePeriod:"01/08/2026 - 31/08/2026",referenceUpdatedAt:"",
  nemaAnnualRate:0,nemaDeduction:0,nemaStartDate:"",nemaUpdatedAt:"",nemaValueDate:"",
  nemaSource:"",nemaRateHistory:[],nemaAccruals:[],
+ compositeBenchmarkWeights:{bist:25,sp500:25,gold:25,bond:25},
+ compositeBenchmarkInitialized:false,compositeBenchmarkRebalance:"quarterly",
+ compositeBenchmarkBaseCurrency:"TRY",compositeBenchmarkUpdatedAt:"",
  viopCollateral:0,viopTransfers:[]
 };
 let settings={...DEFAULT_MODEL_SETTINGS,...JSON.parse(localStorage.getItem(SK)||"{}")};
 settings.viopTransfers=Array.isArray(settings.viopTransfers)?settings.viopTransfers:[];
 settings.nemaRateHistory=Array.isArray(settings.nemaRateHistory)?settings.nemaRateHistory:[];
 settings.nemaAccruals=Array.isArray(settings.nemaAccruals)?settings.nemaAccruals:[];
+settings.compositeBenchmarkWeights=settings.compositeBenchmarkWeights&&typeof settings.compositeBenchmarkWeights==="object"?settings.compositeBenchmarkWeights:{bist:25,sp500:25,gold:25,bond:25};
+settings.compositeBenchmarkRebalance=["monthly","quarterly","annual"].includes(settings.compositeBenchmarkRebalance)?settings.compositeBenchmarkRebalance:"quarterly";
 const $=id=>document.getElementById(id), today=new Date().toISOString().slice(0,10);
 const localDateTimeValue=(date=new Date())=>{
  const p=n=>String(n).padStart(2,"0");
@@ -3285,6 +3386,124 @@ function metrics(){
 }
 
 
+
+const COMPOSITE_DEFAULT_WEIGHTS={bist:25,sp500:25,gold:25,bond:25};
+function pmsNormalizeCompositeWeights(input){
+ const raw={
+  bist:Math.max(0,Number(input?.bist)||0),sp500:Math.max(0,Number(input?.sp500)||0),
+  gold:Math.max(0,Number(input?.gold)||0),bond:Math.max(0,Number(input?.bond)||0)
+ };
+ const total=raw.bist+raw.sp500+raw.gold+raw.bond;
+ if(total<=0)return{...COMPOSITE_DEFAULT_WEIGHTS};
+ return Object.fromEntries(Object.entries(raw).map(([k,v])=>[k,v/total*100]));
+}
+function pmsStrategicBucket(position){
+ const a=String(position.assetClass||"").toLocaleLowerCase("tr-TR");
+ const s=String(position.symbol||"").toUpperCase();
+ const y=String(position.yahooSymbol||"").toUpperCase();
+ const name=`${a} ${s} ${y}`;
+ if(/altın|gold|xau|gc=f|gld|iau|kıymetli maden/.test(name.toLowerCase()))return"gold";
+ if(/tahvil|bond|eurobond|fixed income|sabit getir|agg|ief|tlt|shy|bnd|lqd/.test(name.toLowerCase()))return"bond";
+ if(/yurtiçi|bist|viop|vadeli/.test(a)||y.endsWith(".IS")||/^(XU030|XU100|XU050|XU500)/.test(s))return"bist";
+ if(/yurtdışı hisse|us stock|abd|amerika|etf|fon|fund/.test(a)||(!y.endsWith(".IS")&&/[A-Z]/.test(y)))return"sp500";
+ return null;
+}
+function pmsAutoStrategicWeights(){
+ const active=model.filter(p=>p.status==="Aktif");
+ const totals={bist:0,sp500:0,gold:0,bond:0},unknown=[];
+ let classified=0,gross=0;
+ for(const p of active){
+  const value=Math.abs(positionSize(p)||tradeNotional(p,p.currentPrice??p.entry)||0);
+  if(!value)continue;
+  gross+=value;
+  const bucket=pmsStrategicBucket(p);
+  if(bucket){totals[bucket]+=value;classified+=value}else unknown.push({p,value});
+ }
+ const coverage=gross?classified/gross*100:0;
+ if(classified<=0)return{weights:{...COMPOSITE_DEFAULT_WEIGHTS},coverage,usedDefault:true};
+ return{weights:pmsNormalizeCompositeWeights(totals),coverage,usedDefault:false};
+}
+function ensureCompositeBenchmarkSettings(){
+ settings.compositeBenchmarkWeights=pmsNormalizeCompositeWeights(settings.compositeBenchmarkWeights||COMPOSITE_DEFAULT_WEIGHTS);
+ settings.compositeBenchmarkRebalance=["monthly","quarterly","annual"].includes(settings.compositeBenchmarkRebalance)?settings.compositeBenchmarkRebalance:"quarterly";
+ if(!settings.compositeBenchmarkInitialized){
+  const auto=pmsAutoStrategicWeights();
+  settings.compositeBenchmarkWeights=auto.weights;
+  settings.compositeBenchmarkInitialized=true;
+  settings.compositeBenchmarkUpdatedAt=new Date().toISOString();
+  if(cloudStateReady)save();
+ }
+ return settings.compositeBenchmarkWeights;
+}
+function pmsCompositeHistory(){return Array.isArray(pmsLiveData?.compositeBenchmark?.history)?pmsLiveData.compositeBenchmark.history:[]}
+function pmsCompositeIndexAt(date){
+ const rows=pmsCompositeHistory();if(!date||!rows.length)return null;
+ const target=String(date).slice(0,10);let lo=0,hi=rows.length-1,best=null;
+ while(lo<=hi){const mid=(lo+hi)>>1,row=rows[mid];if(row.date<=target){best=row;lo=mid+1}else hi=mid-1}
+ return best?.index??null;
+}
+function pmsCompositeReturnBetween(start,end){
+ const a=pmsCompositeIndexAt(start),b=pmsCompositeIndexAt(end);
+ return pmsFinite(a)&&pmsFinite(b)&&Number(a)>0?Number(b)/Number(a)-1:null;
+}
+function pmsTradeBenchmarkReturn(trade){
+ const start=String(trade.openDateTime||trade.openDate||"").slice(0,10);
+ const end=String(trade.closeDateTime||trade.closeDate||"").slice(0,10);
+ const composite=pmsCompositeReturnBetween(start,end);
+ if(pmsFinite(composite))return Number(composite);
+ return pmsFinite(trade.benchmark)?Number(trade.benchmark)/100:null;
+}
+function updateCompositeWeightTotal(){
+ const total=["compositeWeightBist","compositeWeightSp500","compositeWeightGold","compositeWeightBond"].reduce((s,id)=>s+(Number($(id)?.value)||0),0);
+ const el=$("compositeWeightTotal");if(el){el.textContent=`%${f(total,1)}`;el.classList.toggle("compositeWeightValid",Math.abs(total-100)<.05);el.classList.toggle("compositeWeightInvalid",Math.abs(total-100)>=.05)}
+ return total;
+}
+function renderCompositeBenchmarkPanel(){
+ ensureCompositeBenchmarkSettings();
+ const w=settings.compositeBenchmarkWeights||COMPOSITE_DEFAULT_WEIGHTS;
+ if($("compositeWeightBist"))$("compositeWeightBist").value=f(w.bist,1);
+ if($("compositeWeightSp500"))$("compositeWeightSp500").value=f(w.sp500,1);
+ if($("compositeWeightGold"))$("compositeWeightGold").value=f(w.gold,1);
+ if($("compositeWeightBond"))$("compositeWeightBond").value=f(w.bond,1);
+ if($("compositeRebalance"))$("compositeRebalance").value=settings.compositeBenchmarkRebalance||"quarterly";
+ updateCompositeWeightTotal();
+ const auto=pmsAutoStrategicWeights();
+ if($("compositeAutoCoverage"))$("compositeAutoCoverage").textContent=`%${f(auto.coverage,1)}`;
+ if($("compositeBenchmarkMethod")){
+  const stamp=settings.compositeBenchmarkUpdatedAt?new Date(settings.compositeBenchmarkUpdatedAt).toLocaleString("tr-TR"):"-";
+  $("compositeBenchmarkMethod").textContent=`Policy weights sabit · Son stratejik güncelleme: ${stamp}`;
+ }
+ const composite=pmsLiveData?.compositeBenchmark;
+ if(composite){
+  pmsSetValue("compositeSinceInception",composite.sinceModelStart,{percent:true,sign:true});
+  pmsSetValue("compositeYtd",composite.ytd,{percent:true,sign:true});
+  $("compositeValueDate").textContent=composite.valueDate||"-";
+  $("compositeIndexLevel").textContent=pmsFinite(composite.indexLevel)?f(composite.indexLevel,2):"-";
+  $("compositeBenchmarkSource").innerHTML=`Kaynak: <strong>${esc(composite.source||"Yahoo Finance")}</strong> · BIST 100 ${f(w.bist,1)}% + S&P 500 ${f(w.sp500,1)}% + Altın ${f(w.gold,1)}% + Tahvil ${f(w.bond,1)}% · ${settings.compositeBenchmarkRebalance==="monthly"?"Aylık":settings.compositeBenchmarkRebalance==="annual"?"Yıllık":"Çeyreklik"} rebalancing · TRY bazlı.`;
+ }
+}
+function saveCompositeBenchmarkWeights(useAuto=false){
+ let weights,coverage=null;
+ if(useAuto){
+  const auto=pmsAutoStrategicWeights();weights=auto.weights;coverage=auto.coverage;
+ }else{
+  const total=updateCompositeWeightTotal();
+  if(Math.abs(total-100)>.05){alert("Composite Benchmark stratejik ağırlıklarının toplamı %100 olmalıdır.");return false}
+  weights={
+   bist:Number($("compositeWeightBist").value)||0,sp500:Number($("compositeWeightSp500").value)||0,
+   gold:Number($("compositeWeightGold").value)||0,bond:Number($("compositeWeightBond").value)||0
+  };
+ }
+ settings.compositeBenchmarkWeights=pmsNormalizeCompositeWeights(weights);
+ settings.compositeBenchmarkRebalance=$("compositeRebalance")?.value||settings.compositeBenchmarkRebalance||"quarterly";
+ settings.compositeBenchmarkInitialized=true;settings.compositeBenchmarkUpdatedAt=new Date().toISOString();
+ save();renderCompositeBenchmarkPanel();
+ pmsLiveData=null;pmsLiveSignature="";
+ refreshPmsLiveAnalytics(true);
+ if(useAuto&&coverage!==null)alert(`Stratejik benchmark ağırlıkları Model Portföyden otomatik hesaplandı. Sınıflandırma coverage: %${f(coverage,1)}.`);
+ return true;
+}
+
 let pmsLiveData=null,pmsLiveLoading=false,pmsLiveFetchedAt=0,pmsLiveSignature="";
 function pmsPositionYahooSymbol(p){
  if(isViopPosition(p)){
@@ -3296,8 +3515,15 @@ function pmsPositionYahooSymbol(p){
  return String(p.yahooSymbol||inferYahooSymbol(p)||p.symbol||"").trim().toUpperCase();
 }
 function pmsLiveRequestPayload(){
+ ensureCompositeBenchmarkSettings();
  return{
   capital:Number(settings.capital)||0,
+  modelStartDate:settings.startDate||"",
+  benchmark:{
+   baseCurrency:"TRY",
+   weights:pmsNormalizeCompositeWeights(settings.compositeBenchmarkWeights||COMPOSITE_DEFAULT_WEIGHTS),
+   rebalance:settings.compositeBenchmarkRebalance||"quarterly"
+  },
   positions:model.slice(0,60).map(p=>({
    id:p.id,status:p.status,label:p.viopContract||p.futuresContract||p.symbol,
    symbol:pmsPositionYahooSymbol(p),assetClass:p.assetClass||"",
@@ -3309,7 +3535,10 @@ function pmsLiveRequestPayload(){
  };
 }
 function pmsCurrentSignature(){
- return JSON.stringify(model.map(p=>[p.id,p.status,p.currentPrice,p.closePrice,p.qty,p.yahooSymbol,p.symbol,p.assetClass,p.stop]));
+ return JSON.stringify({
+  model:model.map(p=>[p.id,p.status,p.currentPrice,p.closePrice,p.qty,p.yahooSymbol,p.symbol,p.assetClass,p.stop]),
+  benchmark:settings.compositeBenchmarkWeights,rebalance:settings.compositeBenchmarkRebalance
+ });
 }
 function setPmsLiveStatus(text,state=""){
  const el=$("pmsLiveStatus");if(!el)return;
@@ -3439,26 +3668,22 @@ function pmsAttributionAnalysis(){
  const analysis=pmsAnalysis(),meta=new Map((pmsLiveData?.assets||[]).map(x=>[String(x.id),x]));
  const pnlRows=model.map(p=>({p,meta:meta.get(String(p.id)),pnl:p.status==="Kapalı"?Number(netClosedPnl(p)||0):Number(netLivePnl(p)||0)})).filter(x=>x.pnl!==0).sort((a,b)=>Math.abs(b.pnl)-Math.abs(a.pnl));
  const totalAbs=pnlRows.reduce((s,x)=>s+Math.abs(x.pnl),0);
- const paired=analysis.closed.filter(p=>pmsFinite(p.benchmark)&&pmsFinite(mret(p)));
- const pairedNotional=paired.reduce((s,p)=>s+Math.abs(tradeNotional(p,p.entry)),0);
- const stockSelection=pairedNotional?paired.reduce((s,p)=>s+Math.abs(tradeNotional(p,p.entry))/pairedNotional*(Number(mret(p))-Number(p.benchmark)/100),0):null;
+ const pairs=analysis.benchmarkPairs||[],pairedNotional=pairs.reduce((s,x)=>s+Math.abs(tradeNotional(x.trade,x.trade.entry)),0);
+ const stockSelection=pairedNotional?pairs.reduce((s,x)=>s+Math.abs(tradeNotional(x.trade,x.trade.entry))/pairedNotional*(x.portfolio-x.benchmark),0):null;
  const sectorGroups={};
- for(const p of paired){
-  const sector=meta.get(String(p.id))?.sector||p.assetClass||"Diğer",notional=Math.abs(tradeNotional(p,p.entry)),active=Number(mret(p))-Number(p.benchmark)/100;
+ for(const pair of pairs){
+  const p=pair.trade,sector=meta.get(String(p.id))?.sector||p.assetClass||"Diğer",notional=Math.abs(tradeNotional(p,p.entry)),active=pair.portfolio-pair.benchmark;
   if(!sectorGroups[sector])sectorGroups[sector]={notional:0,activeSum:0,benchSum:0,count:0};
-  sectorGroups[sector].notional+=notional;sectorGroups[sector].activeSum+=active*notional;sectorGroups[sector].benchSum+=Number(p.benchmark)/100*notional;sectorGroups[sector].count++;
+  sectorGroups[sector].notional+=notional;sectorGroups[sector].activeSum+=active*notional;sectorGroups[sector].benchSum+=pair.benchmark*notional;sectorGroups[sector].count++;
  }
  const sectorRows=Object.entries(sectorGroups).map(([sector,x])=>({sector,weight:pairedNotional?x.notional/pairedNotional:0,active:x.notional?x.activeSum/x.notional:0,bench:x.notional?x.benchSum/x.notional:0,count:x.count}));
  const bestSector=[...sectorRows].sort((a,b)=>b.active-a.active)[0],worstSector=[...sectorRows].sort((a,b)=>a.active-b.active)[0];
- const equal=sectorRows.length?1/sectorRows.length:0;
- const sectorAllocation=sectorRows.length?sectorRows.reduce((s,x)=>s+(x.weight-equal)*x.bench,0):null;
- const regime=pmsRegimePerformanceAnalysis();
- const validReg=Object.entries(regime).filter(([,x])=>x.count);
+ const equal=sectorRows.length?1/sectorRows.length:0,sectorAllocation=sectorRows.length?sectorRows.reduce((s,x)=>s+(x.weight-equal)*x.bench,0):null;
+ const regime=pmsRegimePerformanceAnalysis(),validReg=Object.entries(regime).filter(([,x])=>x.count);
  const posReg=validReg.filter(([,x])=>x.compound>0).reduce((s,[,x])=>s+x.count,0),regCount=validReg.reduce((s,[,x])=>s+x.count,0);
  const timingScore=regCount?Math.max(0,Math.min(100,posReg/regCount*100)):null;
  const gross=model.filter(p=>p.status==="Aktif").reduce((s,p)=>s+Math.abs(positionSize(p)),0),equity=analysis.currentEquity||Number(settings.capital)||0;
- const leverage=equity>0?gross/equity:null;
- const leverageEffect=analysis.totalReturn!==null&&leverage&&leverage>1?analysis.totalReturn*(1-1/leverage):0;
+ const leverage=equity>0?gross/equity:null,leverageEffect=analysis.totalReturn!==null&&leverage&&leverage>1?analysis.totalReturn*(1-1/leverage):0;
  return{pnlRows,totalAbs,stockSelection,sectorRows,bestSector,worstSector,sectorAllocation,timingScore,regime,leverage,leverageEffect};
 }
 function renderPmsAttribution(){
@@ -3469,7 +3694,7 @@ function renderPmsAttribution(){
   return`<div class="pmsReturnSourceRow ${x.pnl<0?"negative":""}"><span>${esc(label)}</span><div class="bar"><i style="width:${share}%"></i></div><strong class="${x.pnl>=0?"positive":"negative"}">${x.pnl>=0?"+":""}${f(x.pnl,2)} TRY</strong></div>`;
  }).join(""):'<div class="muted">Kapalı veya açık pozisyon K/Z verisi bulunmuyor.</div>';
  pmsSetValue("pmsStockSelectionEffect",a.stockSelection,{percent:true,sign:true});
- $("pmsStockSelectionComment").textContent=a.stockSelection===null?"Benchmark % verisi bulunan kapalı işlem yok.":a.stockSelection>0?"Seçim etkisi benchmark üzerinde pozitif aktif getiri üretiyor.":"Seçim etkisi benchmarka göre negatif.";
+ $("pmsStockSelectionComment").textContent=a.stockSelection===null?"Composite Benchmark tarih eşleşmesi bulunan kapalı işlem yok.":a.stockSelection>0?"Seçim etkisi benchmark üzerinde pozitif aktif getiri üretiyor.":"Seçim etkisi benchmarka göre negatif.";
  const secEffect=a.bestSector?.active??null;pmsSetValue("pmsSectorSelectionEffect",secEffect,{percent:true,sign:true});
  $("pmsSectorSelectionComment").textContent=a.bestSector?`En güçlü seçim: ${a.bestSector.sector} ${a.bestSector.active>=0?"+":""}%${f(a.bestSector.active*100,2)}${a.worstSector&&a.worstSector.sector!==a.bestSector.sector?` · En zayıf: ${a.worstSector.sector} ${a.worstSector.active>=0?"+":""}%${f(a.worstSector.active*100,2)}`:""}`:"Sektör eşleşmesi için canlı sektör ve benchmark verisi gerekiyor.";
  pmsSetValue("pmsSectorAllocationEffect",a.sectorAllocation,{percent:true,sign:true});
@@ -3481,7 +3706,7 @@ function renderPmsAttribution(){
 }
 function renderPmsLiveModules(){
  if(!pmsLiveData)return;
- renderPmsPortfolioHealth();renderPmsMarketRegime();renderPmsRegimePerformance();renderPmsRiskContribution();renderPmsFactorExposure();renderPmsAttribution();
+ renderCompositeBenchmarkPanel();renderPmsPortfolioHealth();renderPmsMarketRegime();renderPmsRegimePerformance();renderPmsRiskContribution();renderPmsFactorExposure();renderPmsAttribution();
 }
 
 function pmsFinite(value){return Number.isFinite(Number(value))}
@@ -3506,8 +3731,8 @@ function pmsClosedTrades(){
 function pmsAnalysis(){
  const closed=pmsClosedTrades(),returns=closed.map(p=>Number(mret(p)));
  const start=Number(settings.capital)||0;
- const startDate=settings.startDate||closed[0]?.openDateTime||closed[0]?.openDate||today;
- const endDate=closed.at(-1)?.closeDateTime||closed.at(-1)?.closeDate||today;
+ const startDate=String(settings.startDate||closed[0]?.openDateTime||closed[0]?.openDate||today).slice(0,10);
+ const endDate=String(closed.at(-1)?.closeDateTime||closed.at(-1)?.closeDate||today).slice(0,10);
  const years=Math.max((new Date(endDate)-new Date(startDate))/(365.25*86400000),1/365.25);
  const ppy=returns.length?Math.max(1,returns.length/years):1;
  const rfAnnual=(Number(settings.riskFree)||0)/100,rfPeriod=rfAnnual/ppy;
@@ -3516,25 +3741,26 @@ function pmsAnalysis(){
  const downsidePeriods=excess.map(r=>Math.min(0,r));
  const downsideDev=downsidePeriods.some(r=>r<0)?Math.sqrt(mean(downsidePeriods.map(r=>r*r)))*Math.sqrt(ppy):null;
 
- let equity=start,peak=start,maxDdPct=0,maxDdAmount=0;
+ let equity=start,peak=start,maxDdPct=0,maxDdAmount=0,portfolioIndex=100;
+ const benchmarkStartIndex=pmsCompositeIndexAt(startDate);
  const equitySeries=[{label:startDate,index:100,equity:start||100,benchmarkIndex:100,drawdown:0}];
- let benchmarkIndex=100,portfolioIndex=100;
+ let fallbackBenchmarkIndex=100;
  for(const trade of closed){
   const pnl=Number(netClosedPnl(trade)||0);
-  equity+=pnl;
-  peak=Math.max(peak,equity);
+  equity+=pnl;peak=Math.max(peak,equity);
   const ddAmount=Math.max(0,peak-equity),ddPct=peak>0?ddAmount/peak:0;
   maxDdPct=Math.max(maxDdPct,ddPct);maxDdAmount=Math.max(maxDdAmount,ddAmount);
-  const r=Number(mret(trade)||0);
-  portfolioIndex*=1+r;
-  if(pmsFinite(trade.benchmark))benchmarkIndex*=1+Number(trade.benchmark)/100;
-  equitySeries.push({
-   label:String(trade.closeDateTime||trade.closeDate||"").slice(0,10),
-   index:portfolioIndex,
-   equity,
-   benchmarkIndex,
-   drawdown:-ddPct*100
-  });
+  const r=Number(mret(trade)||0);portfolioIndex*=1+r;
+  const closeDate=String(trade.closeDateTime||trade.closeDate||"").slice(0,10);
+  let benchmarkIndex=100;
+  const liveIdx=pmsCompositeIndexAt(closeDate);
+  if(pmsFinite(benchmarkStartIndex)&&pmsFinite(liveIdx)&&Number(benchmarkStartIndex)>0){
+   benchmarkIndex=100*Number(liveIdx)/Number(benchmarkStartIndex);
+  }else{
+   const fallback=pmsFinite(trade.benchmark)?Number(trade.benchmark)/100:0;
+   fallbackBenchmarkIndex*=1+fallback;benchmarkIndex=fallbackBenchmarkIndex;
+  }
+  equitySeries.push({label:closeDate,index:portfolioIndex,equity,benchmarkIndex,drawdown:-ddPct*100});
  }
 
  const nema=postedNemaTotal(),live=model.filter(p=>p.status==="Aktif").reduce((s,p)=>s+(netLivePnl(p)||0),0);
@@ -3542,85 +3768,68 @@ function pmsAnalysis(){
  const totalReturn=start?currentEquity/start-1:null;
  const cagr=start&&equity+nema>0?Math.pow((equity+nema)/start,1/years)-1:null;
  const sharpe=excess.length>1&&sd(excess)?mean(excess)/sd(excess)*Math.sqrt(ppy):null;
- const downsideRaw=excess.filter(r=>r<0);
- const downsidePerPeriod=downsideRaw.length?Math.sqrt(mean(downsideRaw.map(r=>r*r))):0;
+ const downsideRaw=excess.filter(r=>r<0),downsidePerPeriod=downsideRaw.length?Math.sqrt(mean(downsideRaw.map(r=>r*r))):0;
  const sortino=downsidePerPeriod?mean(excess)/downsidePerPeriod*Math.sqrt(ppy):null;
  const calmar=cagr!==null&&maxDdPct>0?cagr/maxDdPct:null;
 
- const pnls=closed.map(p=>Number(netClosedPnl(p)||0));
- const wins=pnls.filter(x=>x>0),losses=pnls.filter(x=>x<0);
+ const pnls=closed.map(p=>Number(netClosedPnl(p)||0)),wins=pnls.filter(x=>x>0),losses=pnls.filter(x=>x<0);
  const grossProfit=wins.reduce((s,x)=>s+x,0),grossLoss=Math.abs(losses.reduce((s,x)=>s+x,0));
- const avgWin=mean(wins),avgLoss=mean(losses);
- const profitFactor=grossLoss?grossProfit/grossLoss:null;
- const payoff=losses.length&&avgLoss?avgWin/Math.abs(avgLoss):null;
- const expectancy=mean(pnls);
+ const avgWin=mean(wins),avgLoss=mean(losses),profitFactor=grossLoss?grossProfit/grossLoss:null;
+ const payoff=losses.length&&avgLoss?avgWin/Math.abs(avgLoss):null,expectancy=mean(pnls);
  const bestTrade=returns.length?Math.max(...returns):null,worstTrade=returns.length?Math.min(...returns):null;
- const q05=pmsPercentile(returns,.05);
- const tail=q05===null?[]:returns.filter(r=>r<=q05);
- const var95=q05===null?null:Math.max(0,-q05);
- const cvar95=tail.length?Math.max(0,-mean(tail)):null;
- const netProfit=pnls.reduce((s,x)=>s+x,0)+nema;
- const recoveryFactor=maxDdAmount>0?netProfit/maxDdAmount:null;
+ const q05=pmsPercentile(returns,.05),tail=q05===null?[]:returns.filter(r=>r<=q05);
+ const var95=q05===null?null:Math.max(0,-q05),cvar95=tail.length?Math.max(0,-mean(tail)):null;
+ const netProfit=pnls.reduce((s,x)=>s+x,0)+nema,recoveryFactor=maxDdAmount>0?netProfit/maxDdAmount:null;
 
- const paired=closed.filter(p=>pmsFinite(p.benchmark)&&pmsFinite(mret(p)));
- const pr=paired.map(p=>Number(mret(p))),br=paired.map(p=>Number(p.benchmark)/100);
- const coverage=closed.length?paired.length/closed.length:0;
+ const benchmarkPairs=closed.map(trade=>({
+  trade,portfolio:Number(mret(trade)),benchmark:pmsTradeBenchmarkReturn(trade)
+ })).filter(x=>pmsFinite(x.portfolio)&&pmsFinite(x.benchmark));
+ const paired=benchmarkPairs.map(x=>x.trade),pr=benchmarkPairs.map(x=>x.portfolio),br=benchmarkPairs.map(x=>x.benchmark);
+ const coverage=closed.length?benchmarkPairs.length/closed.length:0;
  let beta=null,alpha=null,corr=null,r2=null,trackingError=null,informationRatio=null,treynor=null,upsideCapture=null,downsideCapture=null;
- let pairedPortfolioReturn=null,benchmarkReturn=null,activeReturn=null;
- if(paired.length){
-  pairedPortfolioReturn=pmsCompound(pr);benchmarkReturn=pmsCompound(br);activeReturn=pairedPortfolioReturn-benchmarkReturn;
- }
- if(paired.length>=2){
-  const bvar=variance(br);
-  beta=bvar?cov(pr,br)/bvar:null;
+ const benchmarkReturn=pmsCompositeReturnBetween(startDate,today);
+ const pairedPortfolioReturn=totalReturn;
+ const activeReturn=pmsFinite(totalReturn)&&pmsFinite(benchmarkReturn)?Number(totalReturn)-Number(benchmarkReturn):null;
+
+ if(benchmarkPairs.length>=2){
+  const bvar=variance(br);beta=bvar?cov(pr,br)/bvar:null;
   corr=pmsCorrelation(pr,br);r2=corr===null?null:corr*corr;
   const active=pr.map((r,i)=>r-br[i]);
   trackingError=active.length>1?sd(active)*Math.sqrt(ppy):null;
   informationRatio=active.length>1&&sd(active)?mean(active)/sd(active)*Math.sqrt(ppy):null;
   if(beta!==null){
    const alphaPerTrade=(mean(pr)-rfPeriod)-beta*(mean(br)-rfPeriod);
-   alpha=alphaPerTrade*ppy;
-   treynor=beta?((mean(pr)-rfPeriod)*ppy)/beta:null;
+   alpha=alphaPerTrade*ppy;treynor=beta?((mean(pr)-rfPeriod)*ppy)/beta:null;
   }
-  const up=paired.filter(p=>Number(p.benchmark)>0);
-  const down=paired.filter(p=>Number(p.benchmark)<0);
-  if(up.length){
-   const upr=up.map(p=>Number(mret(p))),upb=up.map(p=>Number(p.benchmark)/100);
-   const den=mean(upb);upsideCapture=den?mean(upr)/den*100:null;
-  }
-  if(down.length){
-   const dpr=down.map(p=>Number(mret(p))),db=down.map(p=>Number(p.benchmark)/100);
-   const den=mean(db);downsideCapture=den?mean(dpr)/den*100:null;
-  }
+  const up=benchmarkPairs.filter(x=>x.benchmark>0),down=benchmarkPairs.filter(x=>x.benchmark<0);
+  if(up.length){const den=mean(up.map(x=>x.benchmark));upsideCapture=den?mean(up.map(x=>x.portfolio))/den*100:null}
+  if(down.length){const den=mean(down.map(x=>x.benchmark));downsideCapture=den?mean(down.map(x=>x.portfolio))/den*100:null}
  }
 
  return{
-  closed,returns,start,years,ppy,rfAnnual,currentEquity,totalReturn,cagr,annualVol,downsideDev,
-  sharpe,sortino,maxDdPct,maxDdAmount,calmar,recoveryFactor,equitySeries,
-  wins,losses,grossProfit,grossLoss,avgWin,avgLoss,profitFactor,payoff,expectancy,bestTrade,worstTrade,var95,cvar95,
-  paired,coverage,pairedPortfolioReturn,benchmarkReturn,activeReturn,beta,alpha,corr,r2,trackingError,informationRatio,treynor,upsideCapture,downsideCapture
+  closed,returns,start,startDate,endDate,years,ppy,rfAnnual,currentEquity,totalReturn,cagr,annualVol,downsideDev,
+  sharpe,sortino,maxDdPct,maxDdAmount,calmar,recoveryFactor,equitySeries,wins,losses,grossProfit,grossLoss,avgWin,avgLoss,
+  profitFactor,payoff,expectancy,bestTrade,worstTrade,var95,cvar95,paired,benchmarkPairs,coverage,
+  pairedPortfolioReturn,benchmarkReturn,activeReturn,beta,alpha,corr,r2,trackingError,informationRatio,treynor,upsideCapture,downsideCapture
  };
 }
 function pmsRollingMetrics(windowSize,analysis=pmsAnalysis()){
- const closed=analysis.closed,ppy=analysis.ppy||1,rfPeriod=(analysis.rfAnnual||0)/ppy;
- const points=[];
+ const closed=analysis.closed,ppy=analysis.ppy||1,rfPeriod=(analysis.rfAnnual||0)/ppy,points=[];
  for(let i=windowSize-1;i<closed.length;i++){
   const slice=closed.slice(i-windowSize+1,i+1),rs=slice.map(p=>Number(mret(p))).filter(pmsFinite);
   if(rs.length<windowSize)continue;
-  const ex=rs.map(r=>r-rfPeriod),sigma=sd(ex);
-  const negative=ex.filter(r=>r<0),downDev=negative.length?Math.sqrt(mean(negative.map(r=>r*r))):0;
-  const paired=slice.filter(p=>pmsFinite(p.benchmark)&&pmsFinite(mret(p)));
+  const ex=rs.map(r=>r-rfPeriod),sigma=sd(ex),negative=ex.filter(r=>r<0),downDev=negative.length?Math.sqrt(mean(negative.map(r=>r*r))):0;
+  const pairs=slice.map(trade=>({portfolio:Number(mret(trade)),benchmark:pmsTradeBenchmarkReturn(trade)})).filter(x=>pmsFinite(x.portfolio)&&pmsFinite(x.benchmark));
   let beta=null,alpha=null;
-  if(paired.length>=3){
-   const pr=paired.map(p=>Number(mret(p))),br=paired.map(p=>Number(p.benchmark)/100),bvar=variance(br);
+  if(pairs.length>=3){
+   const pr=pairs.map(x=>x.portfolio),br=pairs.map(x=>x.benchmark),bvar=variance(br);
    beta=bvar?cov(pr,br)/bvar:null;
    if(beta!==null)alpha=((mean(pr)-rfPeriod)-beta*(mean(br)-rfPeriod))*ppy;
   }
   points.push({
    label:String(slice.at(-1).closeDateTime||slice.at(-1).closeDate||"").slice(0,10),
    sharpe:sigma?mean(ex)/sigma*Math.sqrt(ppy):null,
-   sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,
-   alpha,beta
+   sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,alpha,beta
   });
  }
  return points;
@@ -3677,7 +3886,9 @@ function pmsDrawDrawdown(analysis){
  pmsDrawSingleSeries("pmsDrawdownChart",analysis.equitySeries,"drawdown",v=>`${f(v,1)}%`,"#ff7d8f",230);
 }
 window.renderPMS=function renderPMS(){
+ ensureCompositeBenchmarkSettings();
  const a=pmsAnalysis(),base=metrics();
+ renderCompositeBenchmarkPanel();
  pmsSetValue("pmsPortfolioValue",a.currentEquity,{money:true});
  pmsSetValue("pmsTotalReturn",a.totalReturn,{percent:true,sign:true});
  pmsSetValue("pmsCagr",a.cagr,{percent:true,sign:true});
@@ -3697,7 +3908,7 @@ window.renderPMS=function renderPMS(){
  pmsSetValue("pmsTrackingError",a.trackingError,{percent:true});pmsSetValue("pmsInformationRatio",a.informationRatio);
  pmsSetValue("pmsTreynor",a.treynor);pmsSetValue("pmsUpsideCapture",a.upsideCapture===null?null:a.upsideCapture/100,{percent:true});
  pmsSetValue("pmsDownsideCapture",a.downsideCapture===null?null:a.downsideCapture/100,{percent:true});
- $("pmsBenchmarkCoverage").textContent=`Benchmark coverage %${f(a.coverage*100,1)}`;
+ $("pmsBenchmarkCoverage").textContent=`Composite coverage %${f(a.coverage*100,1)}`;
  pmsSetValue("pmsBenchmarkCoverageRisk",a.coverage,{percent:true});
 
  pmsSetValue("pmsWinRate",a.closed.length?a.wins.length/a.closed.length:null,{percent:true});
@@ -4195,6 +4406,16 @@ $("refreshViopWorkspace").onclick=()=>loadViopContracts(true);
 $("refreshViopContracts").onclick=()=>loadViopContracts(true);
 $("pmsRollingWindow")?.addEventListener("change",renderPMS);
 $("pmsRefreshLiveData")?.addEventListener("click",()=>refreshPmsLiveAnalytics(true));
+
+["compositeWeightBist","compositeWeightSp500","compositeWeightGold","compositeWeightBond"].forEach(id=>$(id)?.addEventListener("input",updateCompositeWeightTotal));
+$("compositeSaveWeights")?.addEventListener("click",()=>saveCompositeBenchmarkWeights(false));
+$("compositeAutoWeights")?.addEventListener("click",()=>saveCompositeBenchmarkWeights(true));
+$("compositeRebalance")?.addEventListener("change",()=>{
+ settings.compositeBenchmarkRebalance=$("compositeRebalance").value;
+ settings.compositeBenchmarkUpdatedAt=new Date().toISOString();save();
+ pmsLiveData=null;pmsLiveSignature="";refreshPmsLiveAnalytics(true);
+});
+
 window.addEventListener("resize",()=>{if($("pms")?.classList.contains("active"))renderPMS()});
 $("cashStatementFilterBtn").onclick=()=>$("cashStatementFilterPanel").classList.toggle("hidden");
 $("cashStatementFilterMode").onchange=syncCashStatementFilterUI;
@@ -5334,6 +5555,8 @@ function applyCloudState(state){
  settings.viopTransfers=Array.isArray(settings.viopTransfers)?settings.viopTransfers:[];
  settings.nemaRateHistory=Array.isArray(settings.nemaRateHistory)?settings.nemaRateHistory:[];
  settings.nemaAccruals=Array.isArray(settings.nemaAccruals)?settings.nemaAccruals:[];
+ settings.compositeBenchmarkWeights=settings.compositeBenchmarkWeights&&typeof settings.compositeBenchmarkWeights==="object"?settings.compositeBenchmarkWeights:{bist:25,sp500:25,gold:25,bond:25};
+ settings.compositeBenchmarkRebalance=["monthly","quarterly","annual"].includes(settings.compositeBenchmarkRebalance)?settings.compositeBenchmarkRebalance:"quarterly";
  marketFavorites=Array.isArray(source.marketFavorites)?source.marketFavorites:[];window.marketFavorites=marketFavorites;localStorage.setItem("marketFavorites",JSON.stringify(marketFavorites));
  customMarketItems=source.customMarketItems&&typeof source.customMarketItems==="object"?source.customMarketItems:{};window.customMarketItems=customMarketItems;localStorage.setItem(CUSTOM_MARKET_KEY,JSON.stringify(customMarketItems));
  aiSessions=Array.isArray(source.aiSessions)?source.aiSessions:[];window.aiSessions=aiSessions;activeAiSessionId=aiSessions[0]?.id||null;localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(aiSessions.slice(0,40)));
