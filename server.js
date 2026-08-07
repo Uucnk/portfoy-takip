@@ -1555,6 +1555,7 @@ app.get("/api/fundamentals",async(req,res)=>{
 
 const TCMB_REFERENCE_URL="https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Istatistikler/Bankacilik+Verileri/Uye+Isyerlerine+Uygulanacak+Azami+Komisyon+Oranlari";
 const ALNUS_VIOP_URL="https://www.alnusyatirim.com/viop";
+const BIST_VIOP_MARKET_MAKING_URL="https://www.borsaistanbul.com/piyasalar/viop/piyasa-isleyisi/piyasa-yapicilik";
 const OYAK_VIOP_MARGIN_URL="https://www.oyakyatirim.com.tr/viop/baslangic-teminatlari-kaldirac-oranlari";
 const DENIZ_VIOP_PSR_URL="https://www.denizyatirim.com/Teminatlar";
 
@@ -1690,6 +1691,11 @@ const VIOP_FALLBACK_CONTRACTS=[
  {id:"F_EURTRY",code:"F_EURTRY",underlying:"EURTRY",name:"Euro/TL Vadeli",contractSize:1000,currency:"TRY",marginMode:"fixed",initialMargin:null,maintenanceMargin:null,expiryDate:null,maturityLabel:"Yakın Vade"},
  {id:"F_XAUTRY",code:"F_XAUTRY",underlying:"XAUTRY",name:"Gram Altın/TL Vadeli",contractSize:1,currency:"TRY",marginMode:"fixed",initialMargin:null,maintenanceMargin:null,expiryDate:null,maturityLabel:"Yakın Vade"}
 ];
+const VIOP_OFFICIAL_PAY_UNDERLYINGS_FALLBACK=new Set([
+ "AKBNK","ASELS","ASTOR","BIMAS","EKGYO","EREGL","GARAN","ISCTR","KCHOL","SAHOL","SASA","THYAO","TRALT","TUPRS","YKBNK",
+ "AEFES","GUBRF","HALKB","KONTR","KRDMD","MGROS","PETKM","PGSUS","SISE","TAVHL","TCELL","TOASO","TRMET","TTKOM","VAKBN",
+ "AKSEN","ALARK","ARCLK","BRSAN","CIMSA","DOAS","DOHOL","ENJSA","ENKAI","FROTO","HEKTS","ODAS","OYAKC","SOKM","TKFEN","TSKB","ULKER","VESTL"
+]);
 const VIOP_SPECIAL_UNDERLYINGS=new Set(["XU030","USDTRY","EURTRY","EURUSD","XAUTRY","XAUUSD","TRYUSD","TRYEUR","TLREF","ELCBAS","ANR","PAMUK","BUGDAY"]);
 let viopContractCache={at:0,contracts:[],live:false,error:null};
 
@@ -1815,6 +1821,46 @@ function lastWeekdayOfMonth(year,monthIndex){
  while(date.getDay()===0||date.getDay()===6)date.setDate(date.getDate()-1);
  return date;
 }
+
+function parseBistViopPayUnderlyings(html){
+ const result=new Set();
+ const text=decodeBasicHtml(html)
+  .replace(/\s+/g," ")
+  .replace(/İ/g,"I").replace(/Ş/g,"S").replace(/Ğ/g,"G").replace(/Ü/g,"U").replace(/Ö/g,"O").replace(/Ç/g,"C");
+ // Borsa İstanbul page contains "Grup 1 / Grup 2 / Grup 3" pay-futures underlyings.
+ // Restrict parsing to that section to avoid collecting unrelated uppercase navigation tokens.
+ const start=text.search(/Grup\s*1/i);
+ const end=text.search(/\bPAZAR\b/i);
+ const section=start>=0?text.slice(start,end>start?end:Math.min(text.length,start+5000)):"";
+ for(const match of section.matchAll(/\b[A-Z]{4,6}\b/g)){
+  const symbol=match[0];
+  if(["GRUP","BIST","VIOP","PAZAR"].includes(symbol))continue;
+  result.add(symbol);
+ }
+ return result;
+}
+async function getOfficialViopPayUnderlyings(){
+ const merged=new Set(VIOP_OFFICIAL_PAY_UNDERLYINGS_FALLBACK);
+ let live=false,error=null;
+ try{
+  const html=await fetchPublicText(BIST_VIOP_MARKET_MAKING_URL,30000);
+  const parsed=parseBistViopPayUnderlyings(html);
+  if(parsed.size>=20){
+   parsed.forEach(symbol=>merged.add(symbol));
+   live=true;
+  }
+ }catch(err){error=err.message}
+ return{underlyings:merged,live,error};
+}
+function generatedContractsForUnderlyings(underlyings,fixedMargins=new Map()){
+ const marginMap=new Map([...underlyings].map(symbol=>[symbol,Number(fixedMargins.get(symbol))||0]));
+ return generatedContractsFromMargins(marginMap).map(contract=>({
+  ...contract,
+  source:"Borsa İstanbul pay vadeli dayanak evreni",
+  marginSource:contract.initialMargin>0?"Oyak Yatırım":"PSR/teminat seçildiğinde güncellenecek"
+ }));
+}
+
 function generatedContractsFromMargins(margins){
  const today=new Date(),contracts=[];
  for(const [underlying,initialMargin] of margins.entries()){
@@ -1897,6 +1943,7 @@ function viopUnderlyingRows(contracts){
 async function getViopContracts(force=false){
  if(!force&&viopContractCache.contracts.length&&Date.now()-viopContractCache.at<15*60*1000)return viopContractCache;
  let contracts=[],live=false,error=null,marginError=null,fixedMargins=new Map(),psrRates=new Map();
+ const official=await getOfficialViopPayUnderlyings();
  try{
   const html=await fetchPublicText(ALNUS_VIOP_URL,30000);
   contracts=parseAlnusViopRows(html);live=contracts.length>0;
@@ -1909,17 +1956,37 @@ async function getViopContracts(force=false){
   const psrHtml=await fetchPublicText(DENIZ_VIOP_PSR_URL,30000);
   psrRates=parseDenizPsrRates(psrHtml);
  }catch(err){marginError=[marginError,err.message].filter(Boolean).join(" | ")}
- if(!contracts.length){
-  const universe=new Map([...fixedMargins.keys(),...psrRates.keys(),...Object.keys(VIOP_PSR_FALLBACK)].map(x=>[x,fixedMargins.get(x)||0]));
-  contracts=generatedContractsFromMargins(universe);
+ // Merge every current official Borsa İstanbul pay-futures underlying even when
+ // brokerage/margin pages omit a symbol. This prevents valid names such as ODAS
+ // from disappearing from the terminal search.
+ const universe=new Set([
+  ...official.underlyings,
+  ...fixedMargins.keys(),
+  ...psrRates.keys(),
+  ...Object.keys(VIOP_PSR_FALLBACK)
+ ]);
+ if(!contracts.length)contracts=generatedContractsForUnderlyings(universe,fixedMargins);
+ else{
+  const existing=new Set(contracts.map(c=>normalizeUnderlyingName(c.underlying)));
+  const missing=[...universe].filter(symbol=>!existing.has(normalizeUnderlyingName(symbol)));
+  if(missing.length)contracts.push(...generatedContractsForUnderlyings(new Set(missing),fixedMargins));
  }
  if(!contracts.length)contracts=VIOP_FALLBACK_CONTRACTS.map(x=>({...x,isActive:true,sortDate:x.expiryDate||"9999-12-31"}));
- const prices=await viopReferencePrices(contracts.map(x=>x.underlying));
+
+ // Reference prices are only needed for underlyings whose margin is PSR-based.
+ // Fixed-margin and unknown-margin names hydrate their quote lazily when selected,
+ // avoiding dozens of unnecessary Yahoo requests on every universe refresh.
+ const priceNeeded=[...new Set(contracts.map(c=>normalizeUnderlyingName(c.underlying)))].filter(
+  symbol=>!fixedMargins.has(symbol)&&(psrRates.has(symbol)||VIOP_PSR_FALLBACK[symbol]!=null)
+ );
+ const prices=await viopReferencePrices(priceNeeded);
  contracts=enrichViopMargins(contracts,psrRates,prices,fixedMargins);
+ contracts.sort((a,b)=>String(a.underlying).localeCompare(String(b.underlying),"tr")||String(a.sortDate).localeCompare(String(b.sortDate)));
  viopContractCache={
-  at:Date.now(),contracts,live:live||psrRates.size>0||fixedMargins.size>0,
-  error:[error,marginError].filter(Boolean).join(" | "),
-  psrCount:psrRates.size,fixedCount:fixedMargins.size,pricedCount:prices.size
+  at:Date.now(),contracts,live:live||official.live||psrRates.size>0||fixedMargins.size>0,
+  error:[error,marginError,official.error].filter(Boolean).join(" | "),
+  psrCount:psrRates.size,fixedCount:fixedMargins.size,pricedCount:prices.size,
+  officialCount:official.underlyings.size,officialLive:official.live
  };
  return viopContractCache;
 }
@@ -1928,8 +1995,9 @@ app.get("/api/viop/contracts",async(req,res)=>{
  res.set("Cache-Control","public, max-age=300, s-maxage=300");
  res.json({
   contracts:cache.contracts,underlyings:viopUnderlyingRows(cache.contracts),
-  live:cache.live,error:cache.error,sourceLabel:"Alnus vade + Deniz PSR + Yahoo referans fiyat + Oyak yedek",
-  sourceUrl:ALNUS_VIOP_URL,
+  live:cache.live,error:cache.error,
+  sourceLabel:`Borsa İstanbul dayanak evreni (${cache.officialCount||0}) + Alnus vade + Deniz PSR + Yahoo referans fiyat + Oyak yedek`,
+  sourceUrl:BIST_VIOP_MARKET_MAKING_URL,contractSourceUrl:ALNUS_VIOP_URL,
   marginSourceUrl:OYAK_VIOP_MARGIN_URL,psrSourceUrl:DENIZ_VIOP_PSR_URL,asOf:new Date(cache.at).toISOString(),
   warning:"Pay VİOP başlangıç teminatı sabit tutar bulunamazsa güncel referans fiyat × kontrat büyüklüğü × PSR oranı ile hesaplanır. Sürdürme teminatı %75 olarak gösterilir; işlem öncesi kurum ekranı teyit edilmelidir."
  });
@@ -1942,7 +2010,7 @@ app.get("/api/viop/search",async(req,res)=>{
   .filter(x=>x.symbol.startsWith(q)||String(x.name||"").toLocaleUpperCase("tr-TR").includes(q))
   .slice(0,50);
  res.set("Cache-Control","public, max-age=60, s-maxage=60");
- res.json({query:q,count:items.length,items,live:cache.live,source:"Alnus Yatırım"});
+ res.json({query:q,count:items.length,items,live:cache.live,source:"Borsa İstanbul VİOP dayanak evreni + aracı kurum teminat kaynakları"});
 });
 
 
