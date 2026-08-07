@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Model Portföy Takip · v8.2.1</title>
+<title>Model Portföy Takip · v8.2.2</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1596,8 +1596,61 @@ body.authLocked .accountSettingsOverlay{display:none!important}
  font-weight:800;
 }
 
+
+/* v8.2.2 terminal autocomplete interaction fix */
+.terminalSymbolSuggestions{
+ overflow-x:hidden!important;
+ z-index:2147481200!important;
+ pointer-events:auto!important;
+}
+.orderTerminal .searchResultRow{
+ width:100%!important;
+ max-width:100%!important;
+ box-sizing:border-box!important;
+ grid-template-columns:minmax(52px,68px) minmax(0,1fr)!important;
+ overflow:hidden;
+ pointer-events:auto!important;
+ touch-action:manipulation;
+ user-select:none;
+}
+.orderTerminal .searchResultSymbol{
+ min-width:0;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
+.orderTerminal .searchResultMeta{
+ min-width:0!important;
+ max-width:100%!important;
+ overflow:hidden;
+}
+.orderTerminal .searchResultName{
+ white-space:normal!important;
+ line-height:1.25;
+}
+.orderTerminal .searchResultType{
+ white-space:normal!important;
+ line-height:1.25;
+}
+.orderTerminal .viopSearchMeta{
+ display:grid!important;
+ grid-template-columns:1fr!important;
+ gap:3px!important;
+ min-width:0!important;
+ max-width:100%!important;
+ overflow:hidden!important;
+}
+.orderTerminal .viopSearchMeta span{
+ display:block!important;
+ min-width:0!important;
+ max-width:100%!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere;
+}
+.searchResultRow[role="button"]{outline:none}
+.searchResultRow[role="button"]:focus{background:#152b45}
+
 </style>
-<meta name="portfolio-build" content="v8.2.1-viop-universe-sidebar-fix">
+<meta name="portfolio-build" content="v8.2.2-viop-click-live-price-semantic-futures-search">
 </head>
 <body class="authLocked">
 
@@ -4679,17 +4732,22 @@ function viopCalculatedMargin(scope,c){
 }
 async function hydrateViopReference(scope,c){
  if(!c)return;
- const underlying=String(c.underlying||"").toUpperCase();
- const yahoo=c.yahooSymbol||(["XU030","USDTRY","EURTRY","EURUSD","XAUTRY","XAUUSD"].includes(underlying)?"":`${underlying}.IS`);
- if(!yahoo)return;
  try{
-  const quotes=await fetchYahooQuotes([yahoo]),q=quotes[yahoo];
-  if(!q?.price)return;
-  const ref=$(scope==="general"?"gViopReferencePrice":"mViopReferencePrice");
-  if(ref)ref.value=q.price;
-  c.referencePrice=q.price;c.yahooSymbol=yahoo;
+  const params=new URLSearchParams({underlying:String(c.underlying||""),contract:String(c.code||"")});
+  const response=await fetch(`/api/viop/quote?${params.toString()}`,{cache:"no-store"});
+  const payload=await response.json();
+  if(!response.ok)throw new Error(payload.error||"VİOP fiyatı alınamadı");
+  if(Number.isFinite(Number(payload.price)))c.marketPrice=Number(payload.price);
+  if(Number.isFinite(Number(payload.referencePrice)))c.referencePrice=Number(payload.referencePrice);
+  if(Number.isFinite(Number(payload.initialMargin)))c.initialMargin=Number(payload.initialMargin);
+  if(Number.isFinite(Number(payload.maintenanceMargin)))c.maintenanceMargin=Number(payload.maintenanceMargin);
+  if(Number.isFinite(Number(payload.marginRate)))c.marginRate=Number(payload.marginRate);
+  c.priceSource=payload.source||c.priceSource;
   applyContractFields(scope,c,false);
- }catch{}
+ }catch(error){
+  const status=$(scope==="general"?"gViopSourceStatus":"mViopSourceStatus");
+  if(status)status.textContent=`${c.code||c.id} · Fiyat güncellemesi alınamadı: ${error.message} · Manuel fiyat/teminat girebilirsiniz.`;
+ }
 }
 function contractsForUnderlying(underlying){
  return viopContracts.filter(x=>String(x.underlying||"").toUpperCase()===String(underlying||"").toUpperCase())
@@ -4727,9 +4785,12 @@ function applyContractFields(scope,c,fetchReference=true){
  const maintenance=$(isGeneral?"gMaintenanceMargin":"mMaintenanceMargin");
  const rate=$(isGeneral?"gViopMarginRate":"mViopMarginRate");
  const reference=$(isGeneral?"gViopReferencePrice":"mViopReferencePrice");
+ const entry=$(isGeneral?"entry":"mEntry");
+ const livePrice=Number(c.marketPrice)||0;
  if(size)size.value=Number(c.contractSize)||contractSizeForClient(c.underlying);
  if(rate)rate.value=Number(c.marginRate)||0;
- if(reference)reference.value=Number(c.referencePrice)||0;
+ if(reference)reference.value=livePrice||Number(c.referencePrice)||0;
+ if(entry&&livePrice>0)entry.value=livePrice;
  const calc=viopCalculatedMargin(scope,c);
  if(initial)initial.value=calc.initial?calc.initial.toFixed(2):"";
  if(maintenance)maintenance.value=calc.maintenance?calc.maintenance.toFixed(2):"";
@@ -4740,12 +4801,13 @@ function applyContractFields(scope,c,fetchReference=true){
  const status=$(isGeneral?"gViopSourceStatus":"mViopSourceStatus");
  if(status){
   const source=c.marginSource||c.source||"Hesaplanan PSR";
-  status.textContent=`${c.code||c.id} · ${source} · PSR %${f(calc.rate,2)} · Referans ${f(calc.reference,4)} · Başlangıç ${f(calc.initial,2)} TRY`;
+  const priceText=livePrice>0?` · Son ${f(livePrice,4)} TRY${c.priceSource?` (${c.priceSource})`:""}`:"";
+  status.textContent=`${c.code||c.id}${priceText} · ${source} · PSR %${f(calc.rate,2)} · Referans ${f(calc.reference,4)} · Başlangıç ${f(calc.initial,2)} TRY`;
   status.classList.toggle("sourceLive",calc.initial>0);
   status.classList.toggle("sourceFallback",calc.initial<=0);
  }
  updateViopMarginSummary(scope,c);updateModelTradePreview();
- if(fetchReference&&calc.initial<=0)hydrateViopReference(scope,c);
+ if(fetchReference&&(livePrice<=0||calc.initial<=0))hydrateViopReference(scope,c);
 }
 function applyViopUnderlying(scope,item){
  const underlying=String(item.underlying||item.symbol||"").toUpperCase();
@@ -5430,16 +5492,17 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,a
    box.classList.add("open");
    return;
   }
-  box.innerHTML=results.map((x,i)=>`<div class="searchResultRow ${i===active?"active":""}" data-result-index="${i}">
+  box.innerHTML=results.map((x,i)=>`<div class="searchResultRow ${i===active?"active":""}" data-result-index="${i}" role="button" tabindex="-1">
    <span class="searchResultSymbol">${esc(x.symbol)}</span>
-   <span class="searchResultMeta"><span class="searchResultName">${esc(x.name)}</span><span class="searchResultType">${esc([x.type,x.exchange].filter(Boolean).join(" · "))}</span>${x.nearestContract?`<span class="viopSearchMeta"><span>${esc(x.nearestContract.code)}</span><span>${esc(x.nearestContract.maturityLabel||x.nearestContract.expiryDate||"Yakın Vade")}</span><span>${Number(x.nearestContract.initialMargin)>0?`Teminat ${fundNumber(x.nearestContract.initialMargin,2)} TRY`:"Teminat seçimde güncellenecek"}</span></span>`:""}</span>
+   <span class="searchResultMeta"><span class="searchResultName">${esc(x.name)}</span><span class="searchResultType">${esc([x.type,x.exchange].filter(Boolean).join(" · "))}</span>${x.nearestContract?`<span class="viopSearchMeta"><span>${esc(x.nearestContract.code)}</span><span>${esc(x.nearestContract.maturityLabel||x.nearestContract.expiryDate||"Yakın Vade")}</span>${Number(x.nearestContract.marketPrice)>0?`<span>Son ${fundNumber(x.nearestContract.marketPrice,4)} TRY</span>`:""}<span>${Number(x.nearestContract.initialMargin)>0?`Teminat ${fundNumber(x.nearestContract.initialMargin,2)} TRY`:"Teminat seçimde güncellenecek"}</span></span>`:""}</span>
    ${allowAdd?`<button type="button" class="searchAddButton" data-add-index="${i}" title="Açık listeye ekle">+</button>`:""}
   </div>`).join("");
   box.classList.add("open");
-  box.querySelectorAll("[data-result-index]").forEach(row=>row.addEventListener("mousedown",event=>{
-   if(event.target.closest("[data-add-index]"))return;
-   event.preventDefault();
+  const chooseResult=(row,event)=>{
+   if(event?.target?.closest?.("[data-add-index]"))return;
+   event?.preventDefault?.();event?.stopPropagation?.();
    const item=results[Number(row.dataset.resultIndex)];
+   if(!item)return;
    if(yahooInput){
     input.value=item.symbol;
     yahooInput.value=item.mode==="viop"?"":item.yahooSymbol;
@@ -5448,7 +5511,14 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,a
     if(scope==="model"&&item.mode==="spot")syncModelNativeCurrency(item.yahooSymbol,item.currency,true);
     close();
    }else openSearchResult(item);
-  }));
+  };
+  box.querySelectorAll("[data-result-index]").forEach(row=>{
+   row.addEventListener("pointerdown",event=>{
+    if(event.target.closest("[data-add-index]"))return;
+    event.preventDefault();
+   });
+   row.addEventListener("click",event=>chooseResult(row,event));
+  });
   box.querySelectorAll("[data-add-index]").forEach(btn=>btn.addEventListener("mousedown",event=>{
    event.preventDefault();event.stopPropagation();
    saveCustomMarketItem(results[Number(btn.dataset.addIndex)]);
@@ -5468,10 +5538,27 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,a
     const found=await fetchSymbolSearch(q,mode);
     found.forEach(x=>x.mode=mode);
     if(myRequest!==requestNo)return;
-    // Prefix matches first; only products beginning with typed letters remain.
-    results=found.filter(x=>x.symbol.toLocaleUpperCase("tr-TR").startsWith(q))
-      .sort((a,b)=>a.symbol.localeCompare(b.symbol,"tr"))
-      .slice(0,50);
+    const searchText=value=>String(value||"").toLocaleUpperCase("tr-TR");
+    const rankResult=x=>{
+     const symbol=searchText(x.symbol),name=searchText(x.name),type=searchText(x.type),exchange=searchText(x.exchange);
+     const aliases=searchText(Array.isArray(x.aliases)?x.aliases.join(" "):x.aliases||"");
+     if(symbol===q)return 0;
+     if(symbol.startsWith(q))return 1;
+     if(name.startsWith(q))return 2;
+     if(name.includes(q))return 3;
+     if(aliases.includes(q))return 4;
+     if(type.includes(q)||exchange.includes(q))return 5;
+     return 99;
+    };
+    if(mode==="global-futures"){
+     results=found.filter(x=>rankResult(x)<99)
+       .sort((a,b)=>rankResult(a)-rankResult(b)||a.symbol.localeCompare(b.symbol,"tr"))
+       .slice(0,50);
+    }else{
+     results=found.filter(x=>x.symbol.toLocaleUpperCase("tr-TR").startsWith(q))
+       .sort((a,b)=>a.symbol.localeCompare(b.symbol,"tr"))
+       .slice(0,50);
+    }
     active=-1;render();
    }catch(error){
     if(myRequest!==requestNo)return;
