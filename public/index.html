@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Model Portföy Takip · v8.0</title>
+<title>Model Portföy Takip · v8.1</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1512,8 +1512,40 @@ body.authLocked .accountSettingsOverlay{display:none!important}
  .compositeWeightGrid,.compositeBenchmarkControls,.compositeBenchmarkSnapshot{grid-template-columns:1fr}
 }
 
+
+/* v8.1 multi-currency treasury + global futures collateral */
+.fxTreasuryPanel{margin:13px 0}
+.fxTreasuryHead{align-items:center}
+.fxWalletGrid{display:grid;grid-template-columns:repeat(5,minmax(135px,1fr));gap:8px;margin-bottom:10px}
+.fxWalletCard{padding:11px;border:1px solid #2b465d;background:#0d1c29;border-radius:9px}
+.fxWalletCard span{display:block;color:#8299ad;font-size:8px;text-transform:uppercase}
+.fxWalletCard strong{display:block;font-size:17px;margin-top:5px}
+.fxWalletCard small{display:block;font-size:8px;color:#6f879c;margin-top:4px}
+.fxWalletCard.negative strong{color:#ff8493}
+.fxExchangeGrid{display:grid;grid-template-columns:repeat(4,minmax(145px,1fr));gap:8px;padding:11px;border:1px solid #29445b;background:#0b1925;border-radius:10px}
+.fxExchangeAction{display:flex;align-items:end}.fxExchangeAction button{width:100%}
+.fxSubsection{margin-top:13px;padding-top:10px;border-top:1px solid #263c50}
+.fxMarginGrid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px}
+.fxMarginCard{padding:10px;border:1px solid #2b455c;background:#0c1b28;border-radius:9px}
+.fxMarginCard span{display:block;color:#8097ab;font-size:8px;text-transform:uppercase}
+.fxMarginCard strong{display:block;font-size:14px;margin-top:5px}
+.fxMarginCard small{display:block;color:#6f879b;font-size:8px;margin-top:4px}
+.fxHistoryTable{overflow:auto;border:1px solid #294259;border-radius:9px}
+.currencyLockNote{font-size:8px;color:#78a6c8;margin-top:4px;line-height:1.35}
+#modelForm #mCurrency:disabled{opacity:1;color:#9fd0f1;background:#102638;border-color:#31546f;cursor:not-allowed}
+.fxPnlBreakdown{font-size:8px;color:#7890a4;margin-top:3px;line-height:1.35}
+.nativePnlLine{font-size:8px;color:#7d95aa;margin-top:3px}
+.globalMarginBadge{display:inline-flex;padding:3px 6px;border-radius:10px;border:1px solid #635230;background:#2a2315;color:#e4bf70;font-size:8px}
+@media(max-width:1150px){
+ .fxWalletGrid{grid-template-columns:repeat(3,minmax(130px,1fr))}
+ .fxExchangeGrid,.fxMarginGrid{grid-template-columns:repeat(2,minmax(140px,1fr))}
+}
+@media(max-width:650px){
+ .fxWalletGrid,.fxExchangeGrid,.fxMarginGrid{grid-template-columns:1fr}
+}
+
 </style>
-<meta name="portfolio-build" content="v8.0-composite-policy-benchmark">
+<meta name="portfolio-build" content="v8.1-multi-currency-global-futures-treasury">
 </head>
 <body class="authLocked">
 
@@ -1854,7 +1886,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
             <div><label>Sürdürme Teminatı / Kontrat</label><input id="gGlobalFutureMaintenance" type="number" min="0" step="any"></div>
             <div><label>Teminat Para Birimi</label><input id="gGlobalFutureCurrency" readonly value="USD"></div>
             <div class="spanAll">
-              <div id="gGlobalFutureStatus" class="viopSource">Yurtdışı Futures seçildiğinde emtia ve global vadeli ürün kataloğu yüklenir.</div>
+              <div id="gGlobalFutureStatus" class="viopSource">Yurtdışı Futures seçildiğinde TradeMaster kontrat özellikleri, teminat kaynakları ve Yahoo gecikmeli fiyatı yüklenir.</div>
               <div class="futuresSummary">
                 <div><span>Gecikmeli Fiyat</span><strong id="gGlobalFuturePrice">-</strong></div>
                 <div><span>Toplam Pozisyon Büyüklüğü</span><strong id="gGlobalFutureNotional">0 USD</strong></div>
@@ -1924,6 +1956,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     <button type="button" data-model-anchor="modelPositionsAnchor">Pozisyonlar</button>
     <button type="button" data-model-anchor="modelViopWorkspace">VİOP Teminat</button>
     <button type="button" data-model-anchor="modelActivityAnchor">Hareketler</button>
+    <button type="button" data-model-anchor="fxExchangeAnchor">Döviz Exchange</button>
     <button type="button" data-model-anchor="cashStatementAnchor">Nakit Ekstresi</button>
   </div>
 
@@ -1965,6 +1998,46 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     <div class="modelFinanceCard"><div class="k">Bugünkü Tahmini Nema</div><div class="v" id="mTodayNema">0</div><div class="s">Güncel net nema oranıyla gün sonu tahmini</div></div>
     <div class="modelFinanceCard"><div class="k">VİOP Teminat Özvarlığı</div><div class="v" id="mViopCollateral">0</div><div class="s">Transfer + gerçekleşen K/Z + nema + açık güncel K/Z</div></div>
     <div class="modelFinanceCard"><div class="k">VİOP Serbest Teminat</div><div class="v" id="mViopFreeMargin">0</div><div class="s">Güncel teminat özvarlığı eksi kullanılan başlangıç teminatı</div></div>
+    <div class="modelFinanceCard good"><div class="k">Toplam Portföy Özvarlığı</div><div class="v" id="mTotalEquityTRY">0</div><div class="s">Tüm nakitler, açık pozisyonlar, VİOP ve FX etkisi TRY bazında</div></div>
+    <div class="modelFinanceCard"><div class="k">Pozisyon FX Etkisi</div><div class="v" id="mFxPnlTRY">0</div><div class="s">Yabancı para pozisyonlarında kur değişiminin TRY K/Z katkısı</div></div>
+    <div class="modelFinanceCard warning"><div class="k">Yurtdışı Futures Teminatı</div><div class="v" id="mGlobalFuturesMarginTRY">0</div><div class="s">Aktif global futures başlangıç teminatlarının TRY karşılığı</div></div>
+  </div>
+
+  <div id="fxExchangeAnchor" class="panel fxTreasuryPanel">
+    <div class="sectionHead fxTreasuryHead">
+      <div>
+        <h3 style="margin-bottom:4px">Döviz Exchange & Multi-Currency Treasury</h3>
+        <div class="muted">Yabancı ürünler kendi işlem para biriminde açılır. Döviz bakiyeleri güncel kurla TRY'ye mark-to-market değerlenir.</div>
+      </div>
+      <button type="button" id="refreshFxRates" class="secondary">Kurları Güncelle</button>
+    </div>
+
+    <div id="fxWalletCards" class="fxWalletGrid"></div>
+
+    <div class="fxExchangeGrid">
+      <div><label>Bozdurulan Para</label><select id="fxFromCurrency"></select></div>
+      <div><label>Alınan Para</label><select id="fxToCurrency"></select></div>
+      <div><label>Bozdurulan Tutar</label><input id="fxFromAmount" type="number" min="0" step="any" placeholder="0"></div>
+      <div><label>Canlı Cross Kur</label><input id="fxMarketRate" readonly></div>
+      <div><label>Kur Spread / Fark (%)</label><input id="fxSpreadPct" type="number" min="0" step="0.001" value="0"></div>
+      <div><label>Sabit Kur Ücreti</label><input id="fxFixedFee" type="number" min="0" step="any" value="0"></div>
+      <div><label>Tahmini Alınacak Tutar</label><input id="fxReceiveAmount" readonly></div>
+      <div class="fxExchangeAction"><button type="button" id="executeFxTrade">Döviz İşlemini Gerçekleştir</button></div>
+    </div>
+
+    <div id="fxRateStatus" class="referenceStatus">Döviz kurları henüz yüklenmedi.</div>
+
+    <div class="fxSubsection">
+      <div class="sectionHead">
+        <div><h4>Yurtdışı Futures Teminat Kontrolü</h4><div class="muted">Teminat, kontratın kendi teminat para birimindeki nakit bakiyesiyle kontrol edilir.</div></div>
+      </div>
+      <div id="globalFuturesMarginWallets"></div>
+    </div>
+
+    <div class="fxSubsection">
+      <div class="sectionHead"><div><h4>Son Döviz İşlemleri</h4><div class="muted">Kur işlemleri buluta kaydedilir ve Nakit Ekstresine otomatik eklenir.</div></div></div>
+      <div id="fxTradeHistory"></div>
+    </div>
   </div>
 
   <div id="modelFormPanel" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modelModalTitle"><div class="modalBox">
@@ -1979,7 +2052,8 @@ body.authLocked .accountSettingsOverlay{display:none!important}
         <div class="symbolFieldWrap"><label>Sembol *</label><input id="mSymbol" autocomplete="off" required>
       <div id="mSymbolSuggestions" class="terminalSymbolSuggestions"></div></div><div><label>Yahoo Finance Sembolü</label><input id="mYahooSymbol" placeholder="THYAO.IS, AAPL, GC=F"></div>
         <div><label>Yön</label><select id="mDirection"><option>Uzun (Long)</option><option>Kısa (Short)</option></select></div>
-        <div><label>Para Birimi</label><select id="mCurrency"><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option></select></div>
+        <div><label>İşlem Para Birimi</label><select id="mCurrency" disabled><option>TRY</option><option>USD</option><option>EUR</option><option>GBP</option><option>CHF</option><option>JPY</option><option>CAD</option><option>AUD</option><option>HKD</option><option>CNY</option></select><div id="mNativeCurrencyStatus" class="currencyLockNote">Enstrümanın native para birimi otomatik belirlenir.</div></div>
+        <div><label>Açılış FX Kuru (1 Birim = TRY)</label><input id="mEntryFxRate" type="number" readonly step="any"></div>
         <div><label>Açılış Fiyatı *</label><input id="mEntry" type="number" step="any" required></div>
         <div><label>Miktar *</label><input id="mQty" type="number" step="any" value="1" required></div><input id="mDailyChange" type="hidden" value="0">
         <div><label>Açılış Tarihi ve Saati *</label><input id="mOpenDate" type="datetime-local" required></div>
@@ -2711,6 +2785,7 @@ const DEFAULT_MODEL_SETTINGS={
  compositeBenchmarkWeights:{bist:25,sp500:25,gold:25,bond:25},
  compositeBenchmarkInitialized:false,compositeBenchmarkRebalance:"quarterly",
  compositeBenchmarkBaseCurrency:"TRY",compositeBenchmarkUpdatedAt:"",
+ fxTrades:[],fxRates:{TRY:1},fxUpdatedAt:"",fxSource:"",
  viopCollateral:0,viopTransfers:[]
 };
 let settings={...DEFAULT_MODEL_SETTINGS,...JSON.parse(localStorage.getItem(SK)||"{}")};
@@ -2719,6 +2794,9 @@ settings.nemaRateHistory=Array.isArray(settings.nemaRateHistory)?settings.nemaRa
 settings.nemaAccruals=Array.isArray(settings.nemaAccruals)?settings.nemaAccruals:[];
 settings.compositeBenchmarkWeights=settings.compositeBenchmarkWeights&&typeof settings.compositeBenchmarkWeights==="object"?settings.compositeBenchmarkWeights:{bist:25,sp500:25,gold:25,bond:25};
 settings.compositeBenchmarkRebalance=["monthly","quarterly","annual"].includes(settings.compositeBenchmarkRebalance)?settings.compositeBenchmarkRebalance:"quarterly";
+settings.fxTrades=Array.isArray(settings.fxTrades)?settings.fxTrades:[];
+settings.fxRates=settings.fxRates&&typeof settings.fxRates==="object"?settings.fxRates:{TRY:1};
+settings.fxRates.TRY=1;
 const $=id=>document.getElementById(id), today=new Date().toISOString().slice(0,10);
 const localDateTimeValue=(date=new Date())=>{
  const p=n=>String(n).padStart(2,"0");
@@ -2871,13 +2949,53 @@ function isViopPosition(p){return p?.assetClass==="Türev (VİOP/Vadeli)"||Boole
 function isGlobalFuturesPosition(p){return p?.assetClass==="Yurtdışı Futures"||Boolean(p?.globalFutureId||p?.futuresContract)}
 function isFuturesPosition(p){return isViopPosition(p)||isGlobalFuturesPosition(p)}
 function contractMultiplier(p){return isFuturesPosition(p)?(Number(p.contractSize)||1):1}
+const FX_SUPPORTED_CURRENCIES=["TRY","USD","EUR","GBP","CHF","JPY","CAD","AUD","HKD","CNY"];
+let fxRates={TRY:1,...(settings.fxRates||{})};
+function fxRateTRY(currency){
+ const c=String(currency||"TRY").toUpperCase();
+ if(c==="TRY")return 1;
+ const direct=fxRates[c];
+ if(Number.isFinite(Number(direct)))return Number(direct);
+ const saved=settings.fxRates?.[c];
+ return Number.isFinite(Number(saved))?Number(saved):null;
+}
+function positionOpenFx(p){
+ if(String(p?.currency||"TRY").toUpperCase()==="TRY")return 1;
+ return Number.isFinite(Number(p?.fxRateAtOpen))?Number(p.fxRateAtOpen):(fxRateTRY(p?.currency)||1);
+}
+function positionCloseFx(p){
+ if(String(p?.currency||"TRY").toUpperCase()==="TRY")return 1;
+ return Number.isFinite(Number(p?.fxRateAtClose))?Number(p.fxRateAtClose):(fxRateTRY(p?.currency)||positionOpenFx(p));
+}
+function positionCurrentFx(p){
+ if(p?.status==="Kapalı")return positionCloseFx(p);
+ return fxRateTRY(p?.currency)||positionOpenFx(p)||1;
+}
+function nativeCurrency(p){return String(p?.currency||"TRY").toUpperCase()}
 function tradeNotional(p,price){
  const px=Number(price??p?.entry)||0,qty=Number(p?.qty)||0;
  return Math.abs(px*qty*contractMultiplier(p));
 }
-function grossPnlAt(p,price){
+function tradeNotionalTRY(p,price,fx=null){
+ return tradeNotional(p,price)*(Number.isFinite(Number(fx))?Number(fx):positionCurrentFx(p));
+}
+function nativeGrossPnlAt(p,price){
  const px=Number(price??p?.currentPrice??p?.entry)||0,entry=Number(p?.entry)||0,qty=Number(p?.qty)||0;
  return(px-entry)*qty*contractMultiplier(p)*(p?.direction?.startsWith("Uzun")?1:-1);
+}
+function positionFxPnlAt(p,price){
+ if(nativeCurrency(p)==="TRY")return 0;
+ const px=Number(price??p?.currentPrice??p?.entry)||0,entry=Number(p?.entry)||0,qty=Number(p?.qty)||0,mult=contractMultiplier(p);
+ const sign=p?.direction?.startsWith("Uzun")?1:-1,openFx=positionOpenFx(p),currentFx=positionCurrentFx(p);
+ return sign*entry*qty*mult*(currentFx-openFx);
+}
+function assetPnlTRYAt(p,price){
+ return nativeGrossPnlAt(p,price)*positionCurrentFx(p);
+}
+function grossPnlAt(p,price){
+ const px=Number(price??p?.currentPrice??p?.entry)||0,entry=Number(p?.entry)||0,qty=Number(p?.qty)||0,mult=contractMultiplier(p);
+ const sign=p?.direction?.startsWith("Uzun")?1:-1;
+ return sign*qty*mult*(px*positionCurrentFx(p)-entry*positionOpenFx(p));
 }
 function openCommissionValue(p){
  return Number.isFinite(Number(p?.openCommission))?Number(p.openCommission):commissionAmount(tradeNotional(p,p?.entry),p?.commissionUnit,p?.commissionRate);
@@ -2886,24 +3004,39 @@ function estimatedCloseCommission(p,price){
  if(p?.status==="Kapalı"&&Number.isFinite(Number(p?.closeCommission)))return Number(p.closeCommission);
  return commissionAmount(tradeNotional(p,price??p?.currentPrice??p?.entry),p?.closeCommissionUnit||p?.commissionUnit,p?.closeCommissionRate??p?.commissionRate);
 }
+function openCommissionTRY(p){return openCommissionValue(p)*positionOpenFx(p)}
+function closeCommissionTRY(p,price){return estimatedCloseCommission(p,price)*positionCurrentFx(p)}
 function financingCostValue(p){return Number(p?.creditCost)||0}
+function financingCostTRY(p){return financingCostValue(p)*positionOpenFx(p)}
+function nativeNetClosedPnl(p){
+ if(p?.status!=="Kapalı"||p?.closePrice==null)return null;
+ return nativeGrossPnlAt(p,p.closePrice)-openCommissionValue(p)-estimatedCloseCommission(p,p.closePrice)-financingCostValue(p);
+}
+function nativeNetLivePnl(p){
+ if(p?.status==="Kapalı")return nativeNetClosedPnl(p);
+ return nativeGrossPnlAt(p,p.currentPrice??p.entry)-openCommissionValue(p)-estimatedCloseCommission(p,p.currentPrice??p.entry)-financingCostValue(p);
+}
 function netClosedPnl(p){
  if(p?.status!=="Kapalı"||p?.closePrice==null)return null;
- return grossPnlAt(p,p.closePrice)-openCommissionValue(p)-estimatedCloseCommission(p,p.closePrice)-financingCostValue(p);
+ return grossPnlAt(p,p.closePrice)-openCommissionTRY(p)-closeCommissionTRY(p,p.closePrice)-financingCostTRY(p);
 }
 function netLivePnl(p){
  if(p?.status==="Kapalı")return netClosedPnl(p);
- return grossPnlAt(p,p.currentPrice??p.entry)-openCommissionValue(p)-estimatedCloseCommission(p,p.currentPrice??p.entry)-financingCostValue(p);
+ return grossPnlAt(p,p.currentPrice??p.entry)-openCommissionTRY(p)-closeCommissionTRY(p,p.currentPrice??p.entry)-financingCostTRY(p);
 }
 function pnl(p){if(p.status!=="Kapalı"||p.closePrice==null)return null;return grossPnlAt(p,p.closePrice)}
-function ret(p){if(p.status!=="Kapalı"||!p.entry)return null;return((p.closePrice-p.entry)/p.entry)*100*(p.direction.startsWith("Uzun")?1:-1)}
-
+function ret(p){
+ if(p.status!=="Kapalı"||!p.entry)return null;
+ const base=tradeNotional(p,p.entry)*positionOpenFx(p);
+ return base?(netClosedPnl(p)||0)/base*100:null;
+}
 function liveReturn(p){
- const current=p.currentPrice??p.entry;
  if(!p.entry)return null;
- return((current-p.entry)/p.entry)*100*(p.direction?.startsWith("Uzun")?1:-1);
+ const base=tradeNotional(p,p.entry)*positionOpenFx(p);
+ return base?(netLivePnl(p)||0)/base*100:null;
 }
 function positionSize(p){return tradeNotional(p,p.currentPrice??p.entry)}
+function positionSizeTRY(p){return tradeNotionalTRY(p,p.currentPrice??p.entry)}
 function risk(p){return p.stop&&p.entry?Math.abs((p.entry-p.stop)/p.entry)*100:null}
 function reward(p){return p.target&&p.entry?((p.target-p.entry)/p.entry)*100*(p.direction.startsWith("Uzun")?1:-1):null}
 function rr(p){if(!p.stop||!p.target)return null;const a=Math.abs(p.entry-p.stop),b=Math.abs(p.target-p.entry);return a?b/a:null}
@@ -2917,18 +3050,57 @@ function viopInitialMargin(p){
  if(p.marginMode==="rate")return tradeNotional(p,p.entry)*(Number(p.marginRate)||0)/100;
  return qty*(Number(p.initialMargin)||0);
 }
+function ensureCurrencyBalance(map,currency){const c=String(currency||"TRY").toUpperCase();if(!Number.isFinite(Number(map[c])))map[c]=0;return c}
+function currencyCashBalances(extraPosition=null){
+ const balances={TRY:Number(settings.capital)||0};
+ const add=(currency,amount)=>{const c=ensureCurrencyBalance(balances,currency);balances[c]+=Number(amount)||0};
+ const trades=[...(settings.fxTrades||[])].sort((a,b)=>String(a.dateTime||"").localeCompare(String(b.dateTime||"")));
+ for(const t of trades){
+  add(t.fromCurrency,-(Number(t.fromAmount)||0)-(Number(t.fee)||0));
+  add(t.toCurrency,Number(t.toAmount)||0);
+ }
+ const positions=extraPosition?[...model,extraPosition]:model;
+ for(const p of positions){
+  const c=nativeCurrency(p),entryPrincipal=tradeNotional(p,p.entry),openCommission=openCommissionValue(p),creditCost=financingCostValue(p);
+  if(isViopPosition(p)){
+   add("TRY",-openCommission);
+   if(p.status==="Kapalı")add("TRY",-estimatedCloseCommission(p,p.closePrice));
+   continue;
+  }
+  if(isGlobalFuturesPosition(p)){
+   add(c,-openCommission);
+   if(p.status==="Kapalı"){
+    add(c,nativeGrossPnlAt(p,p.closePrice));
+    add(c,-estimatedCloseCommission(p,p.closePrice));
+   }
+   continue;
+  }
+  add(c,-entryPrincipal-openCommission-creditCost);
+  if(p.status==="Kapalı"&&p.closePrice!=null){
+   add(c,entryPrincipal+nativeGrossPnlAt(p,p.closePrice)-estimatedCloseCommission(p,p.closePrice));
+  }
+ }
+ const transfers=settings.viopTransfers||[];
+ if(transfers.length){
+  for(const t of transfers)add("TRY",t.direction==="toViop"?-(Number(t.amount)||0):(Number(t.amount)||0));
+ }else if(Number(settings.viopCollateral)){
+  add("TRY",-Number(settings.viopCollateral));
+ }
+ return balances;
+}
+function currencyCashBalance(currency){return Number(currencyCashBalances()[String(currency||"TRY").toUpperCase()])||0}
 function modelTotalCommissions(extraPosition=null){
- let total=model.reduce((sum,p)=>sum+openCommissionValue(p)+(p.status==="Kapalı"?estimatedCloseCommission(p,p.closePrice):0),0);
- if(extraPosition)total+=openCommissionValue(extraPosition);
+ let total=model.reduce((sum,p)=>sum+openCommissionTRY(p)+(p.status==="Kapalı"?closeCommissionTRY(p,p.closePrice):0),0);
+ if(extraPosition)total+=openCommissionValue(extraPosition)*(fxRateTRY(extraPosition.currency)||1);
  return total;
 }
 function modelTotalCreditCosts(extraPosition=null){
- let total=model.reduce((sum,p)=>sum+financingCostValue(p),0);
- if(extraPosition)total+=financingCostValue(extraPosition);
+ let total=model.reduce((sum,p)=>sum+financingCostTRY(p),0);
+ if(extraPosition)total+=financingCostValue(extraPosition)*(fxRateTRY(extraPosition.currency)||1);
  return total;
 }
 function modelSpotRealizedGrossPnl(){
- return model.filter(p=>p.status==="Kapalı"&&!isViopPosition(p)).reduce((sum,p)=>sum+grossPnlAt(p,p.closePrice),0);
+ return model.filter(p=>p.status==="Kapalı"&&!isViopPosition(p)&&!isGlobalFuturesPosition(p)).reduce((sum,p)=>sum+grossPnlAt(p,p.closePrice),0);
 }
 function modelViopRealizedGrossPnl(){
  return model.filter(p=>p.status==="Kapalı"&&isViopPosition(p)).reduce((sum,p)=>sum+grossPnlAt(p,p.closePrice),0);
@@ -2936,33 +3108,66 @@ function modelViopRealizedGrossPnl(){
 function modelViopOpenGrossPnl(){
  return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((sum,p)=>sum+grossPnlAt(p,p.currentPrice??p.entry),0);
 }
+function globalFuturesInitialMargin(p){
+ if(!isGlobalFuturesPosition(p))return 0;
+ if(Number.isFinite(Number(p.initialMarginRequired)))return Number(p.initialMarginRequired);
+ return Math.abs(Number(p.qty)||0)*(Number(p.initialMargin)||0);
+}
+function globalFuturesMarginState(currency="USD",extraPosition=null){
+ const c=String(currency||"USD").toUpperCase(),balances=currencyCashBalances();
+ const active=model.filter(p=>p.status==="Aktif"&&isGlobalFuturesPosition(p)&&nativeCurrency(p)===c);
+ const openPnl=active.reduce((sum,p)=>sum+nativeGrossPnlAt(p,p.currentPrice??p.entry),0);
+ let used=active.reduce((sum,p)=>sum+globalFuturesInitialMargin(p),0);
+ let extraCommission=0;
+ if(extraPosition&&isGlobalFuturesPosition(extraPosition)&&nativeCurrency(extraPosition)===c){
+  used+=globalFuturesInitialMargin(extraPosition);extraCommission=openCommissionValue(extraPosition);
+ }
+ const cash=Number(balances[c])||0,equity=cash+openPnl-extraCommission,free=equity-used;
+ return{currency:c,cash,openPnl,equity,used,free};
+}
+function globalFuturesUsedMarginTRY(){
+ return model.filter(p=>p.status==="Aktif"&&isGlobalFuturesPosition(p)).reduce((sum,p)=>sum+globalFuturesInitialMargin(p)*(fxRateTRY(p.currency)||1),0);
+}
 function modelOpenCashCommitment(){
- return model.filter(p=>p.status==="Aktif"&&!isViopPosition(p)).reduce((sum,p)=>sum+tradeNotional(p,p.entry),0);
+ return model.filter(p=>p.status==="Aktif"&&!isFuturesPosition(p)).reduce((sum,p)=>sum+tradeNotional(p,p.entry)*positionOpenFx(p),0);
 }
 function modelUsedViopMargin(){return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((sum,p)=>sum+viopInitialMargin(p),0)}
-function modelViopNotional(){return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((sum,p)=>sum+positionSize(p),0)}
+function modelViopNotional(){return model.filter(p=>p.status==="Aktif"&&isViopPosition(p)).reduce((sum,p)=>sum+positionSizeTRY(p),0)}
 function postedNemaTotal(){return(settings.nemaAccruals||[]).reduce((sum,row)=>sum+(Number(row.amount)||0),0)}
 function viopTransferNet(){return Number(settings.viopCollateral)||0}
 function viopSettledEquity(){return viopTransferNet()+modelViopRealizedGrossPnl()+postedNemaTotal()}
 function viopCurrentEquity(){return viopSettledEquity()+modelViopOpenGrossPnl()}
-function modelRealizedNetPnl(){return model.filter(p=>p.status==="Kapalı").reduce((sum,p)=>sum+(netClosedPnl(p)||0),0)+postedNemaTotal()}
+function portfolioCashTRYValue(){
+ const balances=currencyCashBalances();
+ return Object.entries(balances).reduce((sum,[currency,amount])=>sum+(Number(amount)||0)*(fxRateTRY(currency)||0),0);
+}
+function portfolioActiveCapitalTRY(){
+ return model.filter(p=>p.status==="Aktif"&&!isFuturesPosition(p)).reduce((sum,p)=>{
+  const nativeCapital=tradeNotional(p,p.entry)+nativeGrossPnlAt(p,p.currentPrice??p.entry);
+  return sum+nativeCapital*(fxRateTRY(p.currency)||positionCurrentFx(p));
+ },0);
+}
+function portfolioGlobalFuturesOpenPnlTRY(){
+ return model.filter(p=>p.status==="Aktif"&&isGlobalFuturesPosition(p)).reduce((sum,p)=>sum+nativeGrossPnlAt(p,p.currentPrice??p.entry)*(fxRateTRY(p.currency)||positionCurrentFx(p)),0);
+}
+function portfolioEquityTRY(){
+ return portfolioCashTRYValue()+portfolioActiveCapitalTRY()+portfolioGlobalFuturesOpenPnlTRY()+viopCurrentEquity();
+}
+function portfolioPositionFxPnlTRY(){
+ return model.reduce((sum,p)=>sum+(p.status==="Kapalı"?positionFxPnlAt(p,p.closePrice):positionFxPnlAt(p,p.currentPrice??p.entry)),0);
+}
+function modelRealizedNetPnl(){
+ return model.filter(p=>p.status==="Kapalı").reduce((sum,p)=>sum+(netClosedPnl(p)||0),0)+postedNemaTotal();
+}
 function modelCashState(extraPosition=null){
- const capital=Number(settings.capital)||0;
- const spotRealized=modelSpotRealizedGrossPnl();
- let cashCommitment=modelOpenCashCommitment();
- if(extraPosition&&!isViopPosition(extraPosition))cashCommitment+=tradeNotional(extraPosition,extraPosition.entry);
- const commissions=modelTotalCommissions(extraPosition);
- const creditCosts=modelTotalCreditCosts(extraPosition);
- const transfers=viopTransferNet();
- const raw=capital+spotRealized-cashCommitment-commissions-creditCosts-transfers;
+ const balances=currencyCashBalances(extraPosition),raw=Number(balances.TRY)||0;
  const credit=Math.max(0,-raw),available=Math.max(0,raw);
  const rate=creditAnnualRate(),days=Math.max(1,Number(settings.creditDays)||2);
- return{capital,spotRealized,cashCommitment,commissions,creditCosts,transfers,raw,credit,available,rate,days,t2Cost:credit*rate/100*days/365};
+ return{capital:Number(settings.capital)||0,balances,raw,credit,available,rate,days,t2Cost:credit*rate/100*days/365};
 }
 function incrementalCreditFor(position){
- const before=modelCashState().credit;
- const estimated={...position,creditCost:0};
- const after=modelCashState(estimated).credit;
+ if(nativeCurrency(position)!=="TRY")return 0;
+ const before=modelCashState().credit,estimated={...position,creditCost:0},after=modelCashState(estimated).credit;
  return Math.max(0,after-before);
 }
 function localIsoDate(value=new Date()){
@@ -3031,59 +3236,62 @@ function formatDateTime(value){
 
 let cashStatementFilter={mode:"all",date:"",start:"",end:""};
 function cashStatementEntries(){
- const rows=[];
- const push=row=>rows.push({id:id(),currency:"TRY",...row});
+ const rows=[],push=row=>rows.push({id:id(),currency:"TRY",...row});
  const firstPositionDate=model.map(p=>p.openDate||String(p.openDateTime||"").slice(0,10)).filter(Boolean).sort()[0];
  const startDate=settings.startDate||firstPositionDate||today;
- if(Number(settings.capital)>0)push({dateTime:`${startDate}T00:00:00`,account:"cash",type:"Başlangıç Sermayesi",description:"Model portföy başlangıç sermayesi",amount:Number(settings.capital)});
+ if(Number(settings.capital)>0)push({dateTime:`${startDate}T00:00:00`,account:"cash",currency:"TRY",type:"Başlangıç Sermayesi",description:"Model portföy başlangıç sermayesi",amount:Number(settings.capital)});
+ for(const t of settings.fxTrades||[]){
+  const dt=t.dateTime||nowLocal(),fee=Number(t.fee)||0;
+  push({dateTime:dt,account:"cash",currency:t.fromCurrency,type:"Döviz Exchange",description:`${t.fromCurrency} → ${t.toCurrency} satış`,amount:-(Number(t.fromAmount)||0)});
+  if(fee)push({dateTime:dt,account:"cash",currency:t.fromCurrency,type:"Kur Ücreti",description:`${t.fromCurrency}/${t.toCurrency} döviz işlem ücreti`,amount:-fee});
+  push({dateTime:dt,account:"cash",currency:t.toCurrency,type:"Döviz Exchange",description:`${t.fromCurrency} → ${t.toCurrency} alış`,amount:Number(t.toAmount)||0});
+ }
  for(const p of model){
-  const openDateTime=p.openDateTime||`${p.openDate||today}T00:00:00`;
-  const closeDateTime=p.closeDateTime||`${p.closeDate||today}T00:00:00`;
-  if(!isViopPosition(p)){
+  const c=nativeCurrency(p),openDateTime=p.openDateTime||`${p.openDate||today}T00:00:00`,closeDateTime=p.closeDateTime||`${p.closeDate||today}T00:00:00`;
+  if(!isFuturesPosition(p)){
    const entryPrincipal=tradeNotional(p,p.entry);
-   push({dateTime:openDateTime,account:"cash",type:"Pozisyon Açılışı",description:`${p.symbol} ${p.direction} açılışı`,amount:-entryPrincipal});
-   if(p.status==="Kapalı"&&p.closePrice!=null){
-    const settlement=entryPrincipal+grossPnlAt(p,p.closePrice);
-    push({dateTime:closeDateTime,account:"cash",type:"Pozisyon Kapanışı",description:`${p.symbol} anapara ve gerçekleşen K/Z tahsilatı`,amount:settlement});
-   }
+   push({dateTime:openDateTime,account:"cash",currency:c,type:"Pozisyon Açılışı",description:`${p.symbol} ${p.direction} açılışı`,amount:-entryPrincipal});
+   if(p.status==="Kapalı"&&p.closePrice!=null)push({dateTime:closeDateTime,account:"cash",currency:c,type:"Pozisyon Kapanışı",description:`${p.symbol} anapara ve gerçekleşen native K/Z`,amount:entryPrincipal+nativeGrossPnlAt(p,p.closePrice)});
   }
   const openCommission=openCommissionValue(p);
-  if(openCommission)push({dateTime:openDateTime,account:"cash",type:"Komisyon",description:`${p.viopContract||p.futuresContract||p.symbol} açılış komisyonu`,amount:-openCommission});
+  if(openCommission)push({dateTime:openDateTime,account:"cash",currency:isViopPosition(p)?"TRY":c,type:"Komisyon",description:`${p.viopContract||p.futuresContract||p.symbol} açılış komisyonu`,amount:-openCommission});
   if(p.status==="Kapalı"){
    const closeCommission=estimatedCloseCommission(p,p.closePrice);
-   if(closeCommission)push({dateTime:closeDateTime,account:"cash",type:"Komisyon",description:`${p.viopContract||p.futuresContract||p.symbol} kapanış komisyonu`,amount:-closeCommission});
+   if(closeCommission)push({dateTime:closeDateTime,account:"cash",currency:isViopPosition(p)?"TRY":c,type:"Komisyon",description:`${p.viopContract||p.futuresContract||p.symbol} kapanış komisyonu`,amount:-closeCommission});
    if(isViopPosition(p)){
-    const pnlAmount=grossPnlAt(p,p.closePrice);
-    if(pnlAmount)push({dateTime:closeDateTime,account:"viop",type:"VİOP K/Z",description:`${p.viopContract||p.symbol} gerçekleşen kâr/zarar`,amount:pnlAmount});
+    const pnlAmount=nativeGrossPnlAt(p,p.closePrice);
+    if(pnlAmount)push({dateTime:closeDateTime,account:"viop",currency:"TRY",type:"VİOP K/Z",description:`${p.viopContract||p.symbol} gerçekleşen kâr/zarar`,amount:pnlAmount});
+   }else if(isGlobalFuturesPosition(p)){
+    const pnlAmount=nativeGrossPnlAt(p,p.closePrice);
+    if(pnlAmount)push({dateTime:closeDateTime,account:"cash",currency:c,type:"Yurtdışı Futures K/Z",description:`${p.futuresContract||p.symbol} gerçekleşen futures K/Z`,amount:pnlAmount});
    }
   }
   const creditCost=financingCostValue(p);
-  if(creditCost)push({dateTime:openDateTime,account:"cash",type:"Kredi Maliyeti",description:`${p.symbol} T+${p.creditDays||settings.creditDays||2} finansman maliyeti`,amount:-creditCost});
+  if(creditCost)push({dateTime:openDateTime,account:"cash",currency:c,type:"Kredi Maliyeti",description:`${p.symbol} T+${p.creditDays||settings.creditDays||2} finansman maliyeti`,amount:-creditCost});
  }
  const transfers=settings.viopTransfers||[];
  if(!transfers.length&&Number(settings.viopCollateral)){
   const amount=Number(settings.viopCollateral),dateTime=`${settings.nemaStartDate||settings.startDate||today}T00:01:00`;
-  push({dateTime,account:"cash",type:"Devreden Teminat",description:"Eski sürümden devreden VİOP teminat aktarımı",amount:-amount});
-  push({dateTime,account:"viop",type:"Devreden Teminat",description:"Eski sürümden devreden VİOP teminat bakiyesi",amount});
+  push({dateTime,account:"cash",currency:"TRY",type:"Devreden Teminat",description:"Eski sürümden devreden VİOP teminat aktarımı",amount:-amount});
+  push({dateTime,account:"viop",currency:"TRY",type:"Devreden Teminat",description:"Eski sürümden devreden VİOP teminat bakiyesi",amount});
  }
  for(const transfer of transfers){
   const dateTime=transfer.dateTime||nowLocal(),amount=Number(transfer.amount)||0;
   if(transfer.direction==="toViop"){
-   push({dateTime,account:"cash",type:"Teminat Transferi",description:"Ana nakitten VİOP teminatına aktarım",amount:-amount});
-   push({dateTime,account:"viop",type:"Teminat Transferi",description:"Ana nakitten VİOP teminatına giriş",amount});
+   push({dateTime,account:"cash",currency:"TRY",type:"Teminat Transferi",description:"Ana nakitten VİOP teminatına aktarım",amount:-amount});
+   push({dateTime,account:"viop",currency:"TRY",type:"Teminat Transferi",description:"Ana nakitten VİOP teminatına giriş",amount});
   }else{
-   push({dateTime,account:"viop",type:"Teminat Transferi",description:"VİOP teminatından ana nakde çıkış",amount:-amount});
-   push({dateTime,account:"cash",type:"Teminat Transferi",description:"VİOP teminatından ana nakde giriş",amount});
+   push({dateTime,account:"viop",currency:"TRY",type:"Teminat Transferi",description:"VİOP teminatından ana nakde çıkış",amount:-amount});
+   push({dateTime,account:"cash",currency:"TRY",type:"Teminat Transferi",description:"VİOP teminatından ana nakde giriş",amount});
   }
  }
- for(const row of settings.nemaAccruals||[]){
-  push({dateTime:row.dateTime||`${row.date}T23:59:00`,account:"viop",type:"Nema Geliri",description:`Günlük nema · Matrah ${f(row.base,2)} TRY · Net yıllık %${f(row.netAnnualRate,4)}`,amount:Number(row.amount)||0});
- }
- rows.sort((a,b)=>String(a.dateTime).localeCompare(String(b.dateTime))||String(a.account).localeCompare(String(b.account))||String(a.type).localeCompare(String(b.type)));
- const balances={cash:0,viop:0};
- rows.forEach(row=>{balances[row.account]=(balances[row.account]||0)+row.amount;row.balanceAfter=balances[row.account]});
+ for(const row of settings.nemaAccruals||[])push({dateTime:row.dateTime||`${row.date}T23:59:00`,account:"viop",currency:"TRY",type:"Nema Geliri",description:`Günlük nema · Matrah ${f(row.base,2)} TRY · Net yıllık %${f(row.netAnnualRate,4)}`,amount:Number(row.amount)||0});
+ rows.sort((a,b)=>String(a.dateTime).localeCompare(String(b.dateTime))||String(a.account).localeCompare(String(b.account))||String(a.currency).localeCompare(String(b.currency)));
+ const balances={};
+ rows.forEach(row=>{const key=`${row.account}|${row.currency}`;balances[key]=(balances[key]||0)+row.amount;row.balanceAfter=balances[key]});
  return rows;
 }
+
 function filteredCashStatementRows(){
  const rows=cashStatementEntries(),mode=cashStatementFilter.mode;
  if(mode==="day"&&cashStatementFilter.date)return rows.filter(row=>String(row.dateTime).slice(0,10)===cashStatementFilter.date);
@@ -3100,7 +3308,7 @@ function renderCashStatement(){
  $("cashStatementSummary").innerHTML=`<div><span>Filtrelenen Alacak</span><strong class="cashCredit">${f(credit,2)} TRY</strong></div><div><span>Filtrelenen Borç</span><strong class="cashDebit">${f(debit,2)} TRY</strong></div><div><span>Ana Nakit Defter Bakiyesi</span><strong>${f(cashBalance,2)} TRY</strong></div><div><span>VİOP Defter Bakiyesi</span><strong>${f(viopBalance,2)} TRY</strong></div>`;
  if(!rows.length){$("cashStatementTable").innerHTML='<div class="muted" style="padding:22px;text-align:center">Seçilen dönemde nakit hareketi bulunmuyor.</div>';return}
  const descending=[...rows].reverse();
- $("cashStatementTable").innerHTML=`<div class="tableWrap"><table><thead><tr><th>Tarih / Saat</th><th>Hesap</th><th>Hareket</th><th>Açıklama</th><th>Borç</th><th>Alacak</th><th>Hesap Bakiyesi</th></tr></thead><tbody>${descending.map(row=>`<tr><td class="dateTimeCell">${formatDateTime(row.dateTime)}</td><td><span class="cashAccountBadge ${row.account==="viop"?"viop":""}">${row.account==="viop"?"VİOP Teminat":"Ana Nakit"}</span></td><td>${esc(row.type)}</td><td>${esc(row.description)}</td><td class="cashDebit">${row.amount<0?f(Math.abs(row.amount),2)+" TRY":"-"}</td><td class="cashCredit">${row.amount>0?f(row.amount,2)+" TRY":"-"}</td><td class="cashBalance">${f(row.balanceAfter,2)} TRY</td></tr>`).join("")}</tbody></table></div>`;
+ $("cashStatementTable").innerHTML=`<div class="tableWrap"><table><thead><tr><th>Tarih / Saat</th><th>Hesap</th><th>Hareket</th><th>Açıklama</th><th>Para Birimi</th><th>Borç</th><th>Alacak</th><th>Hesap Bakiyesi</th></tr></thead><tbody>${descending.map(row=>`<tr><td class="dateTimeCell">${formatDateTime(row.dateTime)}</td><td><span class="cashAccountBadge ${row.account==="viop"?"viop":""}">${row.account==="viop"?"VİOP Teminat":"Ana Nakit"}</span></td><td>${esc(row.type)}</td><td>${esc(row.description)}</td><td class="cashDebit">${row.amount<0?f(Math.abs(row.amount),2)+" TRY":"-"}</td><td class="cashCredit">${row.amount>0?f(row.amount,2)+" TRY":"-"}</td><td class="cashBalance">${f(row.balanceAfter,2)} TRY</td></tr>`).join("")}</tbody></table></div>`;
 }
 function syncCashStatementFilterUI(){
  const mode=$("cashStatementFilterMode").value;
@@ -3155,6 +3363,114 @@ function setLiveStatus(scope,state,text){
   const dot=$(scope+"LiveDot"),label=$(scope+"LiveText");
   dot.className="liveDot "+state;label.textContent=text;
 }
+function populateFxCurrencySelects(){
+ const options=FX_SUPPORTED_CURRENCIES.map(c=>`<option value="${c}">${c}</option>`).join("");
+ ["fxFromCurrency","fxToCurrency"].forEach(id=>{if($(id))$(id).innerHTML=options});
+ if($("fxFromCurrency"))$("fxFromCurrency").value="TRY";
+ if($("fxToCurrency"))$("fxToCurrency").value="USD";
+}
+function fxCrossRate(from,to){
+ const a=fxRateTRY(from),b=fxRateTRY(to);
+ return Number.isFinite(a)&&Number.isFinite(b)&&b>0?a/b:null;
+}
+async function refreshFxRatesData(showStatus=true){
+ if(showStatus&&$("fxRateStatus"))$("fxRateStatus").textContent="Güncel döviz kurları yükleniyor…";
+ try{
+  const response=await fetch("/api/fx/rates",{cache:"no-store"}),payload=await response.json();
+  if(!response.ok)throw new Error(payload.error||"Kur verisi alınamadı");
+  const next={TRY:1};
+  for(const [currency,row] of Object.entries(payload.rates||{})){
+   const rate=Number(row?.rate??row);if(Number.isFinite(rate)&&rate>0)next[currency]=rate;
+  }
+  fxRates={...fxRates,...next};settings.fxRates={...fxRates};settings.fxUpdatedAt=payload.fetchedAt||new Date().toISOString();settings.fxSource=payload.source||"Yahoo Finance";
+  if(cloudStateReady)save();
+  if(showStatus&&$("fxRateStatus"))$("fxRateStatus").textContent=`${settings.fxSource} · ${new Date(settings.fxUpdatedAt).toLocaleString("tr-TR")} · USD/TRY ${f(fxRateTRY("USD"),4)} · EUR/TRY ${f(fxRateTRY("EUR"),4)} · GBP/TRY ${f(fxRateTRY("GBP"),4)}`;
+  updateFxExchangePreview();renderFxTreasury();renderModel();
+  return payload;
+ }catch(error){
+  if(showStatus&&$("fxRateStatus"))$("fxRateStatus").textContent=`Kur verisi alınamadı: ${error.message}. Son kayıtlı kurlar korunuyor.`;
+  throw error;
+ }
+}
+function updateFxExchangePreview(){
+ if(!$("fxFromCurrency"))return;
+ const from=$("fxFromCurrency").value,to=$("fxToCurrency").value,amount=Number($("fxFromAmount").value)||0;
+ const market=fxCrossRate(from,to),spread=Math.max(0,Number($("fxSpreadPct").value)||0);
+ const receive=market&&from!==to?amount*market*(1-spread/100):0;
+ $("fxMarketRate").value=market?f(market,8):"";
+ $("fxReceiveAmount").value=receive?f(receive,6):"";
+}
+function executeFxExchange(){
+ const from=$("fxFromCurrency").value,to=$("fxToCurrency").value,amount=Number($("fxFromAmount").value)||0;
+ const spread=Math.max(0,Number($("fxSpreadPct").value)||0),fee=Math.max(0,Number($("fxFixedFee").value)||0);
+ if(from===to){alert("Bozdurulan ve alınan para birimleri farklı olmalıdır.");return}
+ if(amount<=0){alert("Geçerli bir döviz tutarı girin.");return}
+ const market=fxCrossRate(from,to);
+ if(!market){alert("Bu döviz çifti için güncel kur bulunamadı.");return}
+ const sourceBalance=currencyCashBalance(from);
+ if(amount+fee>sourceBalance+1e-8){alert(`${from} bakiyesi yetersiz. Kullanılabilir: ${f(sourceBalance,2)} ${from}`);return}
+ const toAmount=amount*market*(1-spread/100);
+ settings.fxTrades=Array.isArray(settings.fxTrades)?settings.fxTrades:[];
+ settings.fxTrades.push({
+  id:id(),dateTime:nowLocal(),fromCurrency:from,toCurrency:to,fromAmount:amount,toAmount,
+  marketRate:market,executedRate:amount?toAmount/amount:null,spreadPct:spread,fee,feeCurrency:from,
+  source:settings.fxSource||"Yahoo Finance"
+ });
+ save();$("fxFromAmount").value="";$("fxFixedFee").value=0;updateFxExchangePreview();renderModel();
+ alert(`${f(amount,2)} ${from} → ${f(toAmount,2)} ${to} döviz işlemi kaydedildi.`);
+}
+function renderFxTreasury(){
+ if(!$("fxWalletCards"))return;
+ const balances=currencyCashBalances(),usedCurrencies=new Set(["TRY","USD"]);
+ Object.entries(balances).forEach(([c,v])=>{if(Math.abs(Number(v)||0)>.000001)usedCurrencies.add(c)});
+ model.forEach(p=>usedCurrencies.add(nativeCurrency(p)));
+ const order=FX_SUPPORTED_CURRENCIES.filter(c=>usedCurrencies.has(c));
+ $("fxWalletCards").innerHTML=order.map(currency=>{
+  const balance=Number(balances[currency])||0,rate=fxRateTRY(currency),tryValue=rate?balance*rate:null;
+  return`<div class="fxWalletCard ${balance<0?"negative":""}"><span>${currency} Nakit</span><strong>${f(balance,2)} ${currency}</strong><small>${currency==="TRY"?"Base currency":rate?`1 ${currency} = ${f(rate,4)} TRY · ${f(tryValue,2)} TRY`:"Kur bulunamadı"}</small></div>`;
+ }).join("");
+ renderGlobalFuturesMarginWallets();renderFxTradeHistory();
+}
+function renderGlobalFuturesMarginWallets(){
+ const el=$("globalFuturesMarginWallets");if(!el)return;
+ const currencies=[...new Set(model.filter(isGlobalFuturesPosition).map(p=>nativeCurrency(p)))];
+ if(!currencies.length){el.innerHTML='<div class="muted" style="padding:12px 0">Aktif veya geçmiş yurtdışı futures pozisyonu bulunmuyor.</div>';return}
+ el.innerHTML=`<div class="fxMarginGrid">${currencies.map(c=>{
+  const state=globalFuturesMarginState(c),rate=fxRateTRY(c)||1;
+  return`<div class="fxMarginCard"><span>${c} Futures Teminat Hesabı</span><strong class="${state.free<0?"negative":""}">${f(state.free,2)} ${c} serbest</strong><small>Nakit ${f(state.cash,2)} · Açık K/Z ${f(state.openPnl,2)} · Kullanılan ${f(state.used,2)} ${c} · TRY karşılığı ${f(state.equity*rate,2)}</small></div>`;
+ }).join("")}</div>`;
+}
+function renderFxTradeHistory(){
+ const el=$("fxTradeHistory");if(!el)return;
+ const rows=[...(settings.fxTrades||[])].sort((a,b)=>String(b.dateTime).localeCompare(String(a.dateTime))).slice(0,30);
+ if(!rows.length){el.innerHTML='<div class="muted" style="padding:10px 0">Henüz döviz işlemi bulunmuyor.</div>';return}
+ el.innerHTML=`<div class="fxHistoryTable"><table><thead><tr><th>Tarih</th><th>İşlem</th><th>Piyasa Kuru</th><th>Spread</th><th>Ücret</th></tr></thead><tbody>${rows.map(t=>`<tr><td>${formatDateTime(t.dateTime)}</td><td><strong>${f(t.fromAmount,2)} ${esc(t.fromCurrency)}</strong> → <strong>${f(t.toAmount,2)} ${esc(t.toCurrency)}</strong></td><td>${f(t.marketRate,6)}</td><td>%${f(t.spreadPct,3)}</td><td>${f(t.fee,2)} ${esc(t.feeCurrency||t.fromCurrency)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+async function syncModelNativeCurrency(symbol,explicitCurrency=null,fillPrice=false){
+ const assetClass=$("mAssetClass")?.value;
+ if(assetClass==="Türev (VİOP/Vadeli)"){
+  $("mCurrency").value="TRY";$("mEntryFxRate").value="1";$("mNativeCurrencyStatus").textContent="VİOP pozisyonları TRY teminat ve fiyatlama altyapısında tutulur.";return"TRY";
+ }
+ if(assetClass==="Yurtdışı Futures"){
+  const row=currentGlobalFuture("model"),currency=row?.quoteCurrency||row?.marginCurrency||"USD";
+  $("mCurrency").value=currency;$("mEntryFxRate").value=f(fxRateTRY(currency)||1,8);$("mNativeCurrencyStatus").textContent=`${row?.exchange||"Global Futures"} native para birimi: ${currency}.`;return currency;
+ }
+ const ys=String(symbol||$("mYahooSymbol")?.value||$("mSymbol")?.value||"").trim().toUpperCase();
+ if(!ys)return null;
+ try{
+  const quotes=await fetchYahooQuotes([ys]),q=quotes[ys],currency=String(explicitCurrency||q?.currency||"TRY").toUpperCase();
+  const supported=FX_SUPPORTED_CURRENCIES.includes(currency)?currency:"TRY";
+  $("mCurrency").value=supported;$("mEntryFxRate").value=f(fxRateTRY(supported)||1,8);
+  $("mNativeCurrencyStatus").textContent=`${ys} işlem para birimi Yahoo verisine göre ${supported}. Para birimi manuel değiştirilemez.`;
+  if(fillPrice&&q?.price&&(!$("mEntry").value||Number($("mEntry").value)===0))$("mEntry").value=q.price;
+  updateModelTradePreview();return supported;
+ }catch(error){
+  $("mNativeCurrencyStatus").textContent=`Native para birimi doğrulanamadı: ${error.message}`;
+  return null;
+ }
+}
+populateFxCurrencySelects();
+
 async function fetchYahooQuotes(symbols){
   const unique=[...new Set(symbols.filter(Boolean))];
   if(!unique.length)return{};
@@ -3171,8 +3487,9 @@ async function refreshQuotes(scope){
     setLiveStatus(scope,"error","Yahoo Finance sembolü girilmiş aktif pozisyon yok");
     return;
   }
-  setLiveStatus(scope,"loading","Fiyatlar güncelleniyor…");
+  setLiveStatus(scope,"loading","Fiyatlar ve döviz kurları güncelleniyor…");
   try{
+    try{await refreshFxRatesData(false)}catch{}
     const quotes=await fetchYahooQuotes(symbols);
     let updated=0;
     active.forEach(p=>{
@@ -3181,6 +3498,7 @@ async function refreshQuotes(scope){
       p.yahooSymbol=ys;
       p.currentPrice=q.price;
       p.dailyChange=q.changePercent??0;
+      if(q.currency&&(!p.currency||p.currency==="TRY"&&q.currency!=="TRY")&&!isViopPosition(p))p.currency=String(q.currency).toUpperCase();
       p.marketTime=q.marketTime||null;
       p.quoteDelay=q.delay||null;
       updated++;
@@ -3365,7 +3683,7 @@ $("openDate").value=nowLocal();$("qty").value=1;syncModelViopVisibility();render
 $("closeGeneralBtn").onclick=()=>{const p=general.find(x=>x.id===$("closeGeneralSelect").value),price=n($("closeGeneralPrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDateTime=$("closeGeneralDate").value||nowLocal();p.closeDate=p.closeDateTime.slice(0,10);save();$("closeGeneralPrice").value="";renderGeneral()};
 window.deleteGeneral=x=>{if(confirm("Kayıt silinsin mi?")){general=general.filter(p=>p.id!==x);save();renderGeneral()}};
 
-function mpnl(p){return netClosedPnl(p)}function mret(p){if(p.status!=="Kapalı")return null;const base=tradeNotional(p,p.entry);return base?(mpnl(p)||0)/base:0}
+function mpnl(p){return netClosedPnl(p)}function mret(p){if(p.status!=="Kapalı")return null;const base=tradeNotional(p,p.entry)*positionOpenFx(p);return base?(mpnl(p)||0)/base:0}
 const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const sd=a=>a.length<2?0:Math.sqrt(a.reduce((s,x)=>s+(x-mean(a))**2,0)/(a.length-1));
 const variance=a=>sd(a)**2;
@@ -3376,7 +3694,7 @@ function metrics(){
  const active=model.filter(p=>p.status==="Aktif"),start=Number(settings.capital)||0;
  let closedEq=start,peak=start,dd=0;const rs=[];
  c.forEach(p=>{const net=mpnl(p)||0,before=closedEq;closedEq+=net;if(before>0)rs.push(net/before);peak=Math.max(peak,closedEq);if(peak>0)dd=Math.max(dd,(peak-closedEq)/peak)});
- const activeNet=active.reduce((s,p)=>s+(netLivePnl(p)||0),0),nema=postedNemaTotal(),eq=closedEq+activeNet+nema;
+ const activeNet=active.reduce((s,p)=>s+(netLivePnl(p)||0),0),nema=postedNemaTotal(),eq=portfolioEquityTRY();
  const sdte=settings.startDate||c[0]?.openDateTime||c[0]?.openDate||today;
  const edte=c.at(-1)?.closeDateTime||c.at(-1)?.closeDate||today;
  const years=Math.max((new Date(edte)-new Date(sdte))/(365.25*86400000),1/365.25),ppy=rs.length/years;
@@ -3413,7 +3731,7 @@ function pmsAutoStrategicWeights(){
  const totals={bist:0,sp500:0,gold:0,bond:0},unknown=[];
  let classified=0,gross=0;
  for(const p of active){
-  const value=Math.abs(positionSize(p)||tradeNotional(p,p.currentPrice??p.entry)||0);
+  const value=Math.abs(positionSizeTRY(p)||tradeNotionalTRY(p,p.currentPrice??p.entry)||0);
   if(!value)continue;
   gross+=value;
   const bucket=pmsStrategicBucket(p);
@@ -3527,8 +3845,8 @@ function pmsLiveRequestPayload(){
   positions:model.slice(0,60).map(p=>({
    id:p.id,status:p.status,label:p.viopContract||p.futuresContract||p.symbol,
    symbol:pmsPositionYahooSymbol(p),assetClass:p.assetClass||"",
-   notional:Math.abs(tradeNotional(p,p.status==="Kapalı"?(p.closePrice??p.entry):(p.currentPrice??p.entry))),
-   signedNotional:Math.abs(tradeNotional(p,p.status==="Kapalı"?(p.closePrice??p.entry):(p.currentPrice??p.entry)))*(String(p.direction).includes("Short")?-1:1),
+   notional:Math.abs(tradeNotionalTRY(p,p.status==="Kapalı"?(p.closePrice??p.entry):(p.currentPrice??p.entry))),
+   signedNotional:Math.abs(tradeNotionalTRY(p,p.status==="Kapalı"?(p.closePrice??p.entry):(p.currentPrice??p.entry)))*(String(p.direction).includes("Short")?-1:1),
    contractSize:Number(p.contractSize)||1,hasStop:Number.isFinite(Number(p.stop))&&Number(p.stop)!==0,
    openDate:String(p.openDateTime||p.openDate||"").slice(0,10),closeDate:String(p.closeDateTime||p.closeDate||"").slice(0,10)
   }))
@@ -3668,11 +3986,11 @@ function pmsAttributionAnalysis(){
  const analysis=pmsAnalysis(),meta=new Map((pmsLiveData?.assets||[]).map(x=>[String(x.id),x]));
  const pnlRows=model.map(p=>({p,meta:meta.get(String(p.id)),pnl:p.status==="Kapalı"?Number(netClosedPnl(p)||0):Number(netLivePnl(p)||0)})).filter(x=>x.pnl!==0).sort((a,b)=>Math.abs(b.pnl)-Math.abs(a.pnl));
  const totalAbs=pnlRows.reduce((s,x)=>s+Math.abs(x.pnl),0);
- const pairs=analysis.benchmarkPairs||[],pairedNotional=pairs.reduce((s,x)=>s+Math.abs(tradeNotional(x.trade,x.trade.entry)),0);
- const stockSelection=pairedNotional?pairs.reduce((s,x)=>s+Math.abs(tradeNotional(x.trade,x.trade.entry))/pairedNotional*(x.portfolio-x.benchmark),0):null;
+ const pairs=analysis.benchmarkPairs||[],pairedNotional=pairs.reduce((s,x)=>s+Math.abs(tradeNotionalTRY(x.trade,x.trade.entry,positionOpenFx(x.trade))),0);
+ const stockSelection=pairedNotional?pairs.reduce((s,x)=>s+Math.abs(tradeNotionalTRY(x.trade,x.trade.entry,positionOpenFx(x.trade)))/pairedNotional*(x.portfolio-x.benchmark),0):null;
  const sectorGroups={};
  for(const pair of pairs){
-  const p=pair.trade,sector=meta.get(String(p.id))?.sector||p.assetClass||"Diğer",notional=Math.abs(tradeNotional(p,p.entry)),active=pair.portfolio-pair.benchmark;
+  const p=pair.trade,sector=meta.get(String(p.id))?.sector||p.assetClass||"Diğer",notional=Math.abs(tradeNotionalTRY(p,p.entry,positionOpenFx(p))),active=pair.portfolio-pair.benchmark;
   if(!sectorGroups[sector])sectorGroups[sector]={notional:0,activeSum:0,benchSum:0,count:0};
   sectorGroups[sector].notional+=notional;sectorGroups[sector].activeSum+=active*notional;sectorGroups[sector].benchSum+=pair.benchmark*notional;sectorGroups[sector].count++;
  }
@@ -3764,7 +4082,7 @@ function pmsAnalysis(){
  }
 
  const nema=postedNemaTotal(),live=model.filter(p=>p.status==="Aktif").reduce((s,p)=>s+(netLivePnl(p)||0),0);
- const currentEquity=equity+nema+live;
+ const currentEquity=portfolioEquityTRY();
  const totalReturn=start?currentEquity/start-1:null;
  const cagr=start&&equity+nema>0?Math.pow((equity+nema)/start,1/years)-1:null;
  const sharpe=excess.length>1&&sd(excess)?mean(excess)/sd(excess)*Math.sqrt(ppy):null;
@@ -3958,14 +4276,14 @@ function modelTable(arr,closed){
   return`<tr><td><strong class="clickableSymbol" onclick="openPositionResearch('model','${p.id}')">${esc(p.viopContract||p.symbol)}</strong><div class="muted">${esc(isViopPosition(p)?p.symbol:(p.yahooSymbol||""))}</div></td>
  <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}${isViopPosition(p)?`<div><span class="viopPill">${esc(p.viopContract||"VİOP")}</span></div>`:isGlobalFuturesPosition(p)?`<div><span class="viopPill">${esc(p.futuresContract||"Futures")}</span></div>`:""}</td><td>${esc(p.direction)}</td>
  <td>${f(p.entry,4)}</td><td>${f(p.currentPrice??p.entry,4)}</td>
- <td class="netPnl ${net>=0?"positive":"negative"}">${f(net,2)} ${esc(p.currency||"")}</td>
+ <td class="netPnl ${net>=0?"positive":"negative"}"><strong>${f(net,2)} TRY</strong><div class="nativePnlLine">${f(closed?nativeNetClosedPnl(p):nativeNetLivePnl(p),2)} ${esc(p.currency||"TRY")}</div>${nativeCurrency(p)!=="TRY"?`<div class="fxPnlBreakdown">FX etkisi: ${positionFxPnlAt(p,closed?p.closePrice:(p.currentPrice??p.entry))>=0?"+":""}${f(positionFxPnlAt(p,closed?p.closePrice:(p.currentPrice??p.entry)),2)} TRY</div>`:""}</td>
  <td class="${netPct>=0?"positive":"negative"}">${f(netPct,2)}%</td>
- <td class="positionSize">${f(positionSize(p),2)} ${esc(p.currency||"")}</td><td>${f(p.qty,2)}</td>
+ <td class="positionSize">${f(positionSize(p),2)} ${esc(p.currency||"")}<div class="muted">${f(positionSizeTRY(p),2)} TRY</div></td><td>${f(p.qty,2)}</td>
  <td class="dateTimeCell">${formatDateTime(p.openDateTime||p.openDate)}</td>
  <td class="costCell">${f(openCommissionValue(p),2)} ${esc(p.currency||"")}</td>
  <td class="costCell creditBadge">${f(financingCostValue(p),2)} ${esc(p.currency||"")}</td>
- <td class="costCell marginBadge">${isViopPosition(p)?f(viopInitialMargin(p),2)+" TRY":"-"}</td>
- ${closed?`<td>${f(p.closePrice,4)}</td><td class="dateTimeCell">${formatDateTime(p.closeDateTime||p.closeDate)}</td><td class="${net>=0?"positive":"negative"}">${f(net,2)}</td><td>${f(netPct,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}
+ <td class="costCell marginBadge">${isViopPosition(p)?f(viopInitialMargin(p),2)+" TRY":isGlobalFuturesPosition(p)?`<span class="globalMarginBadge">${f(globalFuturesInitialMargin(p),2)} ${esc(p.currency||"USD")}</span>`:"-"}</td>
+ ${closed?`<td>${f(p.closePrice,4)}</td><td class="dateTimeCell">${formatDateTime(p.closeDateTime||p.closeDate)}</td><td class="${net>=0?"positive":"negative"}">${f(net,2)} TRY<div class="nativePnlLine">${f(nativeNetClosedPnl(p),2)} ${esc(p.currency||"TRY")}</div></td><td>${f(netPct,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}
  <td><div class="actionGroup">${!closed?`<button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`;
  }).join("")}</tbody></table></div>`}
 
@@ -3975,12 +4293,15 @@ window.renderModel=function renderModel(){
  const closedReturns=closed.map(mret).filter(value=>value!==null),cash=modelCashState();
  const usedMargin=modelUsedViopMargin(),transferred=viopTransferNet(),viopRealized=modelViopRealizedGrossPnl(),nema=postedNemaTotal(),viopLive=modelViopOpenGrossPnl();
  const collateral=viopCurrentEquity(),freeMargin=collateral-usedMargin,viopNotional=modelViopNotional();
- const realized=modelRealizedNetPnl(),grossExposure=active.reduce((sum,p)=>sum+positionSize(p),0),estimatedNema=todayEstimatedNema();
+ const realized=modelRealizedNetPnl(),grossExposure=active.reduce((sum,p)=>sum+positionSizeTRY(p),0),estimatedNema=todayEstimatedNema();
+ const totalEquityTRY=portfolioEquityTRY(),fxPnlTRY=portfolioPositionFxPnlTRY(),globalMarginTRY=globalFuturesUsedMarginTRY();
 
  $("mActiveCount").textContent=active.length;$("mClosedCount").textContent=closed.length;
  $("mWinRate").textContent="%"+f(closed.length?closed.filter(p=>(netClosedPnl(p)||0)>0).length/closed.length*100:0,1);
  $("mAverageReturn").textContent="%"+f(closedReturns.length?mean(closedReturns)*100:0,2);
  $("mRealizedPnl").textContent=f(realized,2);$("mGrossExposure").textContent=f(grossExposure,2);
+ $("mTotalEquityTRY").textContent=f(totalEquityTRY,2);$("mFxPnlTRY").textContent=f(fxPnlTRY,2);$("mFxPnlTRY").className="v "+(fxPnlTRY>=0?"positive":"negative");
+ $("mGlobalFuturesMarginTRY").textContent=f(globalMarginTRY,2);
 
  $("mAvailableCash").textContent=f(cash.available,2);$("mCreditBalance").textContent=f(cash.credit,2);
  $("mCreditRate").textContent="%"+f(cash.rate,2);$("mCreditCost").textContent=f(cash.t2Cost,2);
@@ -4004,7 +4325,7 @@ window.renderModel=function renderModel(){
  $("viopOpenPositions").innerHTML=renderViopOpenPositions(active.filter(isViopPosition));
  $("viopTransferHistory").innerHTML=renderViopTransferHistory();
 
- renderModelPie();renderModelPerformance();renderActivities();renderCashStatement();updateModelTradePreview();renderPMS();
+ renderModelPie();renderModelPerformance();renderActivities();renderCashStatement();renderFxTreasury();updateModelTradePreview();renderPMS();
 }
 let viopContracts=[];
 let viopUnderlyings=[];
@@ -4099,7 +4420,7 @@ function applyViopUnderlying(scope,item){
   populateViopExpirySelect("general",underlying,near?.id);
   applyContractFields("general",currentSelectedViopContract("general")||near);
  }else{
-  $("mSymbol").value=underlying;$("mYahooSymbol").value="";
+  $("mSymbol").value=underlying;$("mYahooSymbol").value="";$("mCurrency").value="TRY";$("mEntryFxRate").value="1";$("mNativeCurrencyStatus").textContent="VİOP işlem ve teminat para birimi TRY.";
   populateViopExpirySelect("model",underlying,near?.id);
   applyContractFields("model",currentSelectedViopContract("model")||near);
  }
@@ -4180,14 +4501,21 @@ function draftModelPosition(){
  };
 }
 function updateModelTradePreview(){
- const p=draftModelPosition(),notional=tradeNotional(p,p.entry),commission=commissionAmount(notional,p.commissionUnit,p.commissionRate);
- p.openCommission=commission;
- const margin=viopInitialMargin(p),maintenance=Math.abs(Number(p.qty)||0)*(Number(p.maintenanceMargin)||0),incCredit=isViopPosition(p)?0:incrementalCreditFor(p);
- if($("mPreviewNotional"))$("mPreviewNotional").textContent=f(notional,2)+" "+p.currency;
- if($("mPreviewCommission"))$("mPreviewCommission").textContent=f(commission,2)+" "+p.currency;
- if($("mPreviewMargin"))$("mPreviewMargin").textContent=f(margin,2)+" TRY";
- if($("mPreviewMaintenance"))$("mPreviewMaintenance").textContent=f(maintenance,2)+" TRY";
- if($("mPreviewCredit"))$("mPreviewCredit").textContent=f(incCredit,2)+" TRY";
+ const p=buildModelDraft(),currency=nativeCurrency(p),fx=fxRateTRY(currency)||1;
+ const notional=tradeNotional(p,p.entry),commission=commissionAmount(notional,p.commissionUnit,p.commissionRate);
+ let initial=0,maintenance=0,credit=0;
+ if(isViopPosition(p)){
+  initial=viopInitialMargin(p);maintenance=(Number(p.maintenanceMargin)||0)*Math.abs(Number(p.qty)||0);
+ }else if(isGlobalFuturesPosition(p)){
+  initial=globalFuturesInitialMargin(p);maintenance=(Number(p.maintenanceMargin)||0)*Math.abs(Number(p.qty)||0);
+ }else if(currency==="TRY"){
+  credit=incrementalCreditFor(p);
+ }
+ if($("mPreviewNotional"))$("mPreviewNotional").textContent=`${f(notional,2)} ${currency} · ${f(notional*fx,2)} TRY`;
+ if($("mPreviewCommission"))$("mPreviewCommission").textContent=`${f(commission,2)} ${currency} · ${f(commission*fx,2)} TRY`;
+ if($("mPreviewMargin"))$("mPreviewMargin").textContent=isGlobalFuturesPosition(p)?`${f(initial,2)} ${currency}`:`${f(initial,2)} TRY`;
+ if($("mPreviewMaintenance"))$("mPreviewMaintenance").textContent=isGlobalFuturesPosition(p)?`${f(maintenance,2)} ${currency}`:`${f(maintenance,2)} TRY`;
+ if($("mPreviewCredit"))$("mPreviewCredit").textContent=currency==="TRY"?`${f(credit,2)} TRY`:`${currency} işlemlerinde kredi kapalı`;
 }
 
 function currentGlobalFuture(scope="general"){
@@ -4206,7 +4534,7 @@ async function loadGlobalFutures(force=false){
    select.innerHTML='<option value="">Kontrat seçin</option>'+globalFutures.map(x=>`<option value="${esc(x.id)}">${esc(x.code)} · ${esc(x.name)} · ${esc(x.exchange)}</option>`).join("");
   });
   ["gGlobalFutureStatus","mGlobalFutureStatus"].forEach(id=>{
-   const el=$(id);if(el){el.textContent=`${payload.sourceLabel||"Yahoo + AMP/CME"} · ${payload.asOf?new Date(payload.asOf).toLocaleString("tr-TR"):""}`;el.classList.add(payload.live?"sourceLive":"sourceEstimated")}
+   const el=$(id);if(el){el.textContent=`${payload.sourceLabel||"Yahoo + TradeMaster/AMP"} · ${payload.asOf?new Date(payload.asOf).toLocaleString("tr-TR"):""}`;el.classList.add(payload.live?"sourceLive":"sourceEstimated")}
   });
  }catch(error){
   ["gGlobalFutureStatus","mGlobalFutureStatus"].forEach(id=>{const el=$(id);if(el){el.textContent="Yurtdışı futures verisi alınamadı: "+error.message;el.classList.add("sourceFallback")}});
@@ -4250,7 +4578,9 @@ function applyGlobalFuture(scope,item){
  const symbolInput=$(isGeneral?"symbol":"mSymbol"),yahooInput=$(isGeneral?"yahooSymbol":"mYahooSymbol"),currency=$(isGeneral?"currency":"mCurrency"),entry=$(isGeneral?"entry":"mEntry");
  if(symbolInput)symbolInput.value=row.code||row.id;
  if(yahooInput)yahooInput.value=row.yahooSymbol||"";
- if(currency)currency.value=row.marginCurrency||"USD";
+ if(currency)currency.value=row.quoteCurrency||row.marginCurrency||"USD";
+ if(!isGeneral&&$("mEntryFxRate"))$("mEntryFxRate").value=f(fxRateTRY(row.quoteCurrency||row.marginCurrency||"USD")||1,8);
+ if(!isGeneral&&$("mNativeCurrencyStatus"))$("mNativeCurrencyStatus").textContent=`${row.exchange||"Global Futures"} kontratı ${row.quoteCurrency||row.marginCurrency||"USD"} cinsinden fiyatlanır; teminat ${row.marginCurrency||"USD"} bakiyesinden kontrol edilir.`;
  if(entry&&row.price)entry.value=row.price;
  const status=$(p+"GlobalFutureStatus");
  if(status){
@@ -4282,44 +4612,66 @@ function renderViopTransferHistory(){
 
 $("modelForm").addEventListener("submit",e=>{
  e.preventDefault();
+ const globalRow=currentGlobalFuture("model");
+ const nativeCur=$("mAssetClass").value==="Türev (VİOP/Vadeli)"?"TRY":$("mAssetClass").value==="Yurtdışı Futures"?(globalRow?.quoteCurrency||globalRow?.marginCurrency||"USD"):$("mCurrency").value;
+ const openFx=fxRateTRY(nativeCur);
+ if(!openFx){alert(`${nativeCur} için güncel TRY kuru bulunamadı. Önce Döviz Exchange bölümünden "Kurları Güncelle" butonuna basın.`);return}
  const p={
   id:id(),status:"Aktif",assetClass:$("mAssetClass").value,
   optionType:isOptionType($("mAssetClass").value)?$("mOptionType").value:null,
   symbol:$("mSymbol").value.trim().toUpperCase(),yahooSymbol:$("mYahooSymbol").value.trim().toUpperCase(),
-  direction:$("mDirection").value,currency:$("mCurrency").value,entry:n($("mEntry").value),
+  direction:$("mDirection").value,currency:nativeCur,fxRateAtOpen:openFx,entry:n($("mEntry").value),
   currentPrice:n($("mEntry").value),dailyChange:n($("mDailyChange").value)||0,qty:n($("mQty").value)||1,
   openDateTime:$("mOpenDate").value||nowLocal(),openDate:($("mOpenDate").value||nowLocal()).slice(0,10),
   stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value,
   commissionUnit:$("mCommissionUnit").value,commissionRate:n($("mCommissionRate").value)||0,
   closeCommissionUnit:$("mCommissionUnit").value,closeCommissionRate:n($("mCommissionRate").value)||0,
   viopContract:$("mViopContract").value||"",
-  globalFutureId:currentGlobalFuture("model")?.id||"",
-  futuresContract:currentGlobalFuture("model")?.code||"",
-  tradingViewSymbol:currentGlobalFuture("model")?.tradingViewSymbol||"",
-  contractSize:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureMultiplier")?.value)||1):(n($("mContractSize").value)||1),
+  globalFutureId:globalRow?.id||"",futuresContract:globalRow?.code||"",
+  tradingViewSymbol:globalRow?.tradingViewSymbol||"",
+  contractSize:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureMultiplier")?.value)||globalRow?.multiplier||1):(n($("mContractSize").value)||1),
   marginMode:"fixed",
-  initialMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureInitial")?.value)||0):(n($("mInitialMargin").value)||0),
-  maintenanceMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureMaintenance")?.value)||0):(n($("mMaintenanceMargin").value)||0),
-  contractExpiry:currentSelectedViopContract("model")?.expiryDate||$("mContractExpiry").value||"",marginRate:0
+  initialMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureInitial")?.value)||globalRow?.initialMargin||0):(n($("mInitialMargin").value)||0),
+  maintenanceMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureMaintenance")?.value)||globalRow?.maintenanceMargin||0):(n($("mMaintenanceMargin").value)||0),
+  contractExpiry:currentSelectedViopContract("model")?.expiryDate||$("mContractExpiry").value||"",marginRate:0,
+  marginCurrency:$("mAssetClass").value==="Yurtdışı Futures"?(globalRow?.marginCurrency||nativeCur):"TRY",
+  marginSource:$("mAssetClass").value==="Yurtdışı Futures"?(globalRow?.marginSource||""):""
  };
  if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}
  p.openCommission=commissionAmount(tradeNotional(p,p.entry),p.commissionUnit,p.commissionRate);
- p.initialMarginRequired=viopInitialMargin(p);
  if(isViopPosition(p)){
+  p.initialMarginRequired=viopInitialMargin(p);
   const free=viopCurrentEquity()-modelUsedViopMargin();
   if(p.initialMarginRequired>free){
-   alert(`Yetersiz VİOP serbest teminatı. Gerekli: ${f(p.initialMarginRequired,2)} TRY · Serbest: ${f(free,2)} TRY`);
-   return;
+   alert(`Yetersiz VİOP serbest teminatı. Gerekli: ${f(p.initialMarginRequired,2)} TRY · Serbest: ${f(free,2)} TRY`);return;
+  }
+ }else if(isGlobalFuturesPosition(p)){
+  p.initialMarginRequired=Math.abs(Number(p.qty)||0)*(Number(p.initialMargin)||0);
+  const marginCurrency=String(p.marginCurrency||p.currency||"USD").toUpperCase();
+  if(marginCurrency!==p.currency){
+   alert(`Bu kontrat ${p.currency} cinsinden fiyatlanıyor ancak teminat ${marginCurrency}. v8.1 yalnızca fiyat ve teminat para birimi aynı olan kontratlarda otomatik teminat kontrolü yapar.`);return;
+  }
+  const before=globalFuturesMarginState(marginCurrency),required=p.initialMarginRequired+p.openCommission;
+  if(required>before.free+1e-8){
+   alert(`Yetersiz ${marginCurrency} futures teminatı. Gerekli başlangıç teminatı + komisyon: ${f(required,2)} ${marginCurrency} · Serbest: ${f(before.free,2)} ${marginCurrency}. Döviz Exchange bölümünden ${marginCurrency} bakiyesi oluşturun.`);return;
   }
  }else{
-  p.creditPrincipal=incrementalCreditFor(p);
-  p.creditAnnualRate=creditAnnualRate();
-  p.creditDays=Math.max(1,Number(settings.creditDays)||2);
-  p.creditCost=p.creditPrincipal*p.creditAnnualRate/100*p.creditDays/365;
+  const required=tradeNotional(p,p.entry)+p.openCommission;
+  if(p.currency!=="TRY"){
+   const available=currencyCashBalance(p.currency);
+   if(required>available+1e-8){
+    alert(`Yetersiz ${p.currency} nakit. ${p.symbol} yalnızca ${p.currency} bakiyesiyle açılabilir. Gerekli: ${f(required,2)} ${p.currency} · Kullanılabilir: ${f(available,2)} ${p.currency}. Önce Döviz Exchange işlemi yapın.`);return;
+   }
+   p.creditPrincipal=0;p.creditAnnualRate=0;p.creditDays=0;p.creditCost=0;
+  }else{
+   p.creditPrincipal=incrementalCreditFor(p);p.creditAnnualRate=creditAnnualRate();
+   p.creditDays=Math.max(1,Number(settings.creditDays)||2);
+   p.creditCost=p.creditPrincipal*p.creditAnnualRate/100*p.creditDays/365;
+  }
  }
  model.unshift(p);save();e.target.reset();$("mOpenDate").value=nowLocal();$("mQty").value=1;
- $("mCommissionUnit").value="onbinde";$("mCommissionRate").value=0;
- syncModelViopVisibility();renderModel();alert("Pozisyon model portföye, maliyet ve teminat kayıtlarıyla eklendi.");
+ $("mCommissionUnit").value="onbinde";$("mCommissionRate").value=0;$("mCurrency").value="TRY";$("mEntryFxRate").value="1";
+ syncModelViopVisibility();renderModel();alert(`Pozisyon ${p.currency} cinsinden Model Portföye eklendi.`);
 });
 $("saveModelSettings").onclick=()=>{
  settings={
@@ -4386,6 +4738,7 @@ $("mCloseBtn").onclick=()=>{
  const p=model.find(x=>x.id===$("mCloseSelect").value),price=n($("mClosePrice").value);
  if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}
  p.status="Kapalı";p.closePrice=price;p.closeDateTime=$("mCloseDate").value||nowLocal();p.closeDate=p.closeDateTime.slice(0,10);
+ p.fxRateAtClose=fxRateTRY(p.currency)||positionCurrentFx(p);
  p.benchmark=n($("mBenchmark").value);p.closeCommissionUnit=$("mCloseCommissionUnit").value;
  p.closeCommissionRate=n($("mCloseCommissionRate").value)||0;
  p.closeCommission=commissionAmount(tradeNotional(p,price),p.closeCommissionUnit,p.closeCommissionRate);
@@ -4402,6 +4755,18 @@ $("viopTransferBtn").onclick=()=>{
  settings.viopTransfers.unshift({id:id(),direction,amount,dateTime:nowLocal(),transferNetAfter:settings.viopCollateral,balanceAfter:equityAfter});
  save();$("viopTransferAmount").value="";renderModel();
 };
+
+$("refreshFxRates")?.addEventListener("click",()=>refreshFxRatesData(true));
+["fxFromCurrency","fxToCurrency","fxFromAmount","fxSpreadPct","fxFixedFee"].forEach(id=>$(id)?.addEventListener("input",updateFxExchangePreview));
+["fxFromCurrency","fxToCurrency"].forEach(id=>$(id)?.addEventListener("change",updateFxExchangePreview));
+$("executeFxTrade")?.addEventListener("click",executeFxExchange);
+$("mYahooSymbol")?.addEventListener("blur",()=>{if($("mAssetClass").value!=="Yurtdışı Futures"&&$("mAssetClass").value!=="Türev (VİOP/Vadeli)")syncModelNativeCurrency($("mYahooSymbol").value,null,false)});
+$("mAssetClass")?.addEventListener("change",()=>{
+ if($("mAssetClass").value==="Türev (VİOP/Vadeli)"){ $("mCurrency").value="TRY";$("mEntryFxRate").value="1" }
+ else if($("mAssetClass").value==="Yurtdışı Futures"){const row=currentGlobalFuture("model");const c=row?.quoteCurrency||row?.marginCurrency||"USD";$("mCurrency").value=c;$("mEntryFxRate").value=f(fxRateTRY(c)||1,8)}
+ else if($("mYahooSymbol").value)syncModelNativeCurrency($("mYahooSymbol").value,null,false);
+});
+
 $("refreshViopWorkspace").onclick=()=>loadViopContracts(true);
 $("refreshViopContracts").onclick=()=>loadViopContracts(true);
 $("pmsRollingWindow")?.addEventListener("change",renderPMS);
@@ -4695,6 +5060,7 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,a
     yahooInput.value=item.mode==="viop"?"":item.yahooSymbol;
     if(item.mode==="viop")applyViopUnderlying(scope,item);
     if(item.mode==="global-futures")applyGlobalFuture(scope,item);
+    if(scope==="model"&&item.mode==="spot")syncModelNativeCurrency(item.yahooSymbol,item.currency,true);
     close();
    }else openSearchResult(item);
   }));
@@ -4742,6 +5108,7 @@ function setupLiveSymbolSearch({inputId,boxId,yahooInputId=null,allowAdd=false,a
     input.value=item.symbol;yahooInput.value=item.mode==="viop"?"":item.yahooSymbol;
     if(item.mode==="viop")applyViopUnderlying(scope,item);
     if(item.mode==="global-futures")applyGlobalFuture(scope,item);
+    if(scope==="model"&&item.mode==="spot")syncModelNativeCurrency(item.yahooSymbol,item.currency,true);
     close();
    }else openSearchResult(item);
   }else if(event.key==="Escape")close();
@@ -5437,6 +5804,7 @@ $("refreshMarkets").onclick=()=>loadMarkets();
 
 $("refreshModelQuotes").addEventListener("click",()=>refreshQuotes("model"));
 setInterval(()=>{if(document.visibilityState==="visible")refreshQuotes("model")},60000);
+setInterval(()=>{if(document.visibilityState==="visible")refreshFxRatesData(false).catch(()=>{})},120000);
 setInterval(()=>{if(document.visibilityState==="visible")refreshAllTickers()},180000);
 document.querySelectorAll(".tabBtn").forEach(b=>b.onclick=()=>showMainTab(b.dataset.tab));["activeSearch","activeType","activeDir"].forEach(x=>$(x).addEventListener("input",renderGeneral));$("refreshGeneral").onclick=renderGeneral;
 
@@ -5557,12 +5925,16 @@ function applyCloudState(state){
  settings.nemaAccruals=Array.isArray(settings.nemaAccruals)?settings.nemaAccruals:[];
  settings.compositeBenchmarkWeights=settings.compositeBenchmarkWeights&&typeof settings.compositeBenchmarkWeights==="object"?settings.compositeBenchmarkWeights:{bist:25,sp500:25,gold:25,bond:25};
  settings.compositeBenchmarkRebalance=["monthly","quarterly","annual"].includes(settings.compositeBenchmarkRebalance)?settings.compositeBenchmarkRebalance:"quarterly";
+ settings.fxTrades=Array.isArray(settings.fxTrades)?settings.fxTrades:[];
+ settings.fxRates=settings.fxRates&&typeof settings.fxRates==="object"?settings.fxRates:{TRY:1};
+ settings.fxRates.TRY=1;
  marketFavorites=Array.isArray(source.marketFavorites)?source.marketFavorites:[];window.marketFavorites=marketFavorites;localStorage.setItem("marketFavorites",JSON.stringify(marketFavorites));
  customMarketItems=source.customMarketItems&&typeof source.customMarketItems==="object"?source.customMarketItems:{};window.customMarketItems=customMarketItems;localStorage.setItem(CUSTOM_MARKET_KEY,JSON.stringify(customMarketItems));
  aiSessions=Array.isArray(source.aiSessions)?source.aiSessions:[];window.aiSessions=aiSessions;activeAiSessionId=aiSessions[0]?.id||null;localStorage.setItem(AI_STORAGE_KEY,JSON.stringify(aiSessions.slice(0,40)));
  localStorage.setItem(GK,"[]");localStorage.setItem(MK,JSON.stringify(model));localStorage.setItem(SK,JSON.stringify(settings));
 }
 function refreshSettingsInputs(){
+ fxRates={TRY:1,...(settings.fxRates||{})};
  $("startCapital").value=settings.capital||"";$("modelStartDate").value=settings.startDate||today;$("riskFree").value=settings.riskFree||0;
  $("creditReferenceMonthly").value=settings.creditReferenceMonthly??3.11;$("creditReferenceAnnual").value=settings.creditReferenceAnnual??45.15;$("creditSpread").value=settings.creditSpread??10;$("creditDays").value=settings.creditDays??2;
  $("nemaAnnualRate").value=settings.nemaAnnualRate??0;$("nemaDeduction").value=settings.nemaDeduction??0;$("nemaStartDate").value=settings.nemaStartDate||today;
@@ -5592,7 +5964,7 @@ async function completeAuthenticatedSession(user){
  await loadOwnCloudState();showMainTab("model");
  if(user.role==="admin")loadAdminUsers();
  setTimeout(()=>{
-  refreshQuotes("model");loadMarkets("all");refreshAllTickers();
+  refreshFxRatesData(false).catch(()=>{});refreshQuotes("model");loadMarkets("all");refreshAllTickers();
   const last=settings.nemaUpdatedAt?new Date(settings.nemaUpdatedAt).getTime():0;
   if(!last||Date.now()-last>6*60*60*1000)refreshNemaRateData(false);
  },500);
