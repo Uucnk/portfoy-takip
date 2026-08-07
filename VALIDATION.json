@@ -1,20 +1,27 @@
 {
-  "version": "7.8",
+  "version": "7.9",
   "validated": true,
+  "help_tooltips": 39,
   "features": [
-    "Portfolio Management System main section",
-    "Track Record moved from Model Portfolio to PMS",
-    "Benchmark comparisons moved to PMS",
-    "professional performance and risk metrics",
-    "rolling Sharpe",
-    "rolling Sortino",
-    "rolling Alpha",
-    "rolling Beta",
-    "equity versus benchmark chart",
-    "drawdown chart",
-    "trade quality analytics",
-    "historical VaR and CVaR"
+    "Portfolio Health 0-100",
+    "Diversification Score",
+    "Liquidity Score",
+    "Risk Health Score",
+    "live market regime",
+    "bull bear sideways classification",
+    "high low volatility classification",
+    "risk-on risk-off proxy",
+    "regime performance",
+    "covariance risk contribution",
+    "factor exposure analysis",
+    "sector exposure",
+    "return attribution",
+    "stock selection",
+    "sector selection",
+    "sector allocation proxy",
+    "market timing proxy",
+    "leverage analysis"
   ],
-  "app_sha256": "332fc93495e427c5740f6875a67654c505d9c12a7dce583530c34b82b4fc916f",
-  "server_sha256": "56906631fae5d5b31257aa9977e64583485f44f0eea1a45381a548d467c7028e"
+  "app_sha256": "dfc89640bb5456babe6fd3a3699604f66614a03502eba81a8189bae759defccf",
+  "server_sha256": "06cf489f785907d942fe57d6d1173d49c2149460039f7b200008419e88db03ad"
 }
