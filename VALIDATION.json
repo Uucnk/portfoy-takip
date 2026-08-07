@@ -1,18 +1,18 @@
 {
-  "version": "8.2.1",
-  "base": "8.2-clean",
+  "version": "8.2.2",
+  "base": "8.2.1",
   "validated": true,
   "fixes": [
-    "ODAS and official BIST pay futures universe searchable",
-    "Borsa Istanbul official VIOP underlying source + fallback",
-    "missing VIOP contracts synthesized for near expiries",
-    "lazy margin/reference-price hydration",
-    "Model Portfolio sidebar matches Markets style",
-    "boxed Model Portfolio arrow removed",
-    "Model Portfolio blue active fill removed",
-    "Reports remains the only Model Portfolio submenu"
+    "terminal autocomplete mouse click",
+    "terminal suggestion horizontal overflow",
+    "IS Investment exact VIOP contract prices",
+    "TradingView BIST reference fallback",
+    "VIOP quote hydration endpoint",
+    "ODAS exact futures price support",
+    "global futures semantic name search",
+    "Turkish commodity aliases",
+    "GC MGC QO 1OZ Gold family"
   ],
-  "official_pay_underlying_fallback_count": 48,
-  "app_sha256": "788fdeade609f13c28ece9e96eabd81d169df67117fac18822b9695df7b7b023",
-  "server_sha256": "266276123a23267cbd1745a1b90918e779a8c5843c7e7717e13e31a762d529f8"
+  "app_sha256": "0f2e0aca45c830c84064142e52ef18373943f3331b01e4de698a618861526846",
+  "server_sha256": "4b703b0e0951c9e4b5767d48b6b473758e71df69d3a768d1144defcd9feb6198"
 }
