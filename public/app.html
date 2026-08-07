@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Model Portföy Takip · v8.1</title>
+<title>Model Portföy Takip · v8.2</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1544,8 +1544,59 @@ body.authLocked .accountSettingsOverlay{display:none!important}
  .fxWalletGrid,.fxExchangeGrid,.fxMarginGrid{grid-template-columns:1fr}
 }
 
+
+/* v8.2-clean Reports submenu — v8.1 Model Portfolio remains untouched */
+.modelSideGroup{margin-bottom:2px}
+.modelMenuRow{display:grid;grid-template-columns:minmax(0,1fr) 28px;gap:3px;align-items:center}
+.modelMenuRow .modelMainButton{width:100%}
+.modelReportsToggle{
+ width:28px!important;height:31px!important;padding:0!important;border-radius:7px!important;
+ border:1px solid #29465d!important;background:#102334!important;color:#87a4bb!important;
+ font-size:12px!important;display:flex!important;align-items:center;justify-content:center
+}
+.modelReportsToggle:hover{background:#18364f!important;color:#fff!important}
+.modelReportsToggle.expanded{transform:rotate(180deg)}
+#modelReportsSubmenu{margin-top:2px}
+#modelReportsSubmenu .sideSub{display:flex;align-items:center;width:100%;padding:7px 10px 7px 31px;border:0;background:transparent;color:#7892a8;font-size:9px;text-align:left;border-radius:7px}
+#modelReportsSubmenu .sideSub:hover,#modelReportsSubmenu .sideSub.active{background:#10283b;color:#d2e7f7}
+.reportSubDot{width:4px;height:4px;border-radius:50%;background:#53718a;margin-right:7px;flex:none}
+#modelReportsSubmenu .sideSub.active .reportSubDot{background:#50d9aa;box-shadow:0 0 8px rgba(80,217,170,.5)}
+.reportsHeader{align-items:center;margin-bottom:10px}
+.reportsEyebrow{font-size:8px;letter-spacing:.15em;font-weight:900;color:#6da9ec;text-transform:uppercase}
+.reportsHeader h2{font-size:24px;margin:4px 0 3px}
+.reportsStatus{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #28594b;background:#0e211c;border-radius:10px;color:#88d7b7;font-size:8.5px;font-weight:800}
+.reportsNav{display:flex;gap:6px;overflow-x:auto;margin:8px 0 12px;padding-bottom:3px}
+.reportsNav button{white-space:nowrap;padding:7px 11px;background:#0f1e2c;border:1px solid #29445b;color:#9db5c8;font-size:9px;border-radius:8px}
+.reportsNav button.active{background:#173c68;border-color:#3d78b3;color:#fff}
+.reportPanel{margin-bottom:14px;scroll-margin-top:65px}
+.reportPanelHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px}
+.reportPanelHead h3{font-size:17px;margin:3px 0 2px}
+.reportFilterBtn{width:34px!important;height:34px!important;padding:0!important;border-radius:9px!important;background:#12283b!important;border:1px solid #31516d!important;color:#c7dff1!important;font-size:19px!important;line-height:1}
+.reportFilterBtn:hover{background:#1b3b56!important}
+.reportFilterPanel{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:8px;padding:10px;margin-bottom:10px;border:1px solid #29445d;border-radius:9px;background:#0b1a27}
+.reportFilterActions{display:flex;align-items:end;gap:7px}
+.reportFilterActions button{flex:1}
+.reportSummaryGrid{display:grid;grid-template-columns:repeat(4,minmax(125px,1fr));gap:8px;margin-bottom:9px}
+.reportSummaryGrid>div{padding:10px;border:1px solid #294258;background:#0d1c29;border-radius:9px}
+.reportSummaryGrid span{display:block;color:#8097ad;font-size:8px;text-transform:uppercase}
+.reportSummaryGrid strong{display:block;font-size:14px;margin-top:5px}
+.reportTable{overflow:auto;border:1px solid #294258;border-radius:9px}
+.reportTable table{min-width:980px}
+.reportPill{display:inline-flex;padding:3px 6px;border-radius:10px;border:1px solid #31516d;background:#11293e;color:#b9d8ed;font-size:8px;font-weight:800}
+.reportPill.closed{border-color:#326b59;background:#102a22;color:#91dfbe}
+.reportPill.open{border-color:#6b5a31;background:#2a2515;color:#e2c47b}
+.reportAmountPositive{color:#4adead;font-weight:800}
+.reportAmountNegative{color:#ff8292;font-weight:800}
+@media(max-width:1050px){
+ .reportFilterPanel,.reportSummaryGrid{grid-template-columns:repeat(2,minmax(140px,1fr))}
+}
+@media(max-width:600px){
+ .reportFilterPanel,.reportSummaryGrid{grid-template-columns:1fr}
+ .reportsStatus{display:none}
+}
+
 </style>
-<meta name="portfolio-build" content="v8.1-multi-currency-global-futures-treasury">
+<meta name="portfolio-build" content="v8.2-clean-reports-submenu">
 </head>
 <body class="authLocked">
 
@@ -1621,7 +1672,17 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     <div class="sidebarBrand">DASHBOARD</div>
   </div>
   <nav class="sidebarNav">
-    <button class="sideMain active" data-side-tab="model"><span class="sideIcon">◫</span><span class="sideLabel">Model Portföy</span></button>
+    <div class="sideGroup modelSideGroup">
+      <div class="modelMenuRow">
+        <button class="sideMain active modelMainButton" data-side-tab="model" id="modelMainButton">
+          <span class="sideIcon">◫</span><span class="sideLabel">Model Portföy</span>
+        </button>
+        <button type="button" id="modelReportsToggle" class="modelReportsToggle expanded" title="Reports alt menüsünü aç/kapat" aria-label="Reports alt menüsünü aç/kapat">⌄</button>
+      </div>
+      <div id="modelReportsSubmenu" class="sideSubmenu open">
+        <button class="sideSub" data-side-tab="reports"><span class="reportSubDot"></span>Reports</button>
+      </div>
+    </div>
     <button class="sideMain" data-side-tab="pms"><span class="sideIcon">◈</span><span class="sideLabel">Portfolio Management System (PMS)</span></button>
     <div class="sideGroup">
       <button class="sideMain sideExpandable expanded" data-side-tab="markets" id="marketsSideButton"><span class="sideIcon">▦</span><span class="sideLabel">Markets</span><span class="sideChevron">⌄</span></button>
@@ -1758,6 +1819,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 
 <div class="tabs legacyTopTabs">
   <button class="tabBtn active" data-tab="model">Model Portföy</button>
+  <button class="tabBtn" data-tab="reports">Reports</button>
   <button class="tabBtn" data-tab="pms">Portfolio Management System (PMS)</button>
   <button class="tabBtn" data-tab="markets">Markets</button>
   <button class="tabBtn" data-tab="calendar">Calendar</button>
@@ -2241,6 +2303,113 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 
 </section>
 
+
+
+<section id="reports" class="tab">
+  <div class="sectionHead reportsHeader">
+    <div>
+      <div class="reportsEyebrow">MODEL PORTFÖY REPORTING</div>
+      <h2>Reports</h2>
+      <div class="muted">Model Portföydeki işlemler, nakit hareketleri, döviz treasury, VİOP ve yurtdışı futures kayıtlarından otomatik oluşturulan tarihsel rapor merkezi</div>
+    </div>
+    <div class="reportsStatus"><span class="headerCloudDot"></span><span>Model Portföy ile senkron</span></div>
+  </div>
+
+  <div class="reportsNav">
+    <button type="button" class="active" data-report-anchor="reportCashFlow">Cash Flow</button>
+    <button type="button" data-report-anchor="reportTransactions">Transactions</button>
+    <button type="button" data-report-anchor="reportAccountMovements">Account Movements</button>
+    <button type="button" data-report-anchor="reportCommissionHistory">Commission History</button>
+  </div>
+
+  <div id="reportCashFlow" class="panel reportPanel">
+    <div class="reportPanelHead">
+      <div>
+        <div class="reportsEyebrow">CASH LEDGER</div>
+        <h3>Cash Flow</h3>
+        <div class="muted">Model Portföydeki Nakit Ekstresinin rapor görünümü. Model Portföy ekranındaki orijinal Nakit Ekstresi yerinde kalır.</div>
+      </div>
+      <button type="button" class="reportFilterBtn" data-report-filter-toggle="cash" title="Cash Flow filtresi">⌯</button>
+    </div>
+    <div id="cashReportFilterPanel" class="reportFilterPanel hidden">
+      <div><label>Filtre Türü</label><select id="cashReportFilterMode"><option value="all">Tüm Dönem</option><option value="day">Tek Gün</option><option value="range">Tarih Aralığı</option></select></div>
+      <div id="cashReportSingleWrap" class="hidden"><label>Tarih</label><input id="cashReportSingleDate" type="date"></div>
+      <div id="cashReportStartWrap" class="hidden"><label>Başlangıç</label><input id="cashReportStartDate" type="date"></div>
+      <div id="cashReportEndWrap" class="hidden"><label>Bitiş</label><input id="cashReportEndDate" type="date"></div>
+      <div class="reportFilterActions"><button type="button" id="applyCashReportFilter">Uygula</button><button type="button" id="resetCashReportFilter" class="secondary">Temizle</button></div>
+    </div>
+    <div id="reportCashFlowSummary" class="reportSummaryGrid"></div>
+    <div id="reportCashFlowTable" class="reportTable"></div>
+  </div>
+
+  <div id="reportTransactions" class="panel reportPanel">
+    <div class="reportPanelHead">
+      <div>
+        <div class="reportsEyebrow">TRADE BLOTTER</div>
+        <h3>Transactions</h3>
+        <div class="muted">Model Portföyde gerçekleşen bütün pozisyon açılış ve kapanışlarının tarihsel işlem raporu</div>
+      </div>
+      <button type="button" class="reportFilterBtn" data-report-filter-toggle="transactions" title="Transactions filtresi">⌯</button>
+    </div>
+    <div id="transactionsFilterPanel" class="reportFilterPanel hidden">
+      <div><label>Filtre Türü</label><select id="transactionsFilterMode"><option value="all">Tüm Dönem</option><option value="day">Tek Gün</option><option value="range">Tarih Aralığı</option></select></div>
+      <div id="transactionsSingleWrap" class="hidden"><label>Tarih</label><input id="transactionsSingleDate" type="date"></div>
+      <div id="transactionsStartWrap" class="hidden"><label>Başlangıç</label><input id="transactionsStartDate" type="date"></div>
+      <div id="transactionsEndWrap" class="hidden"><label>Bitiş</label><input id="transactionsEndDate" type="date"></div>
+      <div><label>İşlem Tipi</label><select id="transactionsSideFilter"><option value="all">Açılış + Kapanış</option><option value="open">Açılış</option><option value="close">Kapanış</option></select></div>
+      <div><label>Ürün Tipi</label><select id="transactionsAssetFilter"><option value="all">Tüm Ürünler</option></select></div>
+      <div class="reportFilterActions"><button type="button" id="applyTransactionsFilter">Uygula</button><button type="button" id="resetTransactionsFilter" class="secondary">Temizle</button></div>
+    </div>
+    <div id="transactionsSummary" class="reportSummaryGrid"></div>
+    <div id="transactionsReportTable" class="reportTable"></div>
+  </div>
+
+  <div id="reportAccountMovements" class="panel reportPanel">
+    <div class="reportPanelHead">
+      <div>
+        <div class="reportsEyebrow">ACCOUNT LEDGER</div>
+        <h3>Account Movements</h3>
+        <div class="muted">Ana nakit, döviz cüzdanları ve VİOP teminat hesabındaki bütün hareketlerin tarihsel raporu</div>
+      </div>
+      <button type="button" class="reportFilterBtn" data-report-filter-toggle="movements" title="Account Movements filtresi">⌯</button>
+    </div>
+    <div id="movementsFilterPanel" class="reportFilterPanel hidden">
+      <div><label>Filtre Türü</label><select id="movementsFilterMode"><option value="all">Tüm Dönem</option><option value="day">Tek Gün</option><option value="range">Tarih Aralığı</option></select></div>
+      <div id="movementsSingleWrap" class="hidden"><label>Tarih</label><input id="movementsSingleDate" type="date"></div>
+      <div id="movementsStartWrap" class="hidden"><label>Başlangıç</label><input id="movementsStartDate" type="date"></div>
+      <div id="movementsEndWrap" class="hidden"><label>Bitiş</label><input id="movementsEndDate" type="date"></div>
+      <div><label>Hesap</label><select id="movementsAccountFilter"><option value="all">Tüm Hesaplar</option><option value="cash">Ana Nakit / FX</option><option value="viop">VİOP Teminat</option></select></div>
+      <div><label>Para Birimi</label><select id="movementsCurrencyFilter"><option value="all">Tüm Para Birimleri</option></select></div>
+      <div><label>Hareket Türü</label><select id="movementsTypeFilter"><option value="all">Tüm Hareketler</option></select></div>
+      <div class="reportFilterActions"><button type="button" id="applyMovementsFilter">Uygula</button><button type="button" id="resetMovementsFilter" class="secondary">Temizle</button></div>
+    </div>
+    <div id="accountMovementsSummary" class="reportSummaryGrid"></div>
+    <div id="accountMovementsTable" class="reportTable"></div>
+  </div>
+
+  <div id="reportCommissionHistory" class="panel reportPanel">
+    <div class="reportPanelHead">
+      <div>
+        <div class="reportsEyebrow">COST ANALYTICS</div>
+        <h3>Commission History</h3>
+        <div class="muted">Açılış ve kapanış komisyonlarının ürün, tarih, native para birimi ve TRY karşılığıyla tarihsel maliyet raporu</div>
+      </div>
+      <button type="button" class="reportFilterBtn" data-report-filter-toggle="commission" title="Commission History filtresi">⌯</button>
+    </div>
+    <div id="commissionFilterPanel" class="reportFilterPanel hidden">
+      <div><label>Filtre Türü</label><select id="commissionFilterMode"><option value="all">Tüm Dönem</option><option value="day">Tek Gün</option><option value="range">Tarih Aralığı</option></select></div>
+      <div id="commissionSingleWrap" class="hidden"><label>Tarih</label><input id="commissionSingleDate" type="date"></div>
+      <div id="commissionStartWrap" class="hidden"><label>Başlangıç</label><input id="commissionStartDate" type="date"></div>
+      <div id="commissionEndWrap" class="hidden"><label>Bitiş</label><input id="commissionEndDate" type="date"></div>
+      <div><label>İşlem Tarafı</label><select id="commissionSideFilter"><option value="all">Açılış + Kapanış</option><option value="open">Açılış</option><option value="close">Kapanış</option></select></div>
+      <div><label>Ürün Tipi</label><select id="commissionAssetFilter"><option value="all">Tüm Ürünler</option></select></div>
+      <div><label>Para Birimi</label><select id="commissionCurrencyFilter"><option value="all">Tüm Para Birimleri</option></select></div>
+      <div class="reportFilterActions"><button type="button" id="applyCommissionFilter">Uygula</button><button type="button" id="resetCommissionFilter" class="secondary">Temizle</button></div>
+    </div>
+    <div id="commissionSummary" class="reportSummaryGrid"></div>
+    <div id="commissionHistoryTable" class="reportTable"></div>
+  </div>
+</section>
 
 <section id="pms" class="tab">
   <div class="sectionHead pmsHeader">
@@ -2830,11 +2999,13 @@ function showMainTab(tabId){
  if(tabId==="general")tabId="model";
  document.querySelectorAll(".tab").forEach(s=>{const on=s.id===tabId;s.classList.toggle("active",on);s.style.display=on?"block":"none"});
  document.querySelectorAll("[data-side-tab]").forEach(b=>b.classList.toggle("active",b.dataset.sideTab===tabId));
+ $("modelMainButton")?.classList.toggle("active",tabId==="model"||tabId==="reports");
  const showTerminal=tabId==="model";
  $("orderTerminal").style.display=showTerminal?"block":"none";
  document.body.classList.toggle("terminalHidden",!showTerminal);
  setOrderMode();
  if(tabId==="markets")setTimeout(()=>loadMarkets(activeMarketCategory||"all"),0);
+ if(tabId==="reports")setTimeout(()=>renderReports(),0);
  if(tabId==="pms")setTimeout(()=>{renderPMS();refreshPmsLiveAnalytics(false)},0);
  if(tabId==="askai")setTimeout(()=>{renderAiWorkspace();refreshAiStatus()},0);
  if(window.innerWidth<=900)closeMobilePanels();
@@ -2843,7 +3014,19 @@ if(localStorage.getItem("sidebarClosed")==="1"){$("sidebar").classList.add("clos
 $("sidebarToggle").addEventListener("click",()=>{const c=$("sidebar").classList.toggle("closed");document.body.classList.toggle("sidebarClosed",c);localStorage.setItem("sidebarClosed",c?"1":"0")});
 if(localStorage.getItem("terminalCollapsed")==="1"){$("orderTerminal").classList.add("collapsed");document.body.classList.add("terminalCollapsed")}
 $("orderTerminalCollapse").addEventListener("click",()=>{const c=$("orderTerminal").classList.toggle("collapsed");document.body.classList.toggle("terminalCollapsed",c);localStorage.setItem("terminalCollapsed",c?"1":"0")});
-document.querySelectorAll("[data-side-tab]").forEach(b=>b.addEventListener("click",()=>{const tab=b.dataset.sideTab;if(tab==="markets"){const sm=$("marketsSubmenu");const open=!sm.classList.contains("open");sm.classList.toggle("open",open);b.classList.toggle("expanded",open)}showMainTab(tab)}));
+document.querySelectorAll("[data-side-tab]").forEach(button=>button.addEventListener("click",()=>{
+ const tab=button.dataset.sideTab;
+ if(tab==="markets"){
+  const submenu=$("marketsSubmenu"),open=!submenu.classList.contains("open");
+  submenu.classList.toggle("open",open);button.classList.toggle("expanded",open);
+ }
+ showMainTab(tab);
+}));
+$("modelReportsToggle")?.addEventListener("click",event=>{
+ event.stopPropagation();
+ const submenu=$("modelReportsSubmenu"),open=!submenu.classList.contains("open");
+ submenu.classList.toggle("open",open);$("modelReportsToggle").classList.toggle("expanded",open);
+});
 document.querySelectorAll("[data-pms-anchor]").forEach(button=>button.addEventListener("click",()=>{
  document.querySelectorAll("[data-pms-anchor]").forEach(x=>x.classList.toggle("active",x===button));
  const target=$(button.dataset.pmsAnchor);if(target)target.scrollIntoView({behavior:"smooth",block:"start"});
@@ -3315,6 +3498,161 @@ function syncCashStatementFilterUI(){
  $("cashStatementSingleDateWrap").classList.toggle("hidden",mode!=="day");
  $("cashStatementStartWrap").classList.toggle("hidden",mode!=="range");
  $("cashStatementEndWrap").classList.toggle("hidden",mode!=="range");
+}
+
+let reportFilters={
+ cash:{mode:"all",date:"",start:"",end:""},
+ transactions:{mode:"all",date:"",start:"",end:"",side:"all",asset:"all"},
+ movements:{mode:"all",date:"",start:"",end:"",account:"all",currency:"all",type:"all"},
+ commission:{mode:"all",date:"",start:"",end:"",side:"all",asset:"all",currency:"all"}
+};
+function reportDateMatch(dateTime,filter){
+ const date=String(dateTime||"").slice(0,10);
+ if(filter.mode==="day"&&filter.date)return date===filter.date;
+ if(filter.mode==="range"){
+  if(filter.start&&date<filter.start)return false;
+  if(filter.end&&date>filter.end)return false;
+ }
+ return true;
+}
+function syncReportFilterUI(prefix){
+ const mode=$(prefix+"FilterMode")?.value||"all";
+ $(prefix+"SingleWrap")?.classList.toggle("hidden",mode!=="day");
+ $(prefix+"StartWrap")?.classList.toggle("hidden",mode!=="range");
+ $(prefix+"EndWrap")?.classList.toggle("hidden",mode!=="range");
+}
+function setReportOptions(id,values,label){
+ const el=$(id);if(!el)return;
+ const current=el.value||"all";
+ el.innerHTML=`<option value="all">${label}</option>`+values.map(value=>`<option value="${esc(value)}">${esc(value)}</option>`).join("");
+ if([...el.options].some(option=>option.value===current))el.value=current;
+}
+function fillReportFilters(){
+ const assets=[...new Set(model.map(p=>p.assetClass).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),"tr"));
+ const movements=cashStatementEntries();
+ const currencies=[...new Set(movements.map(row=>row.currency).filter(Boolean))].sort();
+ const types=[...new Set(movements.map(row=>row.type).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),"tr"));
+ setReportOptions("transactionsAssetFilter",assets,"Tüm Ürünler");
+ setReportOptions("commissionAssetFilter",assets,"Tüm Ürünler");
+ setReportOptions("commissionCurrencyFilter",currencies,"Tüm Para Birimleri");
+ setReportOptions("movementsCurrencyFilter",currencies,"Tüm Para Birimleri");
+ setReportOptions("movementsTypeFilter",types,"Tüm Hareketler");
+}
+function reportCashRows(){
+ return cashStatementEntries().filter(row=>reportDateMatch(row.dateTime,reportFilters.cash));
+}
+function reportTransactionRows(){
+ const rows=[];
+ for(const p of model){
+  const label=p.viopContract||p.futuresContract||p.symbol,currency=nativeCurrency(p);
+  rows.push({
+   id:`${p.id}_open`,dateTime:p.openDateTime||`${p.openDate||today}T00:00:00`,side:"open",assetClass:p.assetClass||"-",
+   symbol:label,direction:p.direction||"-",currency,qty:Number(p.qty)||0,price:Number(p.entry)||0,
+   notional:tradeNotional(p,p.entry),notionalTRY:tradeNotionalTRY(p,p.entry,positionOpenFx(p)),
+   commission:openCommissionValue(p),commissionTRY:openCommissionTRY(p),pnlTRY:null
+  });
+  if(p.status==="Kapalı"){
+   rows.push({
+    id:`${p.id}_close`,dateTime:p.closeDateTime||`${p.closeDate||today}T00:00:00`,side:"close",assetClass:p.assetClass||"-",
+    symbol:label,direction:p.direction||"-",currency,qty:Number(p.qty)||0,price:Number(p.closePrice)||0,
+    notional:tradeNotional(p,p.closePrice),notionalTRY:tradeNotionalTRY(p,p.closePrice,positionCloseFx(p)),
+    commission:estimatedCloseCommission(p,p.closePrice),commissionTRY:closeCommissionTRY(p,p.closePrice),pnlTRY:netClosedPnl(p)
+   });
+  }
+ }
+ return rows.sort((a,b)=>String(b.dateTime).localeCompare(String(a.dateTime)));
+}
+function reportCommissionRows(){
+ const rows=[];
+ for(const p of model){
+  const label=p.viopContract||p.futuresContract||p.symbol,currency=nativeCurrency(p);
+  rows.push({
+   id:`${p.id}_open_commission`,dateTime:p.openDateTime||`${p.openDate||today}T00:00:00`,side:"open",
+   assetClass:p.assetClass||"-",symbol:label,currency,unit:p.commissionUnit||"-",
+   rate:Number(p.commissionRate)||0,amount:openCommissionValue(p),amountTRY:openCommissionTRY(p)
+  });
+  if(p.status==="Kapalı"){
+   rows.push({
+    id:`${p.id}_close_commission`,dateTime:p.closeDateTime||`${p.closeDate||today}T00:00:00`,side:"close",
+    assetClass:p.assetClass||"-",symbol:label,currency,unit:p.closeCommissionUnit||p.commissionUnit||"-",
+    rate:Number(p.closeCommissionRate??p.commissionRate)||0,amount:estimatedCloseCommission(p,p.closePrice),amountTRY:closeCommissionTRY(p,p.closePrice)
+   });
+  }
+ }
+ return rows.sort((a,b)=>String(b.dateTime).localeCompare(String(a.dateTime)));
+}
+function renderCashFlowReport(){
+ if(!$("reportCashFlowTable"))return;
+ const rows=reportCashRows(),all=cashStatementEntries();
+ const creditTRY=rows.filter(row=>row.amount>0).reduce((sum,row)=>sum+row.amount*(fxRateTRY(row.currency)||0),0);
+ const debitTRY=Math.abs(rows.filter(row=>row.amount<0).reduce((sum,row)=>sum+row.amount*(fxRateTRY(row.currency)||0),0));
+ const cashTRY=[...all].reverse().find(row=>row.account==="cash"&&row.currency==="TRY")?.balanceAfter||0;
+ const viopTRY=[...all].reverse().find(row=>row.account==="viop"&&row.currency==="TRY")?.balanceAfter||0;
+ $("reportCashFlowSummary").innerHTML=`
+  <div><span>Filtrelenen Alacak (TRY)</span><strong class="reportAmountPositive">${f(creditTRY,2)} TRY</strong></div>
+  <div><span>Filtrelenen Borç (TRY)</span><strong class="reportAmountNegative">${f(debitTRY,2)} TRY</strong></div>
+  <div><span>Ana TRY Nakit</span><strong>${f(cashTRY,2)} TRY</strong></div>
+  <div><span>VİOP Defter Bakiyesi</span><strong>${f(viopTRY,2)} TRY</strong></div>`;
+ if(!rows.length){$("reportCashFlowTable").innerHTML='<div class="marketEmpty">Seçilen filtrelerde nakit hareketi bulunmuyor.</div>';return}
+ $("reportCashFlowTable").innerHTML=`<table><thead><tr><th>Tarih / Saat</th><th>Hesap</th><th>Hareket</th><th>Açıklama</th><th>Para</th><th>Borç</th><th>Alacak</th><th>Hesap Bakiyesi</th><th>TRY Karşılığı</th></tr></thead><tbody>${[...rows].reverse().map(row=>{
+  const tryValue=(Number(row.amount)||0)*(fxRateTRY(row.currency)||0);
+  return`<tr><td>${formatDateTime(row.dateTime)}</td><td><span class="cashAccountBadge ${row.account==="viop"?"viop":""}">${row.account==="viop"?"VİOP Teminat":"Ana Nakit / FX"}</span></td><td>${esc(row.type)}</td><td>${esc(row.description)}</td><td><strong>${esc(row.currency)}</strong></td><td class="reportAmountNegative">${row.amount<0?f(Math.abs(row.amount),2)+" "+esc(row.currency):"-"}</td><td class="reportAmountPositive">${row.amount>0?f(row.amount,2)+" "+esc(row.currency):"-"}</td><td>${f(row.balanceAfter,2)} ${esc(row.currency)}</td><td class="${tryValue>=0?"reportAmountPositive":"reportAmountNegative"}">${tryValue>=0?"+":""}${f(tryValue,2)} TRY</td></tr>`;
+ }).join("")}</tbody></table>`;
+}
+function renderTransactionsReport(){
+ if(!$("transactionsReportTable"))return;
+ const filter=reportFilters.transactions;
+ const rows=reportTransactionRows().filter(row=>reportDateMatch(row.dateTime,filter)&&(filter.side==="all"||row.side===filter.side)&&(filter.asset==="all"||row.assetClass===filter.asset));
+ const opens=rows.filter(row=>row.side==="open").length,closes=rows.filter(row=>row.side==="close").length;
+ const turnover=rows.reduce((sum,row)=>sum+(Number(row.notionalTRY)||0),0),realized=rows.reduce((sum,row)=>sum+(Number(row.pnlTRY)||0),0);
+ $("transactionsSummary").innerHTML=`
+  <div><span>İşlem Satırı</span><strong>${rows.length}</strong></div>
+  <div><span>Açılış / Kapanış</span><strong>${opens} / ${closes}</strong></div>
+  <div><span>TRY Turnover</span><strong>${f(turnover,2)} TRY</strong></div>
+  <div><span>Gerçekleşen Net K/Z</span><strong class="${realized>=0?"reportAmountPositive":"reportAmountNegative"}">${f(realized,2)} TRY</strong></div>`;
+ if(!rows.length){$("transactionsReportTable").innerHTML='<div class="marketEmpty">Seçilen filtrelerde işlem bulunmuyor.</div>';return}
+ $("transactionsReportTable").innerHTML=`<table><thead><tr><th>Tarih / Saat</th><th>İşlem</th><th>Ürün</th><th>Sembol</th><th>Yön</th><th>Adet</th><th>Fiyat</th><th>Para</th><th>Notional</th><th>TRY Notional</th><th>Komisyon</th><th>Net K/Z</th></tr></thead><tbody>${rows.map(row=>`
+  <tr><td>${formatDateTime(row.dateTime)}</td><td><span class="reportPill ${row.side==="close"?"closed":"open"}">${row.side==="close"?"Kapanış":"Açılış"}</span></td><td>${esc(row.assetClass)}</td><td><strong>${esc(row.symbol)}</strong></td><td>${esc(row.direction)}</td><td>${f(row.qty,2)}</td><td>${f(row.price,4)}</td><td>${esc(row.currency)}</td><td>${f(row.notional,2)} ${esc(row.currency)}</td><td>${f(row.notionalTRY,2)} TRY</td><td>${f(row.commission,2)} ${esc(row.currency)}<div class="muted">${f(row.commissionTRY,2)} TRY</div></td><td class="${row.pnlTRY===null?"":row.pnlTRY>=0?"reportAmountPositive":"reportAmountNegative"}">${row.pnlTRY===null?"-":f(row.pnlTRY,2)+" TRY"}</td></tr>`).join("")}</tbody></table>`;
+}
+function renderAccountMovementsReport(){
+ if(!$("accountMovementsTable"))return;
+ const filter=reportFilters.movements;
+ const rows=[...cashStatementEntries()].reverse().filter(row=>reportDateMatch(row.dateTime,filter)&&(filter.account==="all"||row.account===filter.account)&&(filter.currency==="all"||row.currency===filter.currency)&&(filter.type==="all"||row.type===filter.type));
+ const creditTRY=rows.filter(row=>row.amount>0).reduce((sum,row)=>sum+row.amount*(fxRateTRY(row.currency)||0),0);
+ const debitTRY=Math.abs(rows.filter(row=>row.amount<0).reduce((sum,row)=>sum+row.amount*(fxRateTRY(row.currency)||0),0));
+ $("accountMovementsSummary").innerHTML=`
+  <div><span>Hareket Sayısı</span><strong>${rows.length}</strong></div>
+  <div><span>TRY Karşılığı Giriş</span><strong class="reportAmountPositive">${f(creditTRY,2)} TRY</strong></div>
+  <div><span>TRY Karşılığı Çıkış</span><strong class="reportAmountNegative">${f(debitTRY,2)} TRY</strong></div>
+  <div><span>Net Akış</span><strong class="${creditTRY-debitTRY>=0?"reportAmountPositive":"reportAmountNegative"}">${f(creditTRY-debitTRY,2)} TRY</strong></div>`;
+ if(!rows.length){$("accountMovementsTable").innerHTML='<div class="marketEmpty">Seçilen filtrelerde hesap hareketi bulunmuyor.</div>';return}
+ $("accountMovementsTable").innerHTML=`<table><thead><tr><th>Tarih / Saat</th><th>Hesap</th><th>Hareket</th><th>Açıklama</th><th>Para</th><th>Borç</th><th>Alacak</th><th>Hesap Bakiyesi</th><th>TRY Karşılığı</th></tr></thead><tbody>${rows.map(row=>{
+  const tryValue=(Number(row.amount)||0)*(fxRateTRY(row.currency)||0);
+  return`<tr><td>${formatDateTime(row.dateTime)}</td><td><span class="cashAccountBadge ${row.account==="viop"?"viop":""}">${row.account==="viop"?"VİOP Teminat":"Ana Nakit / FX"}</span></td><td>${esc(row.type)}</td><td>${esc(row.description)}</td><td><strong>${esc(row.currency)}</strong></td><td class="reportAmountNegative">${row.amount<0?f(Math.abs(row.amount),2)+" "+esc(row.currency):"-"}</td><td class="reportAmountPositive">${row.amount>0?f(row.amount,2)+" "+esc(row.currency):"-"}</td><td>${f(row.balanceAfter,2)} ${esc(row.currency)}</td><td class="${tryValue>=0?"reportAmountPositive":"reportAmountNegative"}">${tryValue>=0?"+":""}${f(tryValue,2)} TRY</td></tr>`;
+ }).join("")}</tbody></table>`;
+}
+function renderCommissionHistoryReport(){
+ if(!$("commissionHistoryTable"))return;
+ const filter=reportFilters.commission;
+ const rows=reportCommissionRows().filter(row=>reportDateMatch(row.dateTime,filter)&&(filter.side==="all"||row.side===filter.side)&&(filter.asset==="all"||row.assetClass===filter.asset)&&(filter.currency==="all"||row.currency===filter.currency));
+ const totalTRY=rows.reduce((sum,row)=>sum+(Number(row.amountTRY)||0),0);
+ const openTRY=rows.filter(row=>row.side==="open").reduce((sum,row)=>sum+(Number(row.amountTRY)||0),0);
+ const closeTRY=rows.filter(row=>row.side==="close").reduce((sum,row)=>sum+(Number(row.amountTRY)||0),0);
+ $("commissionSummary").innerHTML=`
+  <div><span>Toplam Komisyon</span><strong class="reportAmountNegative">${f(totalTRY,2)} TRY</strong></div>
+  <div><span>Açılış Komisyonu</span><strong>${f(openTRY,2)} TRY</strong></div>
+  <div><span>Kapanış Komisyonu</span><strong>${f(closeTRY,2)} TRY</strong></div>
+  <div><span>Ortalama / Kayıt</span><strong>${rows.length?f(totalTRY/rows.length,2):"0.00"} TRY</strong></div>`;
+ if(!rows.length){$("commissionHistoryTable").innerHTML='<div class="marketEmpty">Seçilen filtrelerde komisyon kaydı bulunmuyor.</div>';return}
+ $("commissionHistoryTable").innerHTML=`<table><thead><tr><th>Tarih / Saat</th><th>Taraf</th><th>Ürün</th><th>Sembol</th><th>Komisyon Birimi</th><th>Oran</th><th>Para</th><th>Komisyon</th><th>TRY Karşılığı</th></tr></thead><tbody>${rows.map(row=>`
+  <tr><td>${formatDateTime(row.dateTime)}</td><td><span class="reportPill ${row.side==="close"?"closed":"open"}">${row.side==="close"?"Kapanış":"Açılış"}</span></td><td>${esc(row.assetClass)}</td><td><strong>${esc(row.symbol)}</strong></td><td>${esc(row.unit)}</td><td>${f(row.rate,5)}</td><td>${esc(row.currency)}</td><td class="reportAmountNegative">${f(row.amount,2)} ${esc(row.currency)}</td><td class="reportAmountNegative">${f(row.amountTRY,2)} TRY</td></tr>`).join("")}</tbody></table>`;
+}
+window.renderReports=function renderReports(){
+ fillReportFilters();
+ renderCashFlowReport();
+ renderTransactionsReport();
+ renderAccountMovementsReport();
+ renderCommissionHistoryReport();
 }
 
 function isOptionType(value){
@@ -4325,7 +4663,7 @@ window.renderModel=function renderModel(){
  $("viopOpenPositions").innerHTML=renderViopOpenPositions(active.filter(isViopPosition));
  $("viopTransferHistory").innerHTML=renderViopTransferHistory();
 
- renderModelPie();renderModelPerformance();renderActivities();renderCashStatement();renderFxTreasury();updateModelTradePreview();renderPMS();
+ renderModelPie();renderModelPerformance();renderActivities();renderCashStatement();renderFxTreasury();updateModelTradePreview();renderPMS();if($("reports")?.classList.contains("active"))renderReports();
 }
 let viopContracts=[];
 let viopUnderlyings=[];
@@ -4755,6 +5093,56 @@ $("viopTransferBtn").onclick=()=>{
  settings.viopTransfers.unshift({id:id(),direction,amount,dateTime:nowLocal(),transferNetAfter:settings.viopCollateral,balanceAfter:equityAfter});
  save();$("viopTransferAmount").value="";renderModel();
 };
+
+
+document.querySelectorAll("[data-report-anchor]").forEach(button=>button.addEventListener("click",()=>{
+ document.querySelectorAll("[data-report-anchor]").forEach(x=>x.classList.toggle("active",x===button));
+ $(button.dataset.reportAnchor)?.scrollIntoView({behavior:"smooth",block:"start"});
+}));
+document.querySelectorAll("[data-report-filter-toggle]").forEach(button=>button.addEventListener("click",()=>{
+ const map={cash:"cashReportFilterPanel",transactions:"transactionsFilterPanel",movements:"movementsFilterPanel",commission:"commissionFilterPanel"};
+ $(map[button.dataset.reportFilterToggle])?.classList.toggle("hidden");
+}));
+["cashReport","transactions","movements","commission"].forEach(prefix=>{
+ $(prefix+"FilterMode")?.addEventListener("change",()=>syncReportFilterUI(prefix));
+ syncReportFilterUI(prefix);
+});
+$("applyCashReportFilter")?.addEventListener("click",()=>{
+ reportFilters.cash={mode:$("cashReportFilterMode").value,date:$("cashReportSingleDate").value,start:$("cashReportStartDate").value,end:$("cashReportEndDate").value};
+ renderCashFlowReport();
+});
+$("resetCashReportFilter")?.addEventListener("click",()=>{
+ reportFilters.cash={mode:"all",date:"",start:"",end:""};
+ $("cashReportFilterMode").value="all";$("cashReportSingleDate").value=today;$("cashReportStartDate").value=settings.startDate||today;$("cashReportEndDate").value=today;syncReportFilterUI("cashReport");renderCashFlowReport();
+});
+$("applyTransactionsFilter")?.addEventListener("click",()=>{
+ reportFilters.transactions={mode:$("transactionsFilterMode").value,date:$("transactionsSingleDate").value,start:$("transactionsStartDate").value,end:$("transactionsEndDate").value,side:$("transactionsSideFilter").value,asset:$("transactionsAssetFilter").value};
+ renderTransactionsReport();
+});
+$("resetTransactionsFilter")?.addEventListener("click",()=>{
+ reportFilters.transactions={mode:"all",date:"",start:"",end:"",side:"all",asset:"all"};
+ $("transactionsFilterMode").value="all";$("transactionsSingleDate").value=today;$("transactionsStartDate").value=settings.startDate||today;$("transactionsEndDate").value=today;$("transactionsSideFilter").value="all";$("transactionsAssetFilter").value="all";syncReportFilterUI("transactions");renderTransactionsReport();
+});
+$("applyMovementsFilter")?.addEventListener("click",()=>{
+ reportFilters.movements={mode:$("movementsFilterMode").value,date:$("movementsSingleDate").value,start:$("movementsStartDate").value,end:$("movementsEndDate").value,account:$("movementsAccountFilter").value,currency:$("movementsCurrencyFilter").value,type:$("movementsTypeFilter").value};
+ renderAccountMovementsReport();
+});
+$("resetMovementsFilter")?.addEventListener("click",()=>{
+ reportFilters.movements={mode:"all",date:"",start:"",end:"",account:"all",currency:"all",type:"all"};
+ $("movementsFilterMode").value="all";$("movementsSingleDate").value=today;$("movementsStartDate").value=settings.startDate||today;$("movementsEndDate").value=today;$("movementsAccountFilter").value="all";$("movementsCurrencyFilter").value="all";$("movementsTypeFilter").value="all";syncReportFilterUI("movements");renderAccountMovementsReport();
+});
+$("applyCommissionFilter")?.addEventListener("click",()=>{
+ reportFilters.commission={mode:$("commissionFilterMode").value,date:$("commissionSingleDate").value,start:$("commissionStartDate").value,end:$("commissionEndDate").value,side:$("commissionSideFilter").value,asset:$("commissionAssetFilter").value,currency:$("commissionCurrencyFilter").value};
+ renderCommissionHistoryReport();
+});
+$("resetCommissionFilter")?.addEventListener("click",()=>{
+ reportFilters.commission={mode:"all",date:"",start:"",end:"",side:"all",asset:"all",currency:"all"};
+ $("commissionFilterMode").value="all";$("commissionSingleDate").value=today;$("commissionStartDate").value=settings.startDate||today;$("commissionEndDate").value=today;$("commissionSideFilter").value="all";$("commissionAssetFilter").value="all";$("commissionCurrencyFilter").value="all";syncReportFilterUI("commission");renderCommissionHistoryReport();
+});
+["cashReport","transactions","movements","commission"].forEach(prefix=>{
+ const single=$(prefix+"SingleDate"),start=$(prefix+"StartDate"),end=$(prefix+"EndDate");
+ if(single)single.value=today;if(start)start.value=settings.startDate||today;if(end)end.value=today;
+});
 
 $("refreshFxRates")?.addEventListener("click",()=>refreshFxRatesData(true));
 ["fxFromCurrency","fxToCurrency","fxFromAmount","fxSpreadPct","fxFixedFee"].forEach(id=>$(id)?.addEventListener("input",updateFxExchangePreview));
