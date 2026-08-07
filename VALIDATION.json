@@ -1,20 +1,22 @@
 {
-  "version": "8.1",
+  "version": "8.2-clean",
+  "base": "8.1",
   "validated": true,
-  "features": [
-    "native instrument currency enforcement",
-    "multi-currency cash wallets",
-    "FX exchange panel",
-    "manual FX spread and fixed fee",
-    "Yahoo delayed FX rates",
-    "TRY mark-to-market portfolio equity",
-    "position FX P/L decomposition",
-    "TradeMaster futures specs priority",
-    "AMP margin fallback",
-    "Yahoo delayed global futures prices",
-    "native-currency futures collateral validation",
-    "multi-currency cash statement"
+  "model_portfolio_unchanged": true,
+  "model_cash_statement_preserved": true,
+  "model_submenu_items": [
+    "Reports"
   ],
-  "app_sha256": "2717b4e30a04c84dae9c1c989aa1102b9067cc8b0b5c1cc0fee08a9884615b39",
+  "features": [
+    "Reports-only Model Portfolio submenu",
+    "Model Portfolio main button preserved",
+    "v8.1 Cash Statement preserved",
+    "Cash Flow report",
+    "Transactions report",
+    "Account Movements report",
+    "Commission History report",
+    "historical filters"
+  ],
+  "app_sha256": "e949e7e6b1e24fa211ba173eaaff33adcd5d9db2dc97d30e6c1bd454a90a1450",
   "server_sha256": "855106f9a883d7beee96886f480da5930c628f6fa4276e285a80c7be1e980169"
 }
