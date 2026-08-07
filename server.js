@@ -1132,7 +1132,7 @@ async function fetchYahooStatisticsPage(symbol){
  for(const url of urls){
   try{
    const response=await fetch(url,{
-    headers:{"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36","Accept":"text/html,application/xhtml+xml"},
+    headers:{"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36","Accept":"text/html,text/csv,text/plain,application/xhtml+xml,*/*"},
     signal:AbortSignal.timeout(20000)
    });
    if(response.ok){html=await response.text();if(html)break}
@@ -1586,6 +1586,100 @@ app.get("/api/reference-rate",async(_req,res)=>{
   }
  }catch(error){console.warn("TCMB referans oranı alınamadı:",error.message)}
  res.json({monthly,annualCompound,period,live,source:"TCMB",sourceUrl:TCMB_REFERENCE_URL,fetchedAt:new Date().toISOString()});
+});
+
+
+const BIST_TLREF_URL="https://borsaistanbul.com/endeksler";
+const BIST_TLREF_DETAIL_URL="https://borsaistanbul.com/endeksler/tlref";
+const TAKASBANK_REPO_DIRECTORY="https://wwwdata.takasbank.com.tr/RepoAllocationPrice/PROD/";
+let nemaRateCache={at:0,data:null};
+
+function medianRate(values){
+ const rows=values.filter(Number.isFinite).sort((a,b)=>a-b);
+ if(!rows.length)return null;
+ const middle=Math.floor(rows.length/2);
+ return rows.length%2?rows[middle]:(rows[middle-1]+rows[middle])/2;
+}
+function normalizeOfficialDate(value){
+ const raw=String(value||"").trim();
+ let match=raw.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{4})/);
+ if(match)return`${match[3]}-${String(match[2]).padStart(2,"0")}-${String(match[1]).padStart(2,"0")}`;
+ match=raw.match(/(\d{4})(\d{2})(\d{2})/);
+ return match?`${match[1]}-${match[2]}-${match[3]}`:null;
+}
+function parseTlrefCsv(text){
+ const lines=String(text||"").split(/\r?\n/).filter(Boolean);
+ for(const line of lines.reverse()){
+  const cells=line.split(/[;,]/).map(cell=>cell.trim().replace(/^"|"$/g,""));
+  const valueDate=normalizeOfficialDate(cells[0])||normalizeOfficialDate(cells.find(cell=>/\d{8}|\d{1,2}[./-]\d{1,2}[./-]\d{4}/.test(cell)));
+  const candidates=cells.map(cell=>Number(String(cell).replace(",", "."))).filter(value=>Number.isFinite(value)&&value>5&&value<100);
+  if(valueDate&&candidates.length)return{annual:candidates.at(-1),valueDate};
+ }
+ return null;
+}
+async function fetchBistTlref(){
+ for(const url of [BIST_TLREF_URL,BIST_TLREF_DETAIL_URL]){
+  try{
+   const raw=await fetchPublicText(url,15000);
+   const csvMatch=raw.match(/href=["']([^"']*tlref[^"']*\.csv[^"']*)["']/i);
+   if(csvMatch){
+    const csvUrl=new URL(csvMatch[1].replace(/&amp;/g,"&"),url).href;
+    const parsed=parseTlrefCsv(await fetchPublicText(csvUrl,30000));
+    if(parsed)return{...parsed,source:"Borsa İstanbul TLREF",sourceUrl:csvUrl,proxy:false};
+   }
+   const text=decodeBasicHtml(raw);
+   const patterns=[
+    /TURK LIRASI GECELIK REFERANS FAIZ ORANI\s*\|\s*TLREF\s*\|\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})\s*\|\s*(\d+[,.]\d+)/i,
+    /TLREF\s*\|\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})\s*\|\s*(\d+[,.]\d+)/i,
+    /(\d{1,2}[./-]\d{1,2}[./-]\d{4})[^|]{0,100}TLREF[^0-9]{0,80}(\d+[,.]\d+)/i
+   ];
+   for(const pattern of patterns){
+    const match=text.match(pattern);
+    if(!match)continue;
+    const annual=Number(String(match[2]).replace(",","."));
+    const valueDate=normalizeOfficialDate(match[1]);
+    if(Number.isFinite(annual)&&annual>5&&annual<100&&valueDate)return{annual,valueDate,source:"Borsa İstanbul TLREF",sourceUrl:url,proxy:false};
+   }
+  }catch(error){console.warn("BIST TLREF alınamadı:",error.message)}
+ }
+ return null;
+}
+async function fetchTakasbankRepoProxy(){
+ const directory=await fetchPublicText(TAKASBANK_REPO_DIRECTORY,30000);
+ const files=[...directory.matchAll(/RepoAllocationPrices_(\d{8})\.csv/gi)].map(match=>match[1]).sort();
+ if(!files.length)throw new Error("Takasbank günlük repo dosyası bulunamadı");
+ const fileDate=files.at(-1),url=`${TAKASBANK_REPO_DIRECTORY}RepoAllocationPrices_${fileDate}.csv`;
+ const csv=await fetchPublicText(url,15000);
+ const rates=String(csv).split(/\r?\n/).slice(1).map(line=>line.split(",")).filter(cells=>/\.NP$/i.test(cells[0]||"")).map(cells=>Number(cells[1])).filter(value=>Number.isFinite(value)&&value>5&&value<100);
+ const annual=medianRate(rates);
+ if(!annual)throw new Error("Takasbank repo tahsis oranı ayrıştırılamadı");
+ return{annual,valueDate:normalizeOfficialDate(fileDate),source:"Takasbank Repo Tahsis Oranı (proxy)",sourceUrl:url,proxy:true};
+}
+async function fetchTcmbNemaFallback(){
+ let annual=45.15,valueDate=new Date().toISOString().slice(0,10);
+ try{
+  const text=decodeBasicHtml(await fetchPublicText(TCMB_REFERENCE_URL));
+  const rows=[...text.matchAll(/(\d{2}\/\d{2}\/\d{4}\s*-\s*\d{2}\/\d{2}\/\d{4})\s+(\d+[,.]\d+)\s+(\d+[,.]\d+)/g)];
+  if(rows.length){
+   annual=trNumber(rows[0][3])??annual;
+   valueDate=normalizeOfficialDate(rows[0][1].split("-")[0])||valueDate;
+  }
+ }catch(error){console.warn("TCMB nema yedeği alınamadı:",error.message)}
+ return{annual,valueDate,source:"TCMB yıllık bileşik referans (yedek)",sourceUrl:TCMB_REFERENCE_URL,proxy:true};
+}
+app.get("/api/nema-rate",async(req,res)=>{
+ try{
+  if(req.query.refresh!=="1"&&nemaRateCache.data&&Date.now()-nemaRateCache.at<30*60*1000)return res.json(nemaRateCache.data);
+  const [bistResult,takasResult]=await Promise.allSettled([fetchBistTlref(),fetchTakasbankRepoProxy()]);
+  const bist=bistResult.status==="fulfilled"?bistResult.value:null;
+  const takas=takasResult.status==="fulfilled"?takasResult.value:null;
+  if(takasResult.status==="rejected")console.warn("Takasbank nema proxy alınamadı:",takasResult.reason?.message||takasResult.reason);
+  const data=bist||takas||(await fetchTcmbNemaFallback());
+  const payload={...data,live:!data.proxy,fetchedAt:new Date().toISOString(),note:"Gerçek hesaba yatan net nema; vergi, yasal kesinti, Takasbank komisyonu ve aracı kurum uygulamasına göre farklı olabilir."};
+  nemaRateCache={at:Date.now(),data:payload};
+  res.set("Cache-Control","public, max-age=300, s-maxage=300");
+  res.json(payload);
+ }catch(error){res.status(502).json({error:error.message})}
 });
 
 const VIOP_FALLBACK_CONTRACTS=[
