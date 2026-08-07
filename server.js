@@ -2331,6 +2331,235 @@ app.post("/api/ai/chat",async(req,res)=>{
  }
 });
 
+
+const pmsLiveCache=new Map();
+function pmsClamp(value,min=0,max=100){return Math.max(min,Math.min(max,Number(value)))}
+function pmsAvgDefined(values){const rows=values.filter(Number.isFinite);return rows.length?rows.reduce((a,b)=>a+b,0)/rows.length:null}
+function pmsScoreLower(value,good,bad){
+ const n=Number(value);if(!Number.isFinite(n)||n<=0)return null;
+ if(n<=good)return 100;if(n>=bad)return 0;return pmsClamp((bad-n)/(bad-good)*100);
+}
+function pmsScoreHigher(value,bad,good){
+ const n=Number(value);if(!Number.isFinite(n))return null;
+ if(n<=bad)return 0;if(n>=good)return 100;return pmsClamp((n-bad)/(good-bad)*100);
+}
+async function pmsHistorySeries(symbol,range="1y"){
+ const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${encodeURIComponent(range)}&interval=1d&events=div%2Csplits`;
+ const response=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0","Accept":"application/json"},signal:AbortSignal.timeout(18000)});
+ if(!response.ok)throw new Error(`Yahoo chart HTTP ${response.status}`);
+ const json=await response.json(),result=json?.chart?.result?.[0];
+ if(!result)throw new Error(json?.chart?.error?.description||"Geçmiş fiyat bulunamadı");
+ const quote=result.indicators?.quote?.[0]||{},timestamps=result.timestamp||[],closes=quote.close||[],volumes=quote.volume||[];
+ const rows=[];
+ for(let i=0;i<timestamps.length;i++){
+  const close=Number(closes[i]);if(!Number.isFinite(close)||close<=0)continue;
+  rows.push({date:new Date(Number(timestamps[i])*1000).toISOString().slice(0,10),close,volume:Number.isFinite(Number(volumes[i]))?Number(volumes[i]):null});
+ }
+ return{symbol,currency:result.meta?.currency||"",price:rows.at(-1)?.close??result.meta?.regularMarketPrice??null,rows};
+}
+async function pmsAssetSnapshot(symbol){
+ const bundle=await fetchYahooModuleSet(symbol,["price","summaryDetail","defaultKeyStatistics","financialData","assetProfile"]).catch(()=>({}));
+ const price=bundle?.price||{},summary=bundle?.summaryDetail||{},stats=bundle?.defaultKeyStatistics||{},fd=bundle?.financialData||{},profile=bundle?.assetProfile||{};
+ const pct=v=>{const n=Number(raw(v));return Number.isFinite(n)?(Math.abs(n)<=1?n*100:n):null};
+ return{
+  symbol,name:price.longName||price.shortName||symbol,sector:profile.sector||null,industry:profile.industry||null,
+  price:Number(raw(fd.currentPrice)??raw(price.regularMarketPrice))||null,
+  averageVolume:Number(raw(summary.averageVolume)??raw(summary.averageVolume10days))||null,
+  pe:Number(raw(summary.trailingPE)??raw(stats.trailingPE))||null,
+  pb:Number(raw(stats.priceToBook))||null,evEbitda:Number(raw(stats.enterpriseToEbitda))||null,
+  revenueGrowth:pct(fd.revenueGrowth),earningsGrowth:pct(fd.earningsGrowth),
+  roe:pct(fd.returnOnEquity),operatingMargin:pct(fd.operatingMargins),
+  debtToEquity:Number(raw(fd.debtToEquity))||null,currentRatio:Number(raw(fd.currentRatio))||null,
+  freeCashflow:Number(raw(fd.freeCashflow))||null
+ };
+}
+function pmsReturnMap(series){
+ const map=new Map(),rows=series?.rows||[];
+ for(let i=1;i<rows.length;i++){
+  const a=rows[i-1].close,b=rows[i].close;if(a>0&&b>0)map.set(rows[i].date,b/a-1);
+ }
+ return map;
+}
+function pmsPairCov(mapA,mapB){
+ const a=[],b=[];
+ for(const [date,ra] of mapA){const rb=mapB.get(date);if(Number.isFinite(rb)){a.push(ra);b.push(rb)}}
+ if(a.length<20)return null;
+ const ma=average(a),mb=average(b);let sum=0;
+ for(let i=0;i<a.length;i++)sum+=(a[i]-ma)*(b[i]-mb);
+ return sum/(a.length-1);
+}
+function pmsFactorScores(snapshot,series){
+ const rows=series?.rows||[],closes=rows.map(x=>x.close);
+ const momentum=(period)=>closes.length>period&&closes.at(-period-1)>0?(closes.at(-1)/closes.at(-period-1)-1)*100:null;
+ const m20=momentum(20),m50=momentum(50),m200=momentum(200);
+ const value=pmsAvgDefined([
+  pmsScoreLower(snapshot.pe,8,35),pmsScoreLower(snapshot.pb,1,6),pmsScoreLower(snapshot.evEbitda,6,20)
+ ]);
+ const growth=pmsAvgDefined([
+  pmsScoreHigher(snapshot.revenueGrowth,-10,30),pmsScoreHigher(snapshot.earningsGrowth,-15,35)
+ ]);
+ const momentumScore=pmsAvgDefined([
+  Number.isFinite(m20)?pmsClamp(50+m20*1.8):null,
+  Number.isFinite(m50)?pmsClamp(50+m50*1.2):null,
+  Number.isFinite(m200)?pmsClamp(50+m200*.7):null
+ ]);
+ const quality=pmsAvgDefined([
+  pmsScoreHigher(snapshot.roe,5,30),pmsScoreHigher(snapshot.operatingMargin,3,25),
+  Number.isFinite(snapshot.debtToEquity)?pmsClamp((200-snapshot.debtToEquity)/170*100):null,
+  pmsScoreHigher(snapshot.currentRatio,.7,2.2),
+  Number.isFinite(snapshot.freeCashflow)?(snapshot.freeCashflow>0?80:25):null
+ ]);
+ return{value,growth,momentum:momentumScore,quality,lowQuality:Number.isFinite(quality)?100-quality:null,momentum20:m20,momentum50:m50,momentum200:m200};
+}
+function pmsLiquidityScore(position,snapshot){
+ const notional=Math.abs(Number(position.notional)||0),px=Number(snapshot.price)||0,vol=Number(snapshot.averageVolume)||0,mult=Math.max(1,Number(position.contractSize)||1);
+ const adv=px*vol*mult;if(!notional||!adv)return{score:null,adv:null,days:null};
+ const days=notional/(adv*.10);
+ let score=15;
+ if(days<=.1)score=100;else if(days<=.25)score=92;else if(days<=.5)score=82;else if(days<=1)score=68;else if(days<=2)score=52;else if(days<=5)score=32;
+ return{score,adv,days};
+}
+function pmsHealthComment(overall,diversification,liquidity,risk){
+ const rows=[["çeşitlendirme",diversification],["likidite",liquidity],["risk kontrolü",risk]].filter(([,v])=>Number.isFinite(v)).sort((a,b)=>a[1]-b[1]);
+ const weak=rows[0],strong=rows.at(-1);
+ const label=overall>=80?"güçlü":overall>=65?"iyi":overall>=50?"izlenmesi gereken":"zayıf";
+ if(!rows.length)return"Canlı piyasa coverage yetersiz olduğu için sağlık yorumu üretilemedi.";
+ return`Portföy sağlığı ${overall.toFixed(0)}/100 ile ${label} bölgede. En güçlü bileşen ${strong[0]} (${strong[1].toFixed(0)}/100), geliştirilmesi en çok gereken alan ${weak[0]} (${weak[1].toFixed(0)}/100). Skorlar portföy yapısını değerlendirir; beklenen getiriyi tahmin etmez.`;
+}
+async function pmsMarketRegime(){
+ const [spx,vix,hyg,ief]=await Promise.all([
+  pmsHistorySeries("^GSPC","5y"),pmsHistorySeries("^VIX","5y"),pmsHistorySeries("HYG","5y"),pmsHistorySeries("IEF","5y")
+ ]);
+ const vixMap=new Map(vix.rows.map(x=>[x.date,x.close])),hygMap=new Map(hyg.rows.map(x=>[x.date,x.close])),iefMap=new Map(ief.rows.map(x=>[x.date,x.close]));
+ const closes=spx.rows.map(x=>x.close),history=[],ratioWindow=[];
+ for(let i=199;i<spx.rows.length;i++){
+  const row=spx.rows[i],sma50=average(closes.slice(i-49,i+1)),sma200=average(closes.slice(i-199,i+1));
+  const mom20=i>=20?(row.close/closes[i-20]-1)*100:null,v=vixMap.get(row.date);
+  const h=hygMap.get(row.date),ie=iefMap.get(row.date),ratio=h&&ie?h/ie:null;
+  if(Number.isFinite(ratio))ratioWindow.push(ratio);if(ratioWindow.length>50)ratioWindow.shift();
+  const ratioSma=ratioWindow.length>=20?average(ratioWindow):null;
+  let trend="Sideways";
+  if(row.close>sma200&&sma50>sma200&&mom20>=0)trend="Bull";
+  else if(row.close<sma200&&sma50<sma200&&mom20<=0)trend="Bear";
+  const volatility=Number.isFinite(v)?(v>=25?"High Volatility":v<=18?"Low Volatility":"Normal Volatility"):"Unknown";
+  let riskAppetite="Neutral";
+  if(Number.isFinite(ratio)&&Number.isFinite(ratioSma)){
+   if(ratio>ratioSma&&row.close>sma50)riskAppetite="Risk-On";
+   else if(ratio<ratioSma&&row.close<sma50)riskAppetite="Risk-Off";
+  }
+  history.push({date:row.date,trend,volatility,riskAppetite,spx:row.close,sma50,sma200,momentum20:mom20,vix:v??null,riskRatio:ratio,riskRatioSma:ratioSma});
+ }
+ return{source:"Yahoo Finance gecikmeli: ^GSPC + ^VIX + HYG/IEF",current:history.at(-1)||null,history};
+}
+app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
+ try{
+  const positions=Array.isArray(req.body?.positions)?req.body.positions.slice(0,60):[];
+  const usable=positions.filter(p=>p?.symbol&&Number(p.notional)>=0);
+  const unique=[...new Set(usable.map(p=>String(p.symbol).trim().toUpperCase()).filter(Boolean))].slice(0,30);
+  const snapshotEntries=await Promise.all(unique.map(async symbol=>{
+   const cacheKey=`snapshot:${symbol}`,cached=pmsLiveCache.get(cacheKey);
+   if(cached&&Date.now()-cached.at<5*60*1000)return[symbol,cached.data];
+   const data=await pmsAssetSnapshot(symbol).catch(()=>({symbol}));
+   pmsLiveCache.set(cacheKey,{at:Date.now(),data});return[symbol,data];
+  }));
+  const snapshots=new Map(snapshotEntries);
+  const active=usable.filter(p=>p.status==="Aktif").slice(0,25);
+  const activeSymbols=[...new Set(active.map(p=>String(p.symbol).toUpperCase()))];
+  const historyEntries=await Promise.all(activeSymbols.map(async symbol=>{
+   const cacheKey=`hist:${symbol}`,cached=pmsLiveCache.get(cacheKey);
+   if(cached&&Date.now()-cached.at<5*60*1000)return[symbol,cached.data];
+   const data=await pmsHistorySeries(symbol,"1y").catch(()=>null);
+   if(data)pmsLiveCache.set(cacheKey,{at:Date.now(),data});return[symbol,data];
+  }));
+  const histories=new Map(historyEntries);
+
+  const gross=active.reduce((s,p)=>s+Math.abs(Number(p.notional)||0),0);
+  const assets=usable.map(p=>{
+   const snap=snapshots.get(String(p.symbol).toUpperCase())||{symbol:p.symbol};
+   const hist=histories.get(String(p.symbol).toUpperCase())||null;
+   const factors=p.status==="Aktif"?pmsFactorScores(snap,hist):{};
+   const liquidity=p.status==="Aktif"?pmsLiquidityScore(p,snap):{};
+   return{...p,sector:snap.sector||p.assetClass||"Diğer",industry:snap.industry||null,price:snap.price||null,averageVolume:snap.averageVolume||null,liquidity,...factors};
+  });
+
+  const activeAssets=assets.filter(x=>x.status==="Aktif"),weights=activeAssets.map(x=>gross?Math.abs(Number(x.notional)||0)/gross:0),signedWeights=activeAssets.map(x=>gross?(Number(x.signedNotional)||0)/gross:0);
+  const maps=activeAssets.map(x=>pmsReturnMap(histories.get(String(x.symbol).toUpperCase())));
+  const n=activeAssets.length,covMatrix=Array.from({length:n},()=>Array(n).fill(0));
+  let covarianceCoverage=0,totalPairs=0;
+  for(let i=0;i<n;i++){
+   for(let j=0;j<n;j++){
+    totalPairs++;
+    const cv=pmsPairCov(maps[i],maps[j]);
+    if(Number.isFinite(cv)){covMatrix[i][j]=cv;covarianceCoverage++}
+   }
+  }
+  let portfolioVar=0;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++)portfolioVar+=signedWeights[i]*signedWeights[j]*covMatrix[i][j];
+  portfolioVar=Math.max(0,portfolioVar);
+  const riskRows=activeAssets.map((asset,i)=>{
+   let marginal=0;for(let j=0;j<n;j++)marginal+=covMatrix[i][j]*signedWeights[j];
+   const component=portfolioVar>0?signedWeights[i]*marginal/portfolioVar:null;
+   const annVol=covMatrix[i][i]>0?Math.sqrt(covMatrix[i][i]*252)*100:null;
+   return{label:asset.label,symbol:asset.symbol,weight:signedWeights[i],absoluteWeight:weights[i],annualVolatility:annVol,riskContributionPct:Number.isFinite(component)?component*100:null};
+  });
+  if(!riskRows.some(x=>Number.isFinite(x.riskContributionPct))){
+   const raw=riskRows.map((x,i)=>weights[i]*(Number(x.annualVolatility)||0)),den=raw.reduce((a,b)=>a+b,0);
+   riskRows.forEach((x,i)=>x.riskContributionPct=den?raw[i]/den*100:null);
+  }
+  const portfolioVolatility=portfolioVar>0?Math.sqrt(portfolioVar*252)*100:null;
+  const riskCoverage=totalPairs?covarianceCoverage/totalPairs*100:0;
+
+  const sectorMap={};activeAssets.forEach((x,i)=>{const sector=x.sector||"Diğer";sectorMap[sector]=(sectorMap[sector]||0)+weights[i]});
+  const sectors=Object.entries(sectorMap).map(([sector,weight])=>({sector,weight})).sort((a,b)=>b.weight-a.weight);
+
+  const hhi=weights.reduce((s,w)=>s+w*w,0),effN=hhi>0?1/hhi:0,maxW=Math.max(0,...weights);
+  const positionDiv=activeAssets.length?50*pmsClamp(effN/8,0,1)+50*pmsClamp((1-maxW)/.85,0,1):0;
+  const sectorWeights=sectors.map(x=>x.weight),sectorHhi=sectorWeights.reduce((s,w)=>s+w*w,0),effSector=sectorHhi>0?1/sectorHhi:0,maxSector=Math.max(0,...sectorWeights);
+  const sectorDiv=sectors.length?50*pmsClamp(effSector/6,0,1)+50*pmsClamp((1-maxSector)/.70,0,1):positionDiv;
+  const diversification=.7*positionDiv+.3*sectorDiv;
+
+  let liqNum=0,liqDen=0,liqCoverageWeight=0;
+  activeAssets.forEach((x,i)=>{if(Number.isFinite(x.liquidity?.score)){liqNum+=weights[i]*x.liquidity.score;liqDen+=weights[i];liqCoverageWeight+=weights[i]}});
+  const liquidity=liqDen?liqNum/liqDen:45;
+  const volScore=!Number.isFinite(portfolioVolatility)?55:portfolioVolatility<=10?100:portfolioVolatility<=15?85:portfolioVolatility<=20?70:portfolioVolatility<=30?50:portfolioVolatility<=40?30:15;
+  const capital=Math.max(1,Number(req.body?.capital)||gross||1),leverage=gross/capital;
+  const levScore=leverage<=1?100:leverage<=1.25?80:leverage<=1.5?60:leverage<=2?35:15;
+  const concScore=maxW<=.15?100:maxW<=.20?85:maxW<=.30?65:maxW<=.40?45:20;
+  const topRisk=Math.max(0,...riskRows.map(x=>Number(x.riskContributionPct)||0));
+  const riskConcScore=topRisk<=20?100:topRisk<=30?80:topRisk<=40?60:topRisk<=55?35:15;
+  const stopCoverage=activeAssets.length?activeAssets.filter(x=>x.hasStop).length/activeAssets.length:0;
+  const stopScore=stopCoverage*100;
+  const risk=.32*volScore+.20*levScore+.20*concScore+.18*riskConcScore+.10*stopScore;
+  const coverage=(.45*(riskCoverage||0)+.30*(liqCoverageWeight*100)+.25*(activeAssets.length?100:0));
+  const overall=.35*diversification+.25*liquidity+.40*risk;
+
+  const factorKeys=["value","growth","momentum","quality","lowQuality"],factorExposure={};
+  let factorCoverageWeight=0;
+  for(const key of factorKeys){
+   let num=0,den=0;
+   activeAssets.forEach((x,i)=>{if(Number.isFinite(x[key])){num+=weights[i]*x[key];den+=weights[i]}});
+   factorExposure[key]=den?num/den:null;
+   if(key==="quality")factorCoverageWeight=den;
+  }
+  factorExposure.coverage=factorCoverageWeight*100;factorExposure.sectors=sectors;
+
+  const regime=await pmsMarketRegime();
+  res.set("Cache-Control","no-store");
+  res.json({
+   fetchedAt:new Date().toISOString(),
+   source:"Yahoo Finance gecikmeli piyasa/fundamental verileri + Model Portföy kayıtları",
+   assets,
+   risk:{portfolioVolatility,coverage:riskCoverage,rows:riskRows},
+   portfolioHealth:{overall,diversification,liquidity,risk,coverage,comment:pmsHealthComment(overall,diversification,liquidity,risk),effectivePositions:effN,maxWeight:maxW,stopCoverage,leverage},
+   factorExposure,
+   regime
+  });
+ }catch(error){
+  console.error("PMS live analytics error:",error);
+  res.status(502).json({error:error.message||"PMS canlı analiz verisi alınamadı."});
+ }
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "portfolio-tracker", databaseConfigured: Boolean(DATABASE_URL), databaseReady });
 });
