@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Model Portföy Takip · v7.8</title>
+<title>Model Portföy Takip · v7.9</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1386,8 +1386,102 @@ body.authLocked .accountSettingsOverlay{display:none!important}
  .pmsCanvas{height:200px}.pmsRollingCanvas{height:175px}
 }
 
+
+/* v7.9 PMS diagnostics */
+.pmsLiveTools{display:flex;align-items:center;gap:7px}
+.pmsRefreshLiveData{height:34px;font-size:8.5px!important;white-space:nowrap}
+.pmsHelp{
+ position:relative;display:inline-flex!important;align-items:center;justify-content:center;
+ width:15px!important;height:15px!important;min-width:15px!important;padding:0!important;
+ margin-left:3px!important;border-radius:50%!important;border:1px solid #4c6b86!important;
+ background:#142b3e!important;color:#a9c8df!important;font:800 9px/1 Arial!important;
+ vertical-align:1px;cursor:help!important
+}
+.pmsHelp::after{
+ content:attr(data-help);position:absolute;z-index:2147483500;left:50%;bottom:calc(100% + 9px);
+ transform:translateX(-50%) translateY(4px);width:280px;max-width:70vw;padding:9px 10px;
+ border:1px solid #45647d;border-radius:8px;background:#07131e;color:#c8d7e5;
+ box-shadow:0 14px 38px rgba(0,0,0,.55);font:500 9px/1.5 Arial;text-align:left;
+ text-transform:none;letter-spacing:0;white-space:normal;opacity:0;pointer-events:none;transition:.15s ease
+}
+.pmsHelp::before{
+ content:"";position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);
+ border:5px solid transparent;border-top-color:#45647d;opacity:0;pointer-events:none
+}
+.pmsHelp:hover::after,.pmsHelp:focus::after,.pmsHelp:hover::before,.pmsHelp:focus::before{opacity:1;transform:translateX(-50%) translateY(0)}
+.pmsHelp:hover::before,.pmsHelp:focus::before{transform:translateX(-50%)}
+.pmsHealthGrid{display:grid;grid-template-columns:1.35fr repeat(3,1fr);gap:9px}
+.pmsHealthHero,.pmsHealthCard{border:1px solid #29465f;background:#0d1c29;border-radius:11px;padding:13px}
+.pmsHealthHero{display:flex;align-items:center;gap:14px;background:linear-gradient(145deg,#10283a,#0c1b27)}
+.pmsHealthHero h4,.pmsHealthCommentPanel h4,.pmsSectorPanel h4{font-size:11px;margin:0 0 5px}
+.pmsScoreRing{width:78px;height:78px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;background:conic-gradient(#4eddb0 0deg,#4eddb0 0deg,#173044 0deg);box-shadow:inset 0 0 0 8px #0a1722}
+.pmsScoreRing strong{font-size:24px}.pmsScoreRing span{font-size:8px;color:#7590a6}
+.pmsHealthLabel{font-size:10px;color:#89a5ba}
+.pmsHealthCard>span{display:block;color:#88a0b5;font-size:8.5px;text-transform:uppercase}
+.pmsHealthCard>strong{display:block;font-size:22px;margin:8px 0}
+.pmsScoreBar,.pmsFactorBar{height:5px;border-radius:5px;background:#172d3f;overflow:hidden}
+.pmsScoreBar i,.pmsFactorBar i{display:block;height:100%;width:0;border-radius:5px;background:linear-gradient(90deg,#5c96ff,#45d9ab);transition:width .3s}
+.pmsHealthCommentPanel,.pmsSectorPanel{margin-top:9px}.pmsNarrative{font-size:10px;line-height:1.65;color:#afc3d4}
+.pmsRegimeSummary,.pmsRiskContributionSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.pmsRegimeSummary>div,.pmsRiskContributionSummary>div{padding:11px;border:1px solid #29445b;background:#0d1b27;border-radius:9px}
+.pmsRegimeSummary span,.pmsRiskContributionSummary span{display:block;color:#8198ae;font-size:8px;text-transform:uppercase}
+.pmsRegimeSummary strong,.pmsRiskContributionSummary strong{display:block;font-size:16px;margin-top:5px}
+.pmsRegimeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pmsRegimeCard{padding:11px;border-radius:9px;border:1px solid #293f54;background:#0c1925;opacity:.66}
+.pmsRegimeCard.active{opacity:1;border-color:#3c745f;background:#10251e;box-shadow:inset 0 0 22px rgba(62,209,158,.05)}
+.pmsRegimeCard span{display:block;color:#849caf;font-size:8px;text-transform:uppercase}
+.pmsRegimeCard strong{display:block;font-size:15px;margin-top:6px}
+.pmsRegimeCard.active strong{color:#55dcae}
+.pmsRegimePerformanceGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pmsRegimePerfCard{padding:12px;border:1px solid #2a4359;border-radius:9px;background:#0d1b27}
+.pmsRegimePerfCard span{display:block;color:#849aad;font-size:8px;text-transform:uppercase}
+.pmsRegimePerfCard strong{display:block;font-size:18px;margin:6px 0}
+.pmsRegimePerfCard small{font-size:8px;color:#758ca1}
+.pmsAnalyticsTable{overflow:auto;border:1px solid #294259;border-radius:9px}
+.pmsAnalyticsTable table{min-width:760px}
+.pmsAnalyticsTable .riskBarCell{min-width:155px}
+.pmsMiniRiskBar{height:5px;background:#172c3d;border-radius:5px;overflow:hidden;margin-top:4px}
+.pmsMiniRiskBar i{display:block;height:100%;background:#63a5ff;border-radius:5px}
+.pmsFactorGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pmsFactorCard{padding:11px;border:1px solid #294258;background:#0d1b27;border-radius:9px}
+.pmsFactorCard span{display:block;color:#8499ad;font-size:8px;text-transform:uppercase}
+.pmsFactorCard strong{display:block;font-size:20px;margin:7px 0}
+.pmsSectorExposure{display:grid;gap:7px;margin-top:10px}
+.pmsSectorRow{display:grid;grid-template-columns:minmax(130px,1.3fr) 3fr 70px;gap:8px;align-items:center;font-size:9px}
+.pmsSectorRow .bar{height:6px;background:#172c3d;border-radius:6px;overflow:hidden}
+.pmsSectorRow .bar i{display:block;height:100%;background:linear-gradient(90deg,#5c98ff,#48d9ae);border-radius:6px}
+.pmsSectorRow strong{text-align:right}
+.pmsAttributionGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pmsAttributionCard{padding:12px;border:1px solid #294258;background:#0d1b27;border-radius:10px}
+.pmsAttributionCard.wide{grid-column:1/-1}
+.pmsAttributionCard>span{display:block;color:#879db1;font-size:8px;text-transform:uppercase}
+.pmsAttributionCard>strong{display:block;font-size:17px;margin:7px 0}
+.pmsAttributionCard>small{display:block;color:#748ca1;font-size:8.5px;line-height:1.5}
+.pmsReturnSources{display:grid;gap:6px;margin-top:8px}
+.pmsReturnSourceRow{display:grid;grid-template-columns:minmax(100px,1fr) 3fr 105px;gap:8px;align-items:center;font-size:9px}
+.pmsReturnSourceRow .bar{height:6px;border-radius:6px;background:#172c3c;overflow:hidden}
+.pmsReturnSourceRow .bar i{display:block;height:100%;border-radius:6px;background:#50d9aa}
+.pmsReturnSourceRow.negative .bar i{background:#ff7f91}
+.pmsLiveError{color:#ff9aaa!important}.pmsLiveOk{color:#75d9b2!important}
+@media(max-width:1180px){
+ .pmsHealthGrid{grid-template-columns:1fr 1fr}
+ .pmsFactorGrid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:850px){
+ .pmsRegimeGrid,.pmsRegimeSummary,.pmsRiskContributionSummary,.pmsRegimePerformanceGrid{grid-template-columns:1fr 1fr}
+ .pmsFactorGrid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:580px){
+ .pmsHealthGrid,.pmsRegimeGrid,.pmsRegimeSummary,.pmsRiskContributionSummary,.pmsRegimePerformanceGrid,.pmsFactorGrid,.pmsAttributionGrid{grid-template-columns:1fr}
+ .pmsAttributionCard.wide{grid-column:auto}
+ .pmsLiveTools{display:block}.pmsRefreshLiveData{margin-top:6px;width:100%}
+ .pmsSectorRow,.pmsReturnSourceRow{grid-template-columns:1fr}
+ .pmsHelp::after{left:auto;right:-15px;transform:translateY(4px);width:240px}
+ .pmsHelp:hover::after,.pmsHelp:focus::after{transform:translateY(0)}
+}
+
 </style>
-<meta name="portfolio-build" content="v7.8-portfolio-management-system">
+<meta name="portfolio-build" content="v7.9-pms-diagnostics-regime-factor-attribution">
 </head>
 <body class="authLocked">
 
@@ -2049,7 +2143,10 @@ body.authLocked .accountSettingsOverlay{display:none!important}
       <h2>Portfolio Management System (PMS)</h2>
       <div class="muted">Model Portföyde gerçekleşen işlemlerden otomatik üretilen performans, risk, benchmark ve rolling analytics terminali</div>
     </div>
-    <div class="pmsHeaderStatus"><span class="headerCloudDot"></span><span>Model Portföy ile canlı senkron</span></div>
+    <div class="pmsLiveTools">
+      <div id="pmsLiveStatus" class="pmsHeaderStatus"><span class="headerCloudDot"></span><span>Model Portföy ile canlı senkron</span></div>
+      <button type="button" id="pmsRefreshLiveData" class="secondary pmsRefreshLiveData">Canlı Veriyi Güncelle</button>
+    </div>
   </div>
 
   <div class="pmsWorkspaceNav">
@@ -2058,6 +2155,12 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     <button type="button" data-pms-anchor="pmsBenchmark">Benchmark</button>
     <button type="button" data-pms-anchor="pmsRolling">Rolling Metrics</button>
     <button type="button" data-pms-anchor="pmsRisk">Risk & Trade Quality</button>
+    <button type="button" data-pms-anchor="pmsHealth">Portfolio Health</button>
+    <button type="button" data-pms-anchor="pmsMarketRegime">Market Regime</button>
+    <button type="button" data-pms-anchor="pmsRegimePerformance">Regime Performance</button>
+    <button type="button" data-pms-anchor="pmsRiskContribution">Risk Contribution</button>
+    <button type="button" data-pms-anchor="pmsFactorExposure">Factor Exposure</button>
+    <button type="button" data-pms-anchor="pmsAttribution">Attribution</button>
   </div>
 
   <div id="pmsOverview" class="pmsKpiGrid">
@@ -2173,6 +2276,149 @@ body.authLocked .accountSettingsOverlay{display:none!important}
       <div class="pmsMetricCard"><span>Historical VaR 95%</span><strong id="pmsVar95">-</strong><small>Trade-return dağılımı</small></div>
       <div class="pmsMetricCard"><span>Historical CVaR 95%</span><strong id="pmsCvar95">-</strong><small>Worst-tail ortalama kayıp</small></div>
       <div class="pmsMetricCard"><span>Benchmark Data Coverage</span><strong id="pmsBenchmarkCoverageRisk">-</strong><small>Relative analytics veri kalitesi</small></div>
+    </div>
+
+  </div>
+
+  <div id="pmsHealth" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div>
+        <div class="pmsEyebrow">PORTFOLIO DIAGNOSTICS</div>
+        <h3>Portfolio Health <button class="pmsHelp" type="button" data-help="Portfolio Health, aktif Model Portföyün konsantrasyon, likidite ve risk yapısını 0–100 ölçeğinde özetler. 80–100 güçlü, 65–79 iyi, 50–64 izlenmeli, 50 altı zayıf kabul edilir.">?</button></h3>
+      </div>
+      <span id="pmsHealthCoverage" class="pmsBadge">Canlı veri bekleniyor</span>
+    </div>
+    <div class="pmsHealthGrid">
+      <div class="pmsHealthHero">
+        <div class="pmsScoreRing" id="pmsHealthRing"><strong id="pmsHealthScore">-</strong><span>/ 100</span></div>
+        <div>
+          <h4>Portföy Sağlığı <button class="pmsHelp" type="button" data-help="Genel sağlık skoru; Diversification, Liquidity ve Risk Score bileşenlerinin ağırlıklı birleşimidir. Yüksek skor portföy yapısının daha dengeli olduğunu gösterir; getiri garantisi değildir.">?</button></h4>
+          <div id="pmsHealthLabel" class="pmsHealthLabel">Hesaplanıyor</div>
+        </div>
+      </div>
+      <div class="pmsHealthCard"><span>Diversification Score <button class="pmsHelp" type="button" data-help="Pozisyon ağırlıkları, Herfindahl konsantrasyonu ve sektör dağılımını kullanır. 100'e yaklaştıkça risk birkaç pozisyona veya sektöre daha az yığılmıştır.">?</button></span><strong id="pmsDiversificationScore">-</strong><div id="pmsDiversificationBar" class="pmsScoreBar"><i></i></div></div>
+      <div class="pmsHealthCard"><span>Liquidity Score <button class="pmsHelp" type="button" data-help="Pozisyon büyüklüğünü gecikmeli piyasa fiyatı ve ortalama işlem hacmiyle karşılaştırır. Yüksek skor, pozisyonun piyasa hacmine göre daha kolay tasfiye edilebildiğini gösterir.">?</button></span><strong id="pmsLiquidityScore">-</strong><div id="pmsLiquidityBar" class="pmsScoreBar"><i></i></div></div>
+      <div class="pmsHealthCard"><span>Risk Score <button class="pmsHelp" type="button" data-help="Bu skor 'risk sağlığı'dır; yüksek değer daha kontrollü risk anlamına gelir. Canlı kovaryans volatilitesi, leverage, konsantrasyon, risk katkısı yoğunlaşması ve stop kapsamını birlikte değerlendirir.">?</button></span><strong id="pmsRiskHealthScore">-</strong><div id="pmsRiskHealthBar" class="pmsScoreBar"><i></i></div></div>
+    </div>
+    <div class="panel pmsHealthCommentPanel">
+      <h4>Genel Sağlık Yorumu <button class="pmsHelp" type="button" data-help="Sistem en güçlü ve en zayıf sağlık bileşenlerini belirleyerek portföy yapısına ilişkin otomatik yorum üretir. Bu yorum yatırım tavsiyesi değil, risk teşhisidir.">?</button></h4>
+      <div id="pmsHealthComment" class="pmsNarrative">Aktif pozisyon verileri ve canlı piyasa ölçümleri bekleniyor.</div>
+    </div>
+  </div>
+
+  <div id="pmsMarketRegime" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div>
+        <div class="pmsEyebrow">LIVE MACRO / MARKET STATE</div>
+        <h3>Market Regime <button class="pmsHelp" type="button" data-help="Piyasa rejimi; S&P 500 trendi, VIX volatilite seviyesi ve HYG/IEF risk iştahı oranı kullanılarak oluşturulan gecikmeli canlı piyasa sınıflandırmasıdır.">?</button></h3>
+      </div>
+      <span id="pmsRegimeTimestamp" class="pmsBadge">Veri bekleniyor</span>
+    </div>
+    <div class="pmsRegimeSummary">
+      <div><span>Ana Rejim <button class="pmsHelp" type="button" data-help="S&P 500 kapanışı, 50 ve 200 günlük hareketli ortalamalar ile 20 günlük momentumdan Bull, Bear veya Sideways sınıflandırması üretilir.">?</button></span><strong id="pmsCurrentRegime">-</strong></div>
+      <div><span>Volatilite Rejimi <button class="pmsHelp" type="button" data-help="VIX 25 ve üzerindeyse High Volatility, 18 ve altındaysa Low Volatility, aradaysa Normal Volatility kabul edilir.">?</button></span><strong id="pmsCurrentVolRegime">-</strong></div>
+      <div><span>Risk İştahı <button class="pmsHelp" type="button" data-help="HYG/IEF oranının 50 günlük trendi ve S&P 500'ün kısa dönem trendi birlikte kullanılır. Yükselen oran kredi riskine talebin arttığını ve Risk-On davranışını destekler.">?</button></span><strong id="pmsCurrentRiskRegime">-</strong></div>
+    </div>
+    <div class="pmsRegimeGrid">
+      <div class="pmsRegimeCard" data-regime-card="Bull"><span>Bull Market <button class="pmsHelp" type="button" data-help="Fiyatın 200 günlük ortalamanın üzerinde, 50 günlük ortalamanın 200 günlük ortalamanın üzerinde ve 20 günlük momentumun pozitif olduğu trend rejimi.">?</button></span><strong id="pmsBullIndicator">Pasif</strong></div>
+      <div class="pmsRegimeCard" data-regime-card="Bear"><span>Bear Market <button class="pmsHelp" type="button" data-help="Fiyatın 200 günlük ortalamanın altında, 50 günlük ortalamanın 200 günlük ortalamanın altında ve 20 günlük momentumun negatif olduğu trend rejimi.">?</button></span><strong id="pmsBearIndicator">Pasif</strong></div>
+      <div class="pmsRegimeCard" data-regime-card="Sideways"><span>Sideways Market <button class="pmsHelp" type="button" data-help="Bull veya Bear trend koşullarının birlikte oluşmadığı, trend sinyalinin karışık olduğu yatay/geçiş rejimidir.">?</button></span><strong id="pmsSidewaysIndicator">Pasif</strong></div>
+      <div class="pmsRegimeCard" data-vol-card="High Volatility"><span>High Volatility <button class="pmsHelp" type="button" data-help="VIX'in 25 veya üzerindeki seviyeleri yüksek volatilite rejimi olarak işaretlenir. Bu ortamda pozisyon boyutu ve korelasyon riski daha kritik hale gelir.">?</button></span><strong id="pmsHighVolIndicator">Pasif</strong></div>
+      <div class="pmsRegimeCard" data-vol-card="Low Volatility"><span>Low Volatility <button class="pmsHelp" type="button" data-help="VIX'in 18 veya altında olması düşük volatilite rejimi olarak sınıflandırılır. Düşük volatilite düşük risk garantisi değildir; sıkışma sonrası kırılma riski bulunabilir.">?</button></span><strong id="pmsLowVolIndicator">Pasif</strong></div>
+      <div class="pmsRegimeCard" data-risk-card="Risk-On"><span>Risk-On / Risk-Off <button class="pmsHelp" type="button" data-help="Risk-On, riskli varlıklara talebin güçlendiğini; Risk-Off ise korunma talebinin yükseldiğini ifade eder. HYG/IEF oranı ve S&P 500 trendi proxy olarak kullanılır.">?</button></span><strong id="pmsRiskOnOffIndicator">-</strong></div>
+    </div>
+    <div id="pmsRegimeDetails" class="pmsDataNotice">Canlı piyasa verisi yüklendiğinde S&P 500, VIX ve HYG/IEF sinyalleri burada gösterilir.</div>
+  </div>
+
+  <div id="pmsRegimePerformance" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div>
+        <div class="pmsEyebrow">PERFORMANCE BY ENVIRONMENT</div>
+        <h3>Regime Performance <button class="pmsHelp" type="button" data-help="Kapalı Model Portföy işlemlerinin kapanış tarihleri tarihsel piyasa rejimiyle eşleştirilir. Böylece stratejinin hangi trend ortamında daha başarılı olduğu ölçülür.">?</button></h3>
+      </div>
+      <span id="pmsRegimePerfCoverage" class="pmsBadge">0 işlem eşleşti</span>
+    </div>
+    <div class="pmsRegimePerformanceGrid">
+      <div class="pmsRegimePerfCard"><span>Boğa Piyasasında Performans <button class="pmsHelp" type="button" data-help="Bull rejiminde kapanan işlemlerin bileşik net trade getirisi, işlem sayısı ve başarı oranıdır.">?</button></span><strong id="pmsBullPerformance">-</strong><small id="pmsBullPerformanceMeta">-</small></div>
+      <div class="pmsRegimePerfCard"><span>Ayı Piyasasında Performans <button class="pmsHelp" type="button" data-help="Bear rejiminde kapanan işlemlerin bileşik net trade getirisi, işlem sayısı ve başarı oranıdır. Short işlemler dahil gerçek Model Portföy sonuçları kullanılır.">?</button></span><strong id="pmsBearPerformance">-</strong><small id="pmsBearPerformanceMeta">-</small></div>
+      <div class="pmsRegimePerfCard"><span>Yatay Piyasada Performans <button class="pmsHelp" type="button" data-help="Sideways rejiminde kapanan işlemlerin bileşik net trade getirisi, işlem sayısı ve başarı oranıdır.">?</button></span><strong id="pmsSidewaysPerformance">-</strong><small id="pmsSidewaysPerformanceMeta">-</small></div>
+    </div>
+    <div class="panel pmsHealthCommentPanel">
+      <h4>En Başarılı Piyasa Koşulu <button class="pmsHelp" type="button" data-help="Yeterli örneklem bulunan rejimler arasında bileşik getiri, ortalama işlem getirisi ve win rate birlikte değerlendirilerek en güçlü ortam yorumlanır.">?</button></h4>
+      <div id="pmsBestRegimeAnalysis" class="pmsNarrative">Tarihsel rejim eşleşmesi bekleniyor.</div>
+    </div>
+  </div>
+
+  <div id="pmsRiskContribution" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div>
+        <div class="pmsEyebrow">MARGINAL RISK DECOMPOSITION</div>
+        <h3>Risk Contribution <button class="pmsHelp" type="button" data-help="Aktif pozisyonların günlük tarihsel getirilerinden kovaryans matrisi oluşturulur. Her pozisyonun portföy varyansına marjinal katkısı hesaplanır; hedge pozisyonlarında katkı negatif olabilir.">?</button></h3>
+      </div>
+      <span id="pmsRiskContributionCoverage" class="pmsBadge">Canlı veri bekleniyor</span>
+    </div>
+    <div class="pmsRiskContributionSummary">
+      <div><span>Portföy Yıllık Volatilitesi <button class="pmsHelp" type="button" data-help="Aktif pozisyon ağırlıkları ve 1 yıllık günlük kovaryans matrisi kullanılarak yıllıklandırılmış portföy volatilitesi tahmin edilir.">?</button></span><strong id="pmsLivePortfolioVol">-</strong></div>
+      <div><span>En Büyük Risk Kaynağı <button class="pmsHelp" type="button" data-help="Toplam portföy riskine en yüksek pozitif komponent katkıyı yapan aktif pozisyondur. Pozisyon ağırlığı yüksek olmak zorunda değildir; volatilite ve korelasyon da belirleyicidir.">?</button></span><strong id="pmsLargestRiskPosition">-</strong></div>
+      <div><span>Risk Yoğunlaşması <button class="pmsHelp" type="button" data-help="En büyük pozitif risk katkısının toplam risk içindeki payıdır. Çok yüksek değer portföy riskinin tek pozisyona yığıldığını gösterir.">?</button></span><strong id="pmsRiskConcentration">-</strong></div>
+    </div>
+    <div id="pmsRiskContributionTable" class="pmsAnalyticsTable"></div>
+  </div>
+
+  <div id="pmsFactorExposure" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div>
+        <div class="pmsEyebrow">STYLE & FUNDAMENTAL EXPOSURE</div>
+        <h3>Factor Exposure Analysis <button class="pmsHelp" type="button" data-help="Aktif hisse/ETF pozisyonlarında canlı temel veriler ve fiyat momentumu kullanılarak portföyün Value, Growth, Momentum ve Quality eğilimleri 0–100 ölçeğinde tahmin edilir. Veri olmayan varlıklar coverage dışında bırakılır.">?</button></h3>
+      </div>
+      <span id="pmsFactorCoverage" class="pmsBadge">Coverage %0</span>
+    </div>
+    <div class="pmsFactorGrid">
+      <div class="pmsFactorCard"><span>Value <button class="pmsHelp" type="button" data-help="Pozitif F/K, PD/DD ve FD/FAVÖK çarpanlarının görece düşük olmasını ödüllendiren değer faktörü skorudur. Yüksek skor daha güçlü Value eğilimi anlamına gelir.">?</button></span><strong id="pmsFactorValue">-</strong><div class="pmsFactorBar"><i id="pmsFactorValueBar"></i></div></div>
+      <div class="pmsFactorCard"><span>Growth <button class="pmsHelp" type="button" data-help="Gelir ve kâr büyüme oranlarını kullanır. Yüksek pozitif büyüme oranları Growth skorunu yükseltir.">?</button></span><strong id="pmsFactorGrowth">-</strong><div class="pmsFactorBar"><i id="pmsFactorGrowthBar"></i></div></div>
+      <div class="pmsFactorCard"><span>Momentum <button class="pmsHelp" type="button" data-help="20, 50 ve 200 günlük fiyat momentumu birlikte değerlendirilir. Yüksek skor güçlü pozitif fiyat trendini ifade eder.">?</button></span><strong id="pmsFactorMomentum">-</strong><div class="pmsFactorBar"><i id="pmsFactorMomentumBar"></i></div></div>
+      <div class="pmsFactorCard"><span>Quality <button class="pmsHelp" type="button" data-help="ROE, faaliyet marjı, borçluluk, cari oran ve serbest nakit akışı gibi bilanço/kalite göstergelerini birleştirir. Yüksek skor daha yüksek temel kaliteyi ifade eder.">?</button></span><strong id="pmsFactorQuality">-</strong><div class="pmsFactorBar"><i id="pmsFactorQualityBar"></i></div></div>
+      <div class="pmsFactorCard"><span>Low Quality <button class="pmsHelp" type="button" data-help="Quality skorunun tersidir. Yüksek Low Quality skoru; zayıf kârlılık, yüksek borçluluk veya düşük finansal kalite maruziyetinin arttığını gösterir.">?</button></span><strong id="pmsFactorLowQuality">-</strong><div class="pmsFactorBar"><i id="pmsFactorLowQualityBar"></i></div></div>
+    </div>
+    <div class="panel pmsSectorPanel">
+      <h4>Portföy Hangi Sektöre Ağırlık Veriyor? <button class="pmsHelp" type="button" data-help="Aktif pozisyonların güncel brüt büyüklükleri sektör bilgisiyle eşleştirilir. Sektör verisi bulunmayan türev/fon pozisyonları ürün sınıfı altında gruplanır.">?</button></h4>
+      <div id="pmsSectorExposureTable" class="pmsSectorExposure"></div>
+    </div>
+  </div>
+
+  <div id="pmsAttribution" class="pmsSectionBlock">
+    <div class="pmsSectionTitle">
+      <div>
+        <div class="pmsEyebrow">RETURN DECOMPOSITION</div>
+        <h3>Attribution Analysis <button class="pmsHelp" type="button" data-help="Model Portföy getirisinin hangi pozisyon, seçim, sektör, piyasa rejimi ve leverage kaynaklarından geldiğini ayrıştırır. Benchmark sektör ağırlıkları bulunmadığında Sector Allocation ve Market Timing alanları proxy metodoloji kullanır.">?</button></h3>
+      </div>
+    </div>
+    <div class="pmsAttributionGrid">
+      <div class="pmsAttributionCard wide">
+        <span>Getiri Nereden Geldi? <button class="pmsHelp" type="button" data-help="Kapalı pozisyonlarda net gerçekleşen K/Z, açık pozisyonlarda güncel net K/Z kullanılarak en büyük pozitif ve negatif getiri kaynakları sıralanır.">?</button></span>
+        <strong id="pmsReturnSourceHeadline">-</strong>
+        <div id="pmsReturnSources" class="pmsReturnSources"></div>
+      </div>
+      <div class="pmsAttributionCard">
+        <span>Stock Selection <button class="pmsHelp" type="button" data-help="Benchmark % verisi bulunan kapalı işlemlerde portföy trade getirisi ile benchmark getirisi arasındaki fark, işlem büyüklükleriyle ağırlıklandırılır. Pozitif değer seçim etkisinin benchmarkı aştığını gösterir.">?</button></span>
+        <strong id="pmsStockSelectionEffect">-</strong><small id="pmsStockSelectionComment">-</small>
+      </div>
+      <div class="pmsAttributionCard">
+        <span>Sector Selection <button class="pmsHelp" type="button" data-help="Benchmark verisi bulunan işlemlerin aktif getirileri sektör bazında gruplanır. En güçlü ve en zayıf sektör seçim etkisi gösterilir.">?</button></span>
+        <strong id="pmsSectorSelectionEffect">-</strong><small id="pmsSectorSelectionComment">-</small>
+      </div>
+      <div class="pmsAttributionCard">
+        <span>Sector Allocation <button class="pmsHelp" type="button" data-help="Gerçek benchmark sektör ağırlığı bulunmadığı için proxy kullanılır: portföy sektör ağırlıklarının eşit-sektör ağırlığından sapması ile ilgili sektör benchmark getirileri çarpılır. Resmî Brinson attribution değildir.">?</button></span>
+        <strong id="pmsSectorAllocationEffect">-</strong><small id="pmsSectorAllocationComment">-</small>
+      </div>
+      <div class="pmsAttributionCard">
+        <span>Market Timing <button class="pmsHelp" type="button" data-help="Kapalı işlemlerin Bull, Bear ve Sideways rejimlerinde ürettiği getiri dağılımı kullanılarak zamanlama kalitesi yorumlanır. Bu alan tarihsel rejim eşleşmesine dayalı bir timing proxy'sidir.">?</button></span>
+        <strong id="pmsMarketTimingScore">-</strong><small id="pmsMarketTimingComment">-</small>
+      </div>
+      <div class="pmsAttributionCard">
+        <span>Leverage <button class="pmsHelp" type="button" data-help="Aktif brüt pozisyon büyüklüğünün PMS portföy özvarlığına oranını ve 1x üzerindeki mevcut maruziyetin potansiyel getiri/risk amplifikasyonunu gösterir. Dinamik tarihsel leverage verisi tutulmadığından bu alan mevcut exposure proxy'sidir.">?</button></span>
+        <strong id="pmsLeverageEffect">-</strong><small id="pmsLeverageComment">-</small>
+      </div>
     </div>
   </div>
 </section>
@@ -2410,7 +2656,7 @@ function showMainTab(tabId){
  document.body.classList.toggle("terminalHidden",!showTerminal);
  setOrderMode();
  if(tabId==="markets")setTimeout(()=>loadMarkets(activeMarketCategory||"all"),0);
- if(tabId==="pms")setTimeout(()=>renderPMS(),0);
+ if(tabId==="pms")setTimeout(()=>{renderPMS();refreshPmsLiveAnalytics(false)},0);
  if(tabId==="askai")setTimeout(()=>{renderAiWorkspace();refreshAiStatus()},0);
  if(window.innerWidth<=900)closeMobilePanels();
 }
@@ -3038,6 +3284,206 @@ function metrics(){
  return{eq,total:start?eq/start-1:null,cagr:start&&closedEq+nema>0?Math.pow((closedEq+nema)/start,1/years)-1:null,sharpe:st?mean(ex)/st*Math.sqrt(ppy):null,sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,dd,beta:variance(br)?cov(pr,br)/variance(br):null,dur:duration(sdte,edte)}
 }
 
+
+let pmsLiveData=null,pmsLiveLoading=false,pmsLiveFetchedAt=0,pmsLiveSignature="";
+function pmsPositionYahooSymbol(p){
+ if(isViopPosition(p)){
+  const underlying=extractViopUnderlying(p.viopContract||p.symbol,p.symbol);
+  if(!underlying)return "";
+  const direct={"XU030":"XU030.IS","XU100":"XU100.IS","USDTRY":"TRY=X","EURTRY":"EURTRY=X","EURUSD":"EURUSD=X","XAUUSD":"GC=F"};
+  return direct[underlying]||`${underlying}.IS`;
+ }
+ return String(p.yahooSymbol||inferYahooSymbol(p)||p.symbol||"").trim().toUpperCase();
+}
+function pmsLiveRequestPayload(){
+ return{
+  capital:Number(settings.capital)||0,
+  positions:model.slice(0,60).map(p=>({
+   id:p.id,status:p.status,label:p.viopContract||p.futuresContract||p.symbol,
+   symbol:pmsPositionYahooSymbol(p),assetClass:p.assetClass||"",
+   notional:Math.abs(tradeNotional(p,p.status==="Kapalı"?(p.closePrice??p.entry):(p.currentPrice??p.entry))),
+   signedNotional:Math.abs(tradeNotional(p,p.status==="Kapalı"?(p.closePrice??p.entry):(p.currentPrice??p.entry)))*(String(p.direction).includes("Short")?-1:1),
+   contractSize:Number(p.contractSize)||1,hasStop:Number.isFinite(Number(p.stop))&&Number(p.stop)!==0,
+   openDate:String(p.openDateTime||p.openDate||"").slice(0,10),closeDate:String(p.closeDateTime||p.closeDate||"").slice(0,10)
+  }))
+ };
+}
+function pmsCurrentSignature(){
+ return JSON.stringify(model.map(p=>[p.id,p.status,p.currentPrice,p.closePrice,p.qty,p.yahooSymbol,p.symbol,p.assetClass,p.stop]));
+}
+function setPmsLiveStatus(text,state=""){
+ const el=$("pmsLiveStatus");if(!el)return;
+ el.innerHTML=`<span class="headerCloudDot"></span><span>${esc(text)}</span>`;
+ el.classList.toggle("pmsLiveError",state==="error");el.classList.toggle("pmsLiveOk",state==="ok");
+}
+async function refreshPmsLiveAnalytics(force=false){
+ if(pmsLiveLoading||!currentAuthUser)return;
+ const signature=pmsCurrentSignature();
+ if(!force&&pmsLiveData&&signature===pmsLiveSignature&&Date.now()-pmsLiveFetchedAt<5*60*1000){renderPmsLiveModules();return}
+ pmsLiveLoading=true;setPmsLiveStatus("PMS canlı verileri yükleniyor…");
+ try{
+  const payload=await authFetch("/api/pms/live-analytics",{method:"POST",body:JSON.stringify(pmsLiveRequestPayload())});
+  pmsLiveData=payload;pmsLiveFetchedAt=Date.now();pmsLiveSignature=signature;
+  setPmsLiveStatus(`Canlı veri güncel · ${new Date(payload.fetchedAt).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})}`,"ok");
+  renderPmsLiveModules();
+ }catch(error){
+  setPmsLiveStatus("Canlı PMS verisi alınamadı","error");
+  if($("pmsHealthComment"))$("pmsHealthComment").textContent=`Canlı veri hatası: ${error.message}`;
+ }finally{pmsLiveLoading=false}
+}
+function pmsSetScore(id,value,barId=null){
+ const el=$(id);if(!el)return;
+ if(!pmsFinite(value)){el.textContent="-";if(barId&&$(barId))$(barId).style.width="0%";return}
+ const v=Math.max(0,Math.min(100,Number(value)));el.textContent=f(v,0);
+ if(barId&&$(barId))$(barId).style.width=`${v}%`;
+}
+function pmsHealthLabelFor(score){
+ if(!pmsFinite(score))return "Veri yetersiz";
+ if(score>=80)return "Güçlü";
+ if(score>=65)return "İyi";
+ if(score>=50)return "İzlenmeli";
+ return "Zayıf";
+}
+function pmsNearestRegime(date){
+ const rows=pmsLiveData?.regime?.history||[];
+ if(!date||!rows.length)return null;
+ let lo=0,hi=rows.length-1,best=null;
+ while(lo<=hi){
+  const mid=(lo+hi)>>1,row=rows[mid];
+  if(row.date<=date){best=row;lo=mid+1}else hi=mid-1;
+ }
+ return best;
+}
+function pmsRegimePerformanceAnalysis(){
+ const groups={Bull:[],Bear:[],Sideways:[]};
+ for(const p of pmsClosedTrades()){
+  const date=String(p.closeDateTime||p.closeDate||"").slice(0,10),reg=pmsNearestRegime(date);
+  if(reg&&groups[reg.trend])groups[reg.trend].push(Number(mret(p)));
+ }
+ const result={};
+ for(const [key,rs] of Object.entries(groups)){
+  result[key]={count:rs.length,compound:rs.length?pmsCompound(rs):null,avg:rs.length?mean(rs):null,winRate:rs.length?rs.filter(x=>x>0).length/rs.length:null};
+ }
+ return result;
+}
+function renderPmsPortfolioHealth(){
+ const h=pmsLiveData?.portfolioHealth;if(!h)return;
+ pmsSetScore("pmsHealthScore",h.overall);
+ pmsSetScore("pmsDiversificationScore",h.diversification,"pmsDiversificationBar");
+ pmsSetScore("pmsLiquidityScore",h.liquidity,"pmsLiquidityBar");
+ pmsSetScore("pmsRiskHealthScore",h.risk,"pmsRiskHealthBar");
+ $("pmsHealthLabel").textContent=pmsHealthLabelFor(h.overall);
+ $("pmsHealthComment").textContent=h.comment||"Sağlık yorumu üretilemedi.";
+ $("pmsHealthCoverage").textContent=`Canlı coverage %${f(h.coverage||0,0)}`;
+ const ring=$("pmsHealthRing"),deg=Math.max(0,Math.min(360,(Number(h.overall)||0)*3.6));
+ ring.style.background=`conic-gradient(#4eddb0 0deg,#4eddb0 ${deg}deg,#173044 ${deg}deg)`;
+}
+function renderPmsMarketRegime(){
+ const current=pmsLiveData?.regime?.current;if(!current)return;
+ $("pmsCurrentRegime").textContent=current.trend||"-";
+ $("pmsCurrentVolRegime").textContent=current.volatility||"-";
+ $("pmsCurrentRiskRegime").textContent=current.riskAppetite||"-";
+ $("pmsRegimeTimestamp").textContent=current.date?`Değer tarihi ${current.date}`:"-";
+ $("pmsBullIndicator").textContent=current.trend==="Bull"?"Aktif":"Pasif";
+ $("pmsBearIndicator").textContent=current.trend==="Bear"?"Aktif":"Pasif";
+ $("pmsSidewaysIndicator").textContent=current.trend==="Sideways"?"Aktif":"Pasif";
+ $("pmsHighVolIndicator").textContent=current.volatility==="High Volatility"?"Aktif":"Pasif";
+ $("pmsLowVolIndicator").textContent=current.volatility==="Low Volatility"?"Aktif":"Pasif";
+ $("pmsRiskOnOffIndicator").textContent=current.riskAppetite||"-";
+ document.querySelectorAll("[data-regime-card]").forEach(x=>x.classList.toggle("active",x.dataset.regimeCard===current.trend));
+ document.querySelectorAll("[data-vol-card]").forEach(x=>x.classList.toggle("active",x.dataset.volCard===current.volatility));
+ document.querySelectorAll("[data-risk-card]").forEach(x=>x.classList.toggle("active",current.riskAppetite==="Risk-On"));
+ $("pmsRegimeDetails").innerHTML=`Kaynak: <strong>${esc(pmsLiveData.regime.source||"Yahoo Finance")}</strong> · S&P 500: ${f(current.spx,2)} · SMA50: ${f(current.sma50,2)} · SMA200: ${f(current.sma200,2)} · 20G momentum: %${f(current.momentum20,2)} · VIX: ${f(current.vix,2)} · HYG/IEF: ${f(current.riskRatio,4)}. Veri gecikmeli olabilir.`;
+}
+function renderPmsRegimePerformance(){
+ const r=pmsRegimePerformanceAnalysis(),map=[["Bull","pmsBullPerformance","pmsBullPerformanceMeta"],["Bear","pmsBearPerformance","pmsBearPerformanceMeta"],["Sideways","pmsSidewaysPerformance","pmsSidewaysPerformanceMeta"]];
+ let matched=0,best=null;
+ for(const [key,valueId,metaId] of map){
+  const x=r[key];matched+=x.count;
+  if(x.count){
+   $(valueId).textContent=`${x.compound>=0?"+":""}%${f(x.compound*100,2)}`;
+   $(valueId).className=x.compound>=0?"pmsPositive":"pmsNegative";
+   $(metaId).textContent=`${x.count} işlem · Ort. ${x.avg>=0?"+":""}%${f(x.avg*100,2)} · Win %${f(x.winRate*100,1)}`;
+   if(!best||x.compound>best.compound)best={key,...x};
+  }else{$(valueId).textContent="-";$(metaId).textContent="Yeterli eşleşmiş işlem yok"}
+ }
+ $("pmsRegimePerfCoverage").textContent=`${matched} işlem eşleşti`;
+ if(best&&best.count>=1){
+  const names={Bull:"boğa",Bear:"ayı",Sideways:"yatay"};
+  $("pmsBestRegimeAnalysis").textContent=`Mevcut örneklemde strateji ${names[best.key]} piyasa rejiminde daha güçlü sonuç üretmiş görünüyor. Bu rejimde bileşik getiri %${f(best.compound*100,2)}, ortalama işlem getirisi %${f(best.avg*100,2)} ve başarı oranı %${f(best.winRate*100,1)}. Örneklem sayısı ${best.count}; sayı düşükse sonuç istatistiksel olarak temkinli yorumlanmalıdır.`;
+ }else $("pmsBestRegimeAnalysis").textContent="Piyasa rejimi performansını yorumlamak için yeterli eşleşmiş kapalı işlem bulunmuyor.";
+}
+function renderPmsRiskContribution(){
+ const risk=pmsLiveData?.risk;if(!risk)return;
+ $("pmsLivePortfolioVol").textContent=pmsFinite(risk.portfolioVolatility)?`%${f(risk.portfolioVolatility,2)}`:"-";
+ const positives=(risk.rows||[]).filter(x=>pmsFinite(x.riskContributionPct)&&x.riskContributionPct>0).sort((a,b)=>b.riskContributionPct-a.riskContributionPct);
+ const top=positives[0];
+ $("pmsLargestRiskPosition").textContent=top?`${top.label} · %${f(top.riskContributionPct,1)}`:"-";
+ $("pmsRiskConcentration").textContent=top?`%${f(top.riskContributionPct,1)}`:"-";
+ $("pmsRiskContributionCoverage").textContent=`Fiyat coverage %${f(risk.coverage||0,0)}`;
+ if(!risk.rows?.length){$("pmsRiskContributionTable").innerHTML='<div class="marketEmpty">Aktif pozisyon veya yeterli fiyat geçmişi bulunmuyor.</div>';return}
+ $("pmsRiskContributionTable").innerHTML=`<table><thead><tr><th>Pozisyon</th><th>Ağırlık</th><th>Yıllık Vol.</th><th>Risk Katkısı</th><th>Risk Payı</th><th>Yorum</th></tr></thead><tbody>${risk.rows.map(x=>{
+   const pct=Number(x.riskContributionPct)||0,abs=Math.min(100,Math.abs(pct));
+   const comment=pct<0?"Hedge / riski azaltıyor":pct>=35?"Yüksek risk yoğunlaşması":pct>=20?"Belirgin risk katkısı":"Dengeli katkı";
+   return`<tr><td><strong>${esc(x.label)}</strong><div class="muted">${esc(x.symbol||"")}</div></td><td>${f((x.weight||0)*100,1)}%</td><td>${pmsFinite(x.annualVolatility)?f(x.annualVolatility,1)+"%":"-"}</td><td class="${pct<0?"positive":pct>=35?"negative":""}">${pct>0?"+":""}${f(pct,1)}%</td><td class="riskBarCell"><div class="pmsMiniRiskBar"><i style="width:${abs}%"></i></div></td><td>${comment}</td></tr>`;
+  }).join("")}</tbody></table>`;
+}
+function renderPmsFactorExposure(){
+ const fct=pmsLiveData?.factorExposure;if(!fct)return;
+ [["value","pmsFactorValue","pmsFactorValueBar"],["growth","pmsFactorGrowth","pmsFactorGrowthBar"],["momentum","pmsFactorMomentum","pmsFactorMomentumBar"],["quality","pmsFactorQuality","pmsFactorQualityBar"],["lowQuality","pmsFactorLowQuality","pmsFactorLowQualityBar"]].forEach(([key,id,bar])=>pmsSetScore(id,fct[key],bar));
+ $("pmsFactorCoverage").textContent=`Coverage %${f(fct.coverage||0,0)}`;
+ const sectors=fct.sectors||[];
+ $("pmsSectorExposureTable").innerHTML=sectors.length?sectors.map(s=>`<div class="pmsSectorRow"><span>${esc(s.sector)}</span><div class="bar"><i style="width:${Math.min(100,s.weight*100)}%"></i></div><strong>%${f(s.weight*100,1)}</strong></div>`).join(""):'<div class="muted">Sektör verisi bulunamadı.</div>';
+}
+function pmsAttributionAnalysis(){
+ const analysis=pmsAnalysis(),meta=new Map((pmsLiveData?.assets||[]).map(x=>[String(x.id),x]));
+ const pnlRows=model.map(p=>({p,meta:meta.get(String(p.id)),pnl:p.status==="Kapalı"?Number(netClosedPnl(p)||0):Number(netLivePnl(p)||0)})).filter(x=>x.pnl!==0).sort((a,b)=>Math.abs(b.pnl)-Math.abs(a.pnl));
+ const totalAbs=pnlRows.reduce((s,x)=>s+Math.abs(x.pnl),0);
+ const paired=analysis.closed.filter(p=>pmsFinite(p.benchmark)&&pmsFinite(mret(p)));
+ const pairedNotional=paired.reduce((s,p)=>s+Math.abs(tradeNotional(p,p.entry)),0);
+ const stockSelection=pairedNotional?paired.reduce((s,p)=>s+Math.abs(tradeNotional(p,p.entry))/pairedNotional*(Number(mret(p))-Number(p.benchmark)/100),0):null;
+ const sectorGroups={};
+ for(const p of paired){
+  const sector=meta.get(String(p.id))?.sector||p.assetClass||"Diğer",notional=Math.abs(tradeNotional(p,p.entry)),active=Number(mret(p))-Number(p.benchmark)/100;
+  if(!sectorGroups[sector])sectorGroups[sector]={notional:0,activeSum:0,benchSum:0,count:0};
+  sectorGroups[sector].notional+=notional;sectorGroups[sector].activeSum+=active*notional;sectorGroups[sector].benchSum+=Number(p.benchmark)/100*notional;sectorGroups[sector].count++;
+ }
+ const sectorRows=Object.entries(sectorGroups).map(([sector,x])=>({sector,weight:pairedNotional?x.notional/pairedNotional:0,active:x.notional?x.activeSum/x.notional:0,bench:x.notional?x.benchSum/x.notional:0,count:x.count}));
+ const bestSector=[...sectorRows].sort((a,b)=>b.active-a.active)[0],worstSector=[...sectorRows].sort((a,b)=>a.active-b.active)[0];
+ const equal=sectorRows.length?1/sectorRows.length:0;
+ const sectorAllocation=sectorRows.length?sectorRows.reduce((s,x)=>s+(x.weight-equal)*x.bench,0):null;
+ const regime=pmsRegimePerformanceAnalysis();
+ const validReg=Object.entries(regime).filter(([,x])=>x.count);
+ const posReg=validReg.filter(([,x])=>x.compound>0).reduce((s,[,x])=>s+x.count,0),regCount=validReg.reduce((s,[,x])=>s+x.count,0);
+ const timingScore=regCount?Math.max(0,Math.min(100,posReg/regCount*100)):null;
+ const gross=model.filter(p=>p.status==="Aktif").reduce((s,p)=>s+Math.abs(positionSize(p)),0),equity=analysis.currentEquity||Number(settings.capital)||0;
+ const leverage=equity>0?gross/equity:null;
+ const leverageEffect=analysis.totalReturn!==null&&leverage&&leverage>1?analysis.totalReturn*(1-1/leverage):0;
+ return{pnlRows,totalAbs,stockSelection,sectorRows,bestSector,worstSector,sectorAllocation,timingScore,regime,leverage,leverageEffect};
+}
+function renderPmsAttribution(){
+ const a=pmsAttributionAnalysis(),top=a.pnlRows.slice(0,6);
+ $("pmsReturnSourceHeadline").textContent=top.length?`${top[0].p.viopContract||top[0].p.futuresContract||top[0].p.symbol} en büyük mutlak katkıyı üretiyor`:"Henüz K/Z kaynağı yok";
+ $("pmsReturnSources").innerHTML=top.length?top.map(x=>{
+  const share=a.totalAbs?Math.abs(x.pnl)/a.totalAbs*100:0,label=x.p.viopContract||x.p.futuresContract||x.p.symbol;
+  return`<div class="pmsReturnSourceRow ${x.pnl<0?"negative":""}"><span>${esc(label)}</span><div class="bar"><i style="width:${share}%"></i></div><strong class="${x.pnl>=0?"positive":"negative"}">${x.pnl>=0?"+":""}${f(x.pnl,2)} TRY</strong></div>`;
+ }).join(""):'<div class="muted">Kapalı veya açık pozisyon K/Z verisi bulunmuyor.</div>';
+ pmsSetValue("pmsStockSelectionEffect",a.stockSelection,{percent:true,sign:true});
+ $("pmsStockSelectionComment").textContent=a.stockSelection===null?"Benchmark % verisi bulunan kapalı işlem yok.":a.stockSelection>0?"Seçim etkisi benchmark üzerinde pozitif aktif getiri üretiyor.":"Seçim etkisi benchmarka göre negatif.";
+ const secEffect=a.bestSector?.active??null;pmsSetValue("pmsSectorSelectionEffect",secEffect,{percent:true,sign:true});
+ $("pmsSectorSelectionComment").textContent=a.bestSector?`En güçlü seçim: ${a.bestSector.sector} ${a.bestSector.active>=0?"+":""}%${f(a.bestSector.active*100,2)}${a.worstSector&&a.worstSector.sector!==a.bestSector.sector?` · En zayıf: ${a.worstSector.sector} ${a.worstSector.active>=0?"+":""}%${f(a.worstSector.active*100,2)}`:""}`:"Sektör eşleşmesi için canlı sektör ve benchmark verisi gerekiyor.";
+ pmsSetValue("pmsSectorAllocationEffect",a.sectorAllocation,{percent:true,sign:true});
+ $("pmsSectorAllocationComment").textContent=a.sectorAllocation===null?"Yeterli sektör/benchmark örneklemi yok.":"Eşit-sektör benchmarkına göre proxy allocation effect; resmî Brinson sonucu değildir.";
+ pmsSetValue("pmsMarketTimingScore",a.timingScore);
+ $("pmsMarketTimingComment").textContent=a.timingScore===null?"Rejim eşleşmesi için yeterli işlem yok.":`Pozitif sonuç üreten rejimlerdeki işlem payına dayalı timing proxy skoru ${f(a.timingScore,0)}/100.`;
+ $("pmsLeverageEffect").textContent=a.leverage===null?"-":`${f(a.leverage,2)}x gross leverage`;
+ $("pmsLeverageComment").textContent=a.leverage===null?"Aktif exposure bulunmuyor.":a.leverage>1?`Mevcut brüt exposure özvarlığın ${f(a.leverage,2)} katı. 1x üzerindeki maruziyet getiri ve zararı büyütebilir; tahmini mevcut amplification effect ${a.leverageEffect>=0?"+":""}%${f(a.leverageEffect*100,2)}.`:`Mevcut brüt exposure özvarlığın altında; leverage kaynaklı ek amplifikasyon sınırlı.`;
+}
+function renderPmsLiveModules(){
+ if(!pmsLiveData)return;
+ renderPmsPortfolioHealth();renderPmsMarketRegime();renderPmsRegimePerformance();renderPmsRiskContribution();renderPmsFactorExposure();renderPmsAttribution();
+}
+
 function pmsFinite(value){return Number.isFinite(Number(value))}
 function pmsCompound(returns){
  return returns.reduce((acc,r)=>acc*(1+Number(r||0)),1)-1;
@@ -3277,6 +3723,7 @@ window.renderPMS=function renderPMS(){
  $("mBeta").textContent=a.beta===null?"-":f(a.beta,2);
  $("mDuration").textContent=base.dur||"-";
 
+ if(pmsLiveData)renderPmsLiveModules();
  if($("pms")?.classList.contains("active")){
   pmsDrawIndexedChart(a);pmsDrawDrawdown(a);
   pmsDrawSingleSeries("pmsRollingSharpeChart",rolling,"sharpe",v=>f(v,2),"#62a7ff");
@@ -3747,6 +4194,7 @@ $("viopTransferBtn").onclick=()=>{
 $("refreshViopWorkspace").onclick=()=>loadViopContracts(true);
 $("refreshViopContracts").onclick=()=>loadViopContracts(true);
 $("pmsRollingWindow")?.addEventListener("change",renderPMS);
+$("pmsRefreshLiveData")?.addEventListener("click",()=>refreshPmsLiveAnalytics(true));
 window.addEventListener("resize",()=>{if($("pms")?.classList.contains("active"))renderPMS()});
 $("cashStatementFilterBtn").onclick=()=>$("cashStatementFilterPanel").classList.toggle("hidden");
 $("cashStatementFilterMode").onchange=syncCashStatementFilterUI;
