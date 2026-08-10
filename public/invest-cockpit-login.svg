@@ -1,0 +1,336 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1024" width="1536" height="1024">
+  <defs>
+    <linearGradient id="navy" x1="0" x2="1">
+      <stop offset="0" stop-color="#071c47"/>
+      <stop offset="1" stop-color="#0b2d6f"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a1f26"/>
+      <stop offset="1" stop-color="#080b10"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#061323"/>
+      <stop offset="1" stop-color="#03101a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000000" flood-opacity=".28"/>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+    <style>
+      .metal{fill:#0d1117;stroke:#3a4351;stroke-width:6}
+      .inner{fill:url(#panel);stroke:#6d7681;stroke-width:2}
+      .smallText{font-family:Arial,Helvetica,sans-serif;font-size:14px;fill:#f2f5f7;font-weight:700}
+      .tiny{font-family:Arial,Helvetica,sans-serif;font-size:11px;fill:#d5dde5;font-weight:700}
+      .blueText{font-family:Arial,Helvetica,sans-serif;fill:#25a8ff;font-weight:700}
+      .green{fill:#62ef7f}
+      .blue{fill:#2d84ff}
+      .white{fill:#f8fbff}
+      .tick{stroke:#e8edf4;stroke-width:2}
+      .grid{stroke:#163150;stroke-width:1}
+    </style>
+  </defs>
+
+  <rect width="1536" height="1024" fill="#ffffff"/>
+
+  <g transform="translate(215 34)" filter="url(#shadow)">
+    <!-- outer cockpit shell -->
+    <path d="M148 116 L353 45 L475 34 L506 0 L705 0 L737 34 L862 45 L1062 116
+             Q1112 136 1120 196 L1120 528 Q1116 574 1082 610
+             L956 707 L790 742 L755 790 L370 790 L335 742 L170 707 L44 610
+             Q10 574 6 528 L6 196 Q14 136 64 116 Z"
+          fill="#06152d" stroke="#0b3579" stroke-width="10"/>
+
+    <path d="M158 132 L360 64 L475 54 L500 24 L711 24 L739 54 L854 64 L1054 132
+             Q1087 144 1093 192 L1093 516 Q1090 551 1064 581
+             L944 680 L782 714 L742 757 L383 757 L343 714 L182 680 L62 581
+             Q36 551 33 516 L33 192 Q39 144 72 132 Z"
+          class="metal"/>
+
+    <!-- upper badge -->
+    <path d="M494 28 L717 28 L744 75 L714 118 L497 118 L468 75 Z"
+          fill="url(#navy)" stroke="#6e7b8b" stroke-width="4"/>
+    <g transform="translate(565 46)" fill="#f6f8fb">
+      <path d="M38 10 C26 17 21 34 20 54 L12 54 L1 38 L15 42 L0 26 L19 32 L8 15 L27 26
+               C31 20 34 14 38 10 Z"/>
+      <path d="M45 10 C57 17 62 34 63 54 L71 54 L82 38 L68 42 L83 26 L64 32 L75 15 L56 26
+               C52 20 49 14 45 10 Z"/>
+      <rect x="39" y="8" width="5" height="49" rx="2"/>
+    </g>
+
+    <!-- upper instrument strip -->
+    <rect x="312" y="62" width="173" height="93" rx="12" class="inner"/>
+    <text x="338" y="88" class="smallText">ALTITUDE</text>
+    <text x="338" y="121" font-size="26" font-family="Arial" fill="#fff" font-weight="700">35,000</text>
+    <text x="338" y="145" class="blueText" font-size="16">FT</text>
+
+    <rect x="487" y="126" width="250" height="55" rx="10" class="inner"/>
+    <text x="566" y="147" class="tiny">AUTO PILOT</text>
+    <g transform="translate(508 153)">
+      <g><circle cx="0" cy="0" r="5" class="green"/><rect x="-16" y="10" width="34" height="22" rx="4" fill="#111820"/><text x="-9" y="25" class="tiny">NAV</text></g>
+      <g transform="translate(48 0)"><circle cx="0" cy="0" r="5" class="green"/><rect x="-16" y="10" width="34" height="22" rx="4" fill="#111820"/><text x="-9" y="25" class="tiny">APR</text></g>
+      <g transform="translate(96 0)"><circle cx="0" cy="0" r="5" class="green"/><rect x="-16" y="10" width="34" height="22" rx="4" fill="#111820"/><text x="-10" y="25" class="tiny">HDG</text></g>
+      <g transform="translate(144 0)"><circle cx="0" cy="0" r="5" class="green"/><rect x="-16" y="10" width="34" height="22" rx="4" fill="#111820"/><text x="-9" y="25" class="tiny">ALT</text></g>
+      <g transform="translate(192 0)"><circle cx="0" cy="0" r="5" class="green"/><rect x="-16" y="10" width="34" height="22" rx="4" fill="#111820"/><text x="-6" y="25" class="tiny">VS</text></g>
+    </g>
+
+    <rect x="737" y="62" width="174" height="93" rx="12" class="inner"/>
+    <text x="781" y="88" class="smallText">VS</text>
+    <text x="770" y="121" font-size="26" font-family="Arial" fill="#fff" font-weight="700">+1500</text>
+    <text x="786" y="145" class="blueText" font-size="16">FPM</text>
+
+    <!-- left attitude indicator -->
+    <g transform="translate(209 236)">
+      <circle r="93" fill="#090d13" stroke="#788391" stroke-width="4"/>
+      <clipPath id="attClip"><circle r="82"/></clipPath>
+      <g clip-path="url(#attClip)">
+        <rect x="-82" y="-82" width="164" height="82" fill="#165abf"/>
+        <rect x="-82" y="0" width="164" height="82" fill="#171b20"/>
+        <line x1="-82" y1="0" x2="82" y2="0" stroke="#fff" stroke-width="4"/>
+        <g class="tick">
+          <line x1="-22" y1="-58" x2="22" y2="-58"/>
+          <line x1="-34" y1="-38" x2="34" y2="-38"/>
+          <line x1="-45" y1="-18" x2="45" y2="-18"/>
+          <line x1="-45" y1="18" x2="45" y2="18"/>
+          <line x1="-34" y1="38" x2="34" y2="38"/>
+          <line x1="-22" y1="58" x2="22" y2="58"/>
+        </g>
+      </g>
+      <polygon points="0,-77 -8,-60 8,-60" fill="#fff"/>
+      <circle r="8" fill="#0b0f14" stroke="#fff" stroke-width="4"/>
+      <line x1="-52" y1="0" x2="-10" y2="0" stroke="#fff" stroke-width="4"/>
+      <line x1="10" y1="0" x2="52" y2="0" stroke="#fff" stroke-width="4"/>
+      <text x="-58" y="-43" class="smallText">20</text>
+      <text x="-58" y="-13" class="smallText">10</text>
+      <text x="43" y="-43" class="smallText">20</text>
+      <text x="43" y="-13" class="smallText">10</text>
+    </g>
+
+    <!-- right radar -->
+    <g transform="translate(919 236)">
+      <circle r="93" fill="#071727" stroke="#788391" stroke-width="4"/>
+      <g stroke="#4778a8" fill="none">
+        <circle r="67"/><circle r="47"/><circle r="27"/>
+        <line x1="-82" y1="0" x2="82" y2="0"/>
+        <line x1="0" y1="-82" x2="0" y2="82"/>
+        <line x1="-58" y1="-58" x2="58" y2="58"/>
+        <line x1="-58" y1="58" x2="58" y2="-58"/>
+      </g>
+      <line x1="0" y1="0" x2="62" y2="-56" stroke="#47a9ff" stroke-width="4"/>
+      <circle r="7" fill="#006bff" stroke="#b8d8ff" stroke-width="2"/>
+      <circle cx="-37" cy="-26" r="6" class="blue"/>
+      <circle cx="41" cy="28" r="6" class="blue"/>
+    </g>
+
+    <!-- small gauges left -->
+    <g transform="translate(111 397)">
+      <circle r="58" fill="#090d12" stroke="#66727f" stroke-width="3"/>
+      <text x="-26" y="-5" class="smallText">SPD</text>
+      <text x="-30" y="24" font-family="Arial" font-size="23" fill="#fff" font-weight="700">250</text>
+      <text x="-12" y="45" class="blueText" font-size="15">KT</text>
+    </g>
+    <g transform="translate(237 397)">
+      <circle r="58" fill="#090d12" stroke="#66727f" stroke-width="3"/>
+      <text x="-26" y="-5" class="smallText">HDG</text>
+      <text x="-28" y="24" font-family="Arial" font-size="23" fill="#fff" font-weight="700">090</text>
+      <text x="-2" y="45" class="blueText" font-size="15">°</text>
+    </g>
+
+    <!-- small gauges right -->
+    <g transform="translate(850 397)">
+      <circle r="58" fill="#090d12" stroke="#66727f" stroke-width="3"/>
+      <text x="-25" y="-5" class="smallText">VOR 1</text>
+      <text x="-34" y="24" font-family="Arial" font-size="21" fill="#fff" font-weight="700">113.70</text>
+      <text x="-13" y="45" class="blueText" font-size="14">MHz</text>
+    </g>
+    <g transform="translate(977 397)">
+      <circle r="58" fill="#090d12" stroke="#66727f" stroke-width="3"/>
+      <text x="-25" y="-5" class="smallText">VOR 2</text>
+      <text x="-34" y="24" font-family="Arial" font-size="21" fill="#fff" font-weight="700">117.20</text>
+      <text x="-13" y="45" class="blueText" font-size="14">MHz</text>
+    </g>
+
+    <!-- central market screen -->
+    <rect x="328" y="190" width="458" height="292" rx="14" fill="#03080d" stroke="#69737e" stroke-width="5"/>
+    <rect x="345" y="207" width="424" height="245" rx="8" fill="url(#screen)" stroke="#1f3f5d" stroke-width="2"/>
+
+    <!-- market list -->
+    <rect x="355" y="218" width="115" height="176" fill="#07111a" stroke="#18324a"/>
+    <text x="364" y="238" class="tiny">MARKET OVERVIEW</text>
+    <g class="smallText" font-size="12">
+      <text x="364" y="261">AAPL</text><text x="420" y="261" fill="#5af27d">+2.31%</text>
+      <text x="364" y="284">MSFT</text><text x="420" y="284" fill="#5af27d">+1.85%</text>
+      <text x="364" y="307">NVDA</text><text x="420" y="307" fill="#5af27d">+3.42%</text>
+      <text x="364" y="330">AMZN</text><text x="420" y="330" fill="#5af27d">+1.23%</text>
+      <text x="364" y="353">META</text><text x="420" y="353" fill="#5af27d">+1.12%</text>
+      <text x="364" y="376">GOOGL</text><text x="420" y="376" fill="#5af27d">+0.98%</text>
+      <text x="364" y="399">TSLA</text><text x="420" y="399" fill="#5af27d">+2.05%</text>
+    </g>
+
+    <!-- chart grid -->
+    <g transform="translate(483 221)">
+      <rect width="273" height="169" fill="#06162a"/>
+      <g class="grid">
+        <line x1="0" y1="28" x2="273" y2="28"/>
+        <line x1="0" y1="56" x2="273" y2="56"/>
+        <line x1="0" y1="84" x2="273" y2="84"/>
+        <line x1="0" y1="112" x2="273" y2="112"/>
+        <line x1="0" y1="140" x2="273" y2="140"/>
+        <line x1="45" y1="0" x2="45" y2="169"/>
+        <line x1="90" y1="0" x2="90" y2="169"/>
+        <line x1="135" y1="0" x2="135" y2="169"/>
+        <line x1="180" y1="0" x2="180" y2="169"/>
+        <line x1="225" y1="0" x2="225" y2="169"/>
+      </g>
+      <!-- candles -->
+      <g stroke-width="2">
+        <line x1="20" y1="130" x2="20" y2="154" stroke="#5cc9ff"/><rect x="15" y="137" width="10" height="13" fill="#2986ff"/>
+        <line x1="39" y1="119" x2="39" y2="151" stroke="#5cc9ff"/><rect x="34" y="125" width="10" height="18" fill="#2f92ff"/>
+        <line x1="58" y1="128" x2="58" y2="156" stroke="#5cc9ff"/><rect x="53" y="135" width="10" height="14" fill="#338cff"/>
+        <line x1="77" y1="104" x2="77" y2="146" stroke="#dce7ef"/><rect x="72" y="111" width="10" height="24" fill="#f7f9fb"/>
+        <line x1="96" y1="116" x2="96" y2="150" stroke="#dce7ef"/><rect x="91" y="122" width="10" height="18" fill="#f7f9fb"/>
+        <line x1="115" y1="91" x2="115" y2="136" stroke="#dce7ef"/><rect x="110" y="98" width="10" height="26" fill="#fff"/>
+        <line x1="134" y1="102" x2="134" y2="140" stroke="#5cc9ff"/><rect x="129" y="110" width="10" height="20" fill="#2e91ff"/>
+        <line x1="153" y1="76" x2="153" y2="129" stroke="#dce7ef"/><rect x="148" y="83" width="10" height="30" fill="#fff"/>
+        <line x1="172" y1="55" x2="172" y2="119" stroke="#5cc9ff"/><rect x="167" y="67" width="10" height="35" fill="#2d87ff"/>
+        <line x1="191" y1="42" x2="191" y2="106" stroke="#dce7ef"/><rect x="186" y="54" width="10" height="34" fill="#fff"/>
+        <line x1="210" y1="29" x2="210" y2="93" stroke="#5cc9ff"/><rect x="205" y="42" width="10" height="32" fill="#2f8fff"/>
+        <line x1="229" y1="21" x2="229" y2="80" stroke="#dce7ef"/><rect x="224" y="31" width="10" height="31" fill="#fff"/>
+        <line x1="248" y1="9" x2="248" y2="70" stroke="#dce7ef"/><rect x="243" y="20" width="10" height="34" fill="#fff"/>
+      </g>
+      <!-- trend lines -->
+      <path d="M10 145 C55 143 80 130 116 112 C154 94 189 78 246 18" fill="none" stroke="#65c9ff" stroke-width="3"/>
+      <path d="M7 154 C72 151 111 143 148 130 C185 117 223 104 260 83" fill="none" stroke="#1eb1f5" stroke-width="2"/>
+      <!-- volume -->
+      <g fill="#1d72c7">
+        <rect x="16" y="158" width="8" height="9"/><rect x="35" y="154" width="8" height="13"/>
+        <rect x="54" y="161" width="8" height="6"/><rect x="73" y="157" width="8" height="10"/>
+        <rect x="92" y="162" width="8" height="5"/><rect x="111" y="155" width="8" height="12"/>
+        <rect x="130" y="150" width="8" height="17"/><rect x="149" y="144" width="8" height="23"/>
+        <rect x="168" y="155" width="8" height="12"/><rect x="187" y="148" width="8" height="19"/>
+        <rect x="206" y="160" width="8" height="7"/><rect x="225" y="151" width="8" height="16"/>
+        <rect x="244" y="143" width="8" height="24"/>
+      </g>
+    </g>
+
+    <!-- timeframe buttons -->
+    <g transform="translate(357 410)" font-family="Arial" font-size="12" font-weight="700">
+      <g><rect width="54" height="28" rx="4" fill="#0e3d80" stroke="#2c78d4"/><text x="19" y="19" fill="#fff">1D</text></g>
+      <g transform="translate(67 0)"><rect width="54" height="28" rx="4" fill="#10151b" stroke="#343b43"/><text x="18" y="19" fill="#fff">1W</text></g>
+      <g transform="translate(134 0)"><rect width="54" height="28" rx="4" fill="#10151b" stroke="#343b43"/><text x="18" y="19" fill="#fff">1M</text></g>
+      <g transform="translate(201 0)"><rect width="54" height="28" rx="4" fill="#10151b" stroke="#343b43"/><text x="18" y="19" fill="#fff">3M</text></g>
+      <g transform="translate(268 0)"><rect width="54" height="28" rx="4" fill="#10151b" stroke="#343b43"/><text x="15" y="19" fill="#fff">YTD</text></g>
+      <g transform="translate(335 0)"><rect width="54" height="28" rx="4" fill="#10151b" stroke="#343b43"/><text x="19" y="19" fill="#fff">1Y</text></g>
+    </g>
+
+    <!-- middle lower panels -->
+    <rect x="75" y="458" width="118" height="122" rx="8" class="inner"/>
+    <text x="103" y="481" class="tiny">MOMENTUM</text>
+    <circle cx="134" cy="526" r="42" fill="#0a0e13" stroke="#7b8490" stroke-width="2"/>
+    <line x1="134" y1="526" x2="160" y2="502" stroke="#fff" stroke-width="5"/>
+    <circle cx="134" cy="526" r="6" fill="#ddd"/>
+    <text x="119" y="566" class="blueText" font-size="18">78%</text>
+
+    <rect x="196" y="458" width="118" height="122" rx="8" class="inner"/>
+    <text x="218" y="481" class="tiny">CONFIDENCE</text>
+    <circle cx="255" cy="526" r="42" fill="#0a0e13" stroke="#7b8490" stroke-width="2"/>
+    <line x1="255" y1="526" x2="280" y2="498" stroke="#fff" stroke-width="5"/>
+    <circle cx="255" cy="526" r="6" fill="#ddd"/>
+    <text x="240" y="566" class="blueText" font-size="18">65%</text>
+
+    <rect x="337" y="498" width="305" height="82" rx="8" class="inner"/>
+    <text x="422" y="520" class="tiny">PORTFOLIO ALLOCATION</text>
+    <g transform="translate(355 532)" font-family="Arial" font-size="12" font-weight="700">
+      <g><rect width="76" height="31" rx="4" fill="#173c74"/><text x="13" y="20" fill="#fff">EQUITIES</text></g>
+      <g transform="translate(84 0)"><rect width="65" height="31" rx="4" fill="#12161c"/><text x="12" y="20" fill="#fff">BONDS</text></g>
+      <g transform="translate(157 0)"><rect width="65" height="31" rx="4" fill="#12161c"/><text x="14" y="20" fill="#fff">CASH</text></g>
+      <g transform="translate(230 0)"><rect width="54" height="31" rx="4" fill="#12161c"/><text x="14" y="20" fill="#fff">ALT</text></g>
+    </g>
+
+    <rect x="657" y="498" width="188" height="82" rx="8" class="inner"/>
+    <text x="708" y="520" class="tiny">MARKET OUTLOOK</text>
+    <rect x="677" y="531" width="150" height="31" rx="4" fill="#10151b" stroke="#354452"/>
+    <text x="719" y="553" font-family="Arial" font-size="15" font-weight="700" fill="#5ef37c">BULLISH</text>
+
+    <rect x="850" y="458" width="117" height="122" rx="8" class="inner"/>
+    <text x="877" y="481" class="tiny">RISK LEVEL</text>
+    <circle cx="908" cy="526" r="39" fill="#090d12" stroke="#737c86"/>
+    <line x1="908" y1="526" x2="924" y2="509" stroke="#fff" stroke-width="4"/>
+    <text x="872" y="566" class="tiny">LOW</text><text x="931" y="566" class="tiny">HIGH</text>
+
+    <rect x="970" y="458" width="117" height="122" rx="8" class="inner"/>
+    <text x="991" y="481" class="tiny">ALLOCATION</text>
+    <circle cx="1028" cy="527" r="32" fill="#19212a"/>
+    <path d="M1028 527 L1028 495 A32 32 0 0 1 1057 540 Z" fill="#2b8cff"/>
+    <path d="M1028 527 L1057 540 A32 32 0 0 1 1005 552 Z" fill="#5ba6ff"/>
+    <path d="M1028 527 L1005 552 A32 32 0 0 1 1028 495 Z" fill="#0d223c"/>
+    <circle cx="1028" cy="527" r="18" fill="#0a0d12"/>
+    <text x="1066" y="512" class="tiny">EQUITY 60%</text>
+    <text x="1066" y="533" class="tiny">BOND 25%</text>
+    <text x="1066" y="554" class="tiny">CASH 15%</text>
+
+    <!-- lower switches -->
+    <rect x="76" y="593" width="245" height="115" rx="8" class="inner"/>
+    <text x="162" y="616" class="tiny">SYSTEMS</text>
+    <g transform="translate(97 634)">
+      <g><rect width="42" height="42" rx="4" fill="#11161c"/><text x="7" y="15" class="tiny">ENG</text><circle cx="21" cy="29" r="5" class="green"/></g>
+      <g transform="translate(48 0)"><rect width="42" height="42" rx="4" fill="#11161c"/><text x="7" y="15" class="tiny">ELEC</text><circle cx="21" cy="29" r="5" class="green"/></g>
+      <g transform="translate(96 0)"><rect width="42" height="42" rx="4" fill="#11161c"/><text x="7" y="15" class="tiny">FUEL</text><circle cx="21" cy="29" r="5" class="green"/></g>
+      <g transform="translate(144 0)"><rect width="42" height="42" rx="4" fill="#11161c"/><text x="8" y="15" class="tiny">HYD</text><circle cx="21" cy="29" r="5" class="green"/></g>
+    </g>
+    <text x="143" y="696" class="tiny">DATA FEED</text>
+    <circle cx="281" cy="690" r="7" fill="#2786ff"/><text x="269" y="708" class="blueText" font-size="10">LIVE</text>
+
+    <rect x="328" y="593" width="245" height="115" rx="8" class="inner"/>
+    <text x="427" y="616" class="tiny">LIGHTS</text>
+    <g transform="translate(354 651)">
+      <circle cx="0" cy="0" r="18" fill="#10151b" stroke="#7a828b"/>
+      <circle cx="54" cy="0" r="18" fill="#10151b" stroke="#7a828b"/>
+      <circle cx="108" cy="0" r="18" fill="#10151b" stroke="#7a828b"/>
+      <circle cx="162" cy="0" r="18" fill="#10151b" stroke="#7a828b"/>
+    </g>
+    <g class="tiny">
+      <text x="340" y="636">PANEL</text><text x="395" y="636">BEACON</text>
+      <text x="454" y="636">NAV</text><text x="504" y="636">LOGO</text>
+    </g>
+
+    <rect x="580" y="593" width="92" height="115" rx="8" class="inner"/>
+    <text x="608" y="616" class="tiny">GEAR</text>
+    <rect x="619" y="635" width="14" height="48" rx="4" fill="#bfc6cd"/>
+    <text x="605" y="634" class="tiny">UP</text><text x="603" y="696" class="tiny">DN</text>
+
+    <rect x="678" y="593" width="132" height="115" rx="8" class="inner"/>
+    <text x="720" y="616" class="tiny">FLAPS</text>
+    <rect x="720" y="634" width="22" height="58" rx="4" fill="#bfc6cd"/>
+    <text x="758" y="648" class="tiny">UP</text>
+    <text x="758" y="666" class="tiny">5</text>
+    <text x="758" y="684" class="tiny">15</text>
+
+    <rect x="818" y="593" width="269" height="115" rx="8" class="inner"/>
+    <text x="924" y="616" class="tiny">COMMS</text>
+    <g transform="translate(842 634)">
+      <g><rect width="42" height="42" rx="4" fill="#11161c"/><text x="8" y="15" class="tiny">NAV</text><circle cx="21" cy="29" r="5" class="green"/></g>
+      <g transform="translate(48 0)"><rect width="42" height="42" rx="4" fill="#11161c"/><text x="8" y="15" class="tiny">COM</text><circle cx="21" cy="29" r="5" class="green"/></g>
+      <g transform="translate(96 0)"><rect width="42" height="42" rx="4" fill="#11161c"/><text x="7" y="15" class="tiny">ADF</text><circle cx="21" cy="29" r="5" class="green"/></g>
+      <g transform="translate(144 0)"><rect width="42" height="42" rx="4" fill="#11161c"/><text x="6" y="15" class="tiny">XPDR</text><circle cx="21" cy="29" r="5" class="green"/></g>
+    </g>
+    <text x="864" y="696" class="tiny">AUTOPILOT</text>
+    <circle cx="949" cy="690" r="7" fill="#2386ff"/>
+    <text x="902" y="708" class="blueText" font-size="10">ENGAGED</text>
+
+    <!-- center lower badge -->
+    <circle cx="606" cy="735" r="60" fill="#0b1118" stroke="#6f7883" stroke-width="4"/>
+    <circle cx="606" cy="735" r="44" fill="url(#navy)" stroke="#1b61af" stroke-width="2"/>
+    <g fill="#fff">
+      <rect x="579" y="745" width="9" height="20"/>
+      <rect x="596" y="730" width="9" height="35"/>
+      <rect x="613" y="715" width="9" height="50"/>
+      <rect x="630" y="699" width="9" height="66"/>
+    </g>
+  </g>
+
+  <!-- wordmark -->
+  <text x="292" y="957" font-family="Arial,Helvetica,sans-serif" font-size="114" font-weight="500" fill="#0b2d78">Invest</text>
+  <text x="757" y="957" font-family="Arial,Helvetica,sans-serif" font-size="114" font-weight="500" fill="#050505">Cockpit</text>
+</svg>
