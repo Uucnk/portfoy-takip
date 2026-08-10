@@ -1,19 +1,15 @@
 {
-  "version": "8.2.7",
-  "base": "8.2.6",
+  "version": "8.2.8",
+  "base": "8.2.7",
   "validated": true,
   "fixes": [
-    "strict VIOP vs global futures classification",
-    "legacy F_EREGL field purge from Gold/global futures",
-    "legacy wrong current-price reset",
-    "inline editable active current price",
-    "manual price override persistence",
-    "resume live quote button",
-    "edit modal current price",
-    "manual opening price protected from auto overwrite",
-    "hard delete from all model-derived reports and PMS",
-    "friendly names in activities/reports"
+    "trade notification X close",
+    "overlay click close",
+    "Escape close",
+    "delegated event handling",
+    "queue no-reopen guard",
+    "pointer-events and z-index fix"
   ],
-  "app_sha256": "d278504508242ca3807e396bc3f60cc8746989225b2e358fbc4c2617abdd00ee",
+  "app_sha256": "fc5dfa541560a0929de277b233b6723dca2d0a51dd17939ced24443dc6bbbd88",
   "server_sha256": "d0fadbc2494e701440b873470a894e825e6699f84a7d50016ea19fea3a8c4a57"
 }
