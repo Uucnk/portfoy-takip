@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.2.5</title>
+<title>Invest Cockpit · v8.2.6</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1729,8 +1729,15 @@ body.authLocked .accountSettingsOverlay{display:none!important}
  #modelClosePanel .closeGrid{grid-template-columns:1fr}
 }
 
+
+/* v8.2.6 */
+.netPnl .nativePnlLine strong{font-size:11px}
+.netPnl .fxPnlBreakdown{font-size:8px;color:#7894aa}
+#modelClosePanel.modalOverlay.open{display:flex!important;z-index:2147482500!important}
+body.modalOpen{overflow:hidden}
+
 </style>
-<meta name="portfolio-build" content="v8.2.5-position-execution-risk-controls">
+<meta name="portfolio-build" content="v8.2.6-global-futures-quote-close-modal">
 </head>
 <body class="authLocked">
 
@@ -3476,6 +3483,15 @@ function positionDisplaySubline(p){
  if(isViopPosition(p))return p.symbol||"";
  return p.yahooSymbol||"";
 }
+function positionProductLabel(p){
+ if(isGlobalFuturesPosition(p)){
+  const code=String(p.futuresContract||p.globalFutureId||p.symbol||"").toUpperCase();
+  const row=globalFutures?.find?.(x=>String(x.id||"").toUpperCase()===code||String(x.code||"").toUpperCase()===code);
+  return row?.name||`${friendlyGlobalFutureName(code)} Futures`;
+ }
+ return p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass;
+}
+
 function normalizeExistingGlobalFuturePositions(){
  let changed=false;
  for(const p of model){
@@ -3492,6 +3508,7 @@ function normalizeExistingGlobalFuturePositions(){
    if(p.futuresContract!==row.code){p.futuresContract=row.code;changed=true}
    if(p.globalFutureId!==row.id){p.globalFutureId=row.id;changed=true}
    if(p.instrumentName!==friendly){p.instrumentName=friendly;changed=true}
+   if(p.exchange!==row.exchange){p.exchange=row.exchange||"";changed=true}
    if(p.viopContract){p.viopContract="";changed=true}
   }else{
    const friendly=friendlyGlobalFutureName(code);
@@ -4103,11 +4120,12 @@ async function fetchYahooQuotes(symbols){
 async function refreshQuotes(scope){
   const list=scope==="general"?general:model;
   const active=list.filter(p=>p.status==="Aktif");
-  const standard=active.filter(p=>!isViopPosition(p));
   const viopActive=active.filter(isViopPosition);
+  const globalFutureActive=active.filter(p=>isGlobalFuturesPosition(p)&&!isViopPosition(p));
+  const standard=active.filter(p=>!isViopPosition(p)&&!isGlobalFuturesPosition(p));
   const symbols=standard.map(inferYahooSymbol).filter(Boolean);
 
-  if(!symbols.length&&!viopActive.length){
+  if(!symbols.length&&!viopActive.length&&!globalFutureActive.length){
     setLiveStatus(scope,"error","Fiyat kaynağı bulunan aktif pozisyon yok");
     return;
   }
@@ -4123,12 +4141,40 @@ async function refreshQuotes(scope){
       if(!q||q.price===null||q.price===undefined)return;
       p.yahooSymbol=ys;
       p.currentPrice=Number(q.price);
+      p.currentPriceSource="Yahoo Finance";
       p.dailyChange=q.changePercent??0;
-      if(q.currency&&(!p.currency||p.currency==="TRY"&&q.currency!=="TRY")&&!isViopPosition(p))p.currency=String(q.currency).toUpperCase();
+      if(q.currency&&(!p.currency||p.currency==="TRY"&&q.currency!=="TRY"))p.currency=String(q.currency).toUpperCase();
       p.marketTime=q.marketTime||null;
       p.quoteDelay=q.delay||null;
       updated++;
     });
+
+    if(globalFutureActive.length){
+      const results=await Promise.allSettled(globalFutureActive.map(async p=>{
+        const params=new URLSearchParams({
+          id:String(p.globalFutureId||p.futuresContract||p.symbol||""),
+          code:String(p.futuresContract||p.symbol||""),
+          entry:String(Number(p.entry)||0),
+          refresh:"1"
+        });
+        const response=await fetch(`/api/global-futures/quote?${params.toString()}`,{cache:"no-store"});
+        const payload=await response.json();
+        if(!response.ok)throw new Error(payload.error||"Futures fiyatı alınamadı");
+        const price=Number(payload.price);
+        if(!Number.isFinite(price)||price<=0)throw new Error("Geçerli futures fiyatı bulunamadı");
+        p.currentPrice=price;
+        p.currentPriceSource=payload.source||"Global Futures";
+        p.dailyChange=Number(payload.changePercent)||0;
+        p.marketTime=payload.marketTime||new Date().toISOString();
+        p.quoteDelay=payload.delayed?"delayed":null;
+        if(payload.currency)p.currency=String(payload.currency).toUpperCase();
+        if(payload.yahooSymbol)p.yahooSymbol=payload.yahooSymbol;
+        if(payload.tradingViewSymbol)p.tradingViewSymbol=payload.tradingViewSymbol;
+        return true;
+      }));
+      updated+=results.filter(x=>x.status==="fulfilled"&&x.value).length;
+      results.filter(x=>x.status==="rejected").forEach(x=>console.warn("Global futures quote:",x.reason?.message));
+    }
 
     if(scope==="model"&&viopActive.length){
       const viopResults=await Promise.allSettled(viopActive.map(async p=>{
@@ -4138,7 +4184,9 @@ async function refreshQuotes(scope){
         if(!response.ok)throw new Error(payload.error||"VİOP fiyatı alınamadı");
         const price=Number(payload.price);
         if(Number.isFinite(price)&&price>0){
-          p.currentPrice=price;p.marketTime=new Date().toISOString();p.quoteDelay="delayed";
+          p.currentPrice=price;
+          p.currentPriceSource=payload.source||"VİOP";
+          p.marketTime=new Date().toISOString();p.quoteDelay="delayed";
           return true;
         }
         return false;
@@ -4921,16 +4969,20 @@ function modelTable(arr,closed){
   const base=tradeNotionalTRY(p,p.entry,positionOpenFx(p));
   const netPct=base?net/base*100:0;
   return`<tr><td><strong class="clickableSymbol" onclick="openPositionResearch('model','${p.id}')">${esc(positionDisplayName(p))}</strong><div class="muted">${esc(positionDisplaySubline(p))}</div></td>
- <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}${isViopPosition(p)?`<div><span class="viopPill">${esc(p.viopContract||"VİOP")}</span></div>`:isGlobalFuturesPosition(p)?`<div><span class="viopPill">${esc(p.futuresContract||"Futures")}</span></div>`:""}</td><td>${esc(p.direction)}</td>
- <td>${f(p.entry,4)}</td><td>${f(p.currentPrice??p.entry,4)}</td>
- <td class="netPnl ${net>=0?"positive":"negative"}"><strong>${f(net,2)} TRY</strong><div class="nativePnlLine">${f(closed?nativeNetClosedPnl(p):nativeNetLivePnl(p),2)} ${esc(p.currency||"TRY")}</div>${nativeCurrency(p)!=="TRY"?`<div class="fxPnlBreakdown">FX etkisi: ${positionFxPnlAt(p,closed?p.closePrice:(p.currentPrice??p.entry))>=0?"+":""}${f(positionFxPnlAt(p,closed?p.closePrice:(p.currentPrice??p.entry)),2)} TRY</div>`:""}</td>
+ <td><strong>${esc(positionProductLabel(p))}</strong>${isViopPosition(p)?`<div><span class="viopPill">${esc(p.viopContract||"VİOP")}</span></div>`:isGlobalFuturesPosition(p)?`<div><span class="viopPill">${esc(p.exchange||globalFutures.find(x=>x.id===p.globalFutureId)?.exchange||"Global Futures")}</span></div>`:""}</td><td>${esc(p.direction)}</td>
+ <td>${f(p.entry,4)}</td><td><strong>${f(p.currentPrice??p.entry,4)}</strong>${p.currentPriceSource?`<div class="quoteTime">${esc(p.currentPriceSource)}</div>`:""}</td>
+ <td class="netPnl ${net>=0?"positive":"negative"}">${nativeCurrency(p)!=="TRY"
+ ?`<strong>${(closed?nativeNetClosedPnl(p):nativeNetLivePnl(p))>=0?"+":""}${f(closed?nativeNetClosedPnl(p):nativeNetLivePnl(p),2)} ${esc(nativeCurrency(p))}</strong><div class="nativePnlLine"><strong>${net>=0?"+":""}${f(net,2)} TRY</strong></div><div class="fxPnlBreakdown">Kur: ${f(positionCurrentFx(p),4)} TRY/${esc(nativeCurrency(p))}</div>`
+ :`<strong>${net>=0?"+":""}${f(net,2)} TRY</strong>`}</td>
  <td class="${netPct>=0?"positive":"negative"}">${f(netPct,2)}%</td>
  <td class="positionSize">${f(positionSize(p),2)} ${esc(p.currency||"")}<div class="muted">${f(positionSizeTRY(p),2)} TRY</div></td><td>${f(p.qty,2)}</td>
  <td class="dateTimeCell">${formatDateTime(p.openDateTime||p.openDate)}</td>
  <td class="costCell">${f(openCommissionValue(p),2)} ${esc(p.currency||"")}</td>
  <td class="costCell creditBadge">${f(financingCostValue(p),2)} ${esc(p.currency||"")}</td>
  <td class="costCell marginBadge">${isViopPosition(p)?f(viopInitialMargin(p),2)+" TRY":isGlobalFuturesPosition(p)?`<span class="globalMarginBadge">${f(globalFuturesInitialMargin(p),2)} ${esc(p.currency||"USD")}</span>`:"-"}</td>
- ${closed?`<td>${f(p.closePrice,4)}</td><td class="dateTimeCell">${formatDateTime(p.closeDateTime||p.closeDate)}</td><td class="${net>=0?"positive":"negative"}">${f(net,2)} TRY<div class="nativePnlLine">${f(nativeNetClosedPnl(p),2)} ${esc(p.currency||"TRY")}</div></td><td>${f(netPct,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}
+ ${closed?`<td>${f(p.closePrice,4)}</td><td class="dateTimeCell">${formatDateTime(p.closeDateTime||p.closeDate)}</td><td class="${net>=0?"positive":"negative"}">${nativeCurrency(p)!=="TRY"
+ ?`<strong>${nativeNetClosedPnl(p)>=0?"+":""}${f(nativeNetClosedPnl(p),2)} ${esc(nativeCurrency(p))}</strong><div class="nativePnlLine">${net>=0?"+":""}${f(net,2)} TRY</div>`
+ :`<strong>${net>=0?"+":""}${f(net,2)} TRY</strong>`}</td><td>${f(netPct,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}
  <td><div class="actionGroup">${!closed?`<button class="positionCloseBtn" onclick="openModelCloseTerminal('${p.id}')">Pozisyonu Kapat</button><button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`;
  }).join("")}</tbody></table></div>`}
 
@@ -5309,6 +5361,7 @@ $("modelForm").addEventListener("submit",e=>{
   id:id(),status:"Aktif",assetClass:selectedAssetClass,
   optionType:isOptionType(selectedAssetClass)?$("mOptionType").value:null,
   instrumentName:globalFriendlyName,
+  exchange:isNewGlobalFuture?(globalRow?.exchange||""):"",
   symbol:isNewGlobalFuture?(globalRow?.code||$("mSymbol").value.trim().toUpperCase()):$("mSymbol").value.trim().toUpperCase(),
   yahooSymbol:isNewGlobalFuture?(globalRow?.yahooSymbol||$("mYahooSymbol").value.trim().toUpperCase()):$("mYahooSymbol").value.trim().toUpperCase(),
   direction:$("mDirection").value,currency:nativeCur,fxRateAtOpen:openFx,entry:n($("mEntry").value),
@@ -5464,11 +5517,21 @@ function populateModelCloseTerminal(p){
 window.openModelCloseTerminal=function openModelCloseTerminal(positionId){
  const p=model.find(x=>x.id===positionId&&x.status==="Aktif");
  if(!p)return;
+ const panel=$("modelClosePanel");
+ if(!panel)return;
+ // ModalOverlay's visible state is controlled by the .open class.
+ // Move it to body so table/panel overflow can never clip the close terminal.
+ if(panel.parentElement!==document.body)document.body.appendChild(panel);
  populateModelCloseTerminal(p);
- $("modelClosePanel").classList.remove("hidden");
+ panel.classList.remove("hidden");
+ panel.classList.add("open");
+ document.body.classList.add("modalOpen");
 }
 function closeModelCloseTerminal(){
- $("modelClosePanel")?.classList.add("hidden");
+ const panel=$("modelClosePanel");
+ panel?.classList.remove("open");
+ panel?.classList.add("hidden");
+ document.body.classList.remove("modalOpen");
 }
 function automatedExitReason(p,price){
  if(!p||p.status!=="Aktif"||!Number.isFinite(Number(price)))return null;
@@ -5517,6 +5580,9 @@ $("closeModelClosePanel")?.addEventListener("click",closeModelCloseTerminal);
 $("modelClosePanel")?.addEventListener("click",event=>{if(event.target===$("modelClosePanel"))closeModelCloseTerminal()});
 $("tradeNotificationClose")?.addEventListener("click",closeTradeNotification);
 $("tradeNotificationOverlay")?.addEventListener("click",event=>{if(event.target===$("tradeNotificationOverlay"))closeTradeNotification()});
+document.addEventListener("keydown",event=>{
+ if(event.key==="Escape"&&$("modelClosePanel")?.classList.contains("open"))closeModelCloseTerminal();
+});
 
 $("viopTransferBtn").onclick=()=>{
  const amount=n($("viopTransferAmount").value),direction=$("viopTransferDirection").value;
