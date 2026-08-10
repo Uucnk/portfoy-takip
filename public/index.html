@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.2.4</title>
+<title>Invest Cockpit · v8.2.5</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1687,8 +1687,50 @@ body.authLocked .accountSettingsOverlay{display:none!important}
   display:none!important;
 }
 
+
+/* v8.2.5 trade notifications / close terminal */
+.tradeNotificationOverlay{
+ position:fixed;inset:0;z-index:2147483000;
+ display:flex;align-items:center;justify-content:center;
+ background:rgba(2,8,14,.64);backdrop-filter:blur(3px);
+ padding:18px;
+}
+.tradeNotificationOverlay.hidden{display:none!important}
+.tradeNotificationCard{
+ width:min(520px,94vw);border:1px solid #35536d;border-radius:14px;
+ background:linear-gradient(145deg,#0d1d2b,#08131e);
+ box-shadow:0 24px 70px rgba(0,0,0,.5);padding:16px;
+}
+.tradeNotificationTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.tradeNotificationEyebrow{font-size:8px;letter-spacing:.14em;color:#65a7e8;font-weight:900}
+.tradeNotificationTop h3{margin:4px 0 0;font-size:19px}
+.tradeNotificationClose{
+ width:30px!important;height:30px!important;padding:0!important;border-radius:8px!important;
+ background:#14283a!important;border:1px solid #34516a!important;font-size:20px!important
+}
+.tradeNotificationSummary{
+ margin-top:12px;padding:12px;border-radius:10px;border:1px solid #29465d;background:#0b1925;
+ font-size:13px;font-weight:800
+}
+.tradeNotificationSummary.positive{border-color:#2d6956;color:#65e7b4}
+.tradeNotificationSummary.negative{border-color:#743c4a;color:#ff8d9c}
+.tradeNotificationDetails{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+.tradeNotificationDetails>div{padding:9px;border:1px solid #263f54;border-radius:8px;background:#0b1722}
+.tradeNotificationDetails span{display:block;color:#7892a8;font-size:8px;text-transform:uppercase}
+.tradeNotificationDetails strong{display:block;margin-top:4px;font-size:11px;overflow-wrap:anywhere}
+.tradeNotificationHint{margin-top:10px;color:#657f95;font-size:8px;text-align:center}
+.positionCloseBtn{background:#236b55!important;border-color:#33866c!important;color:#fff!important}
+.positionCloseBtn:hover{background:#2c8368!important}
+#modelClosePanel .modalBox{max-width:760px}
+#modelClosePanel .closeGrid{grid-template-columns:repeat(2,minmax(180px,1fr));margin-top:10px}
+#modelClosePanel .closeGrid>button{align-self:end}
+@media(max-width:650px){
+ .tradeNotificationDetails{grid-template-columns:1fr}
+ #modelClosePanel .closeGrid{grid-template-columns:1fr}
+}
+
 </style>
-<meta name="portfolio-build" content="v8.2.4-svg-branding-fixed">
+<meta name="portfolio-build" content="v8.2.5-position-execution-risk-controls">
 </head>
 <body class="authLocked">
 
@@ -2347,14 +2389,23 @@ body.authLocked .accountSettingsOverlay{display:none!important}
     </div>
     <div class="marketNotice">Aktif model portföy pozisyonları, girilen Yahoo Finance sembolleri üzerinden güncellenir.</div>
     <div id="mActiveTable"></div>
-    <div class="closeGrid">
-      <div><label>Pozisyon</label><select id="mCloseSelect"></select></div>
-      <div><label>Kapanış Fiyatı</label><input id="mClosePrice" type="number" step="any"></div>
-      <div><label>Kapanış Tarihi ve Saati</label><input id="mCloseDate" type="datetime-local"></div>
-      <div><label>Benchmark Getirisi (%)</label><input id="mBenchmark" type="number" step="any"></div>
-      <div><label>Kapanış Komisyon Birimi</label><select id="mCloseCommissionUnit"><option value="binde">Binde</option><option value="onbinde" selected>Onbinde</option><option value="yuzbinde">Yüzbinde</option></select></div>
-      <div><label>Kapanış Komisyon Oranı</label><input id="mCloseCommissionRate" type="number" min="0" step="0.01" value="0"></div>
-      <button class="success" id="mCloseBtn">Pozisyonu Kapat</button>
+    <div id="modelClosePanel" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="modelCloseTitle">
+      <div class="modalBox">
+        <div class="modalHead">
+          <div><div class="reportsEyebrow">CLOSE ORDER TERMINAL</div><h3 id="modelCloseTitle">Pozisyonu Kapat</h3></div>
+          <button type="button" class="secondary" id="closeModelClosePanel">Kapat</button>
+        </div>
+        <div class="marketNotice">Kapanış fiyatı seçili pozisyonun son güncel fiyatından otomatik gelir. Kapanış komisyonu açılış komisyon oranıyla aynı uygulanır.</div>
+        <div class="closeGrid">
+          <div><label>Pozisyon</label><select id="mCloseSelect"></select></div>
+          <div><label>Güncel / Kapanış Fiyatı</label><input id="mClosePrice" type="number" step="any"></div>
+          <div><label>Kapanış Tarihi ve Saati</label><input id="mCloseDate" type="datetime-local"></div>
+          <div><label>Benchmark Getirisi (%)</label><input id="mBenchmark" type="number" step="any"></div>
+          <div><label>Kapanış Komisyon Birimi</label><select id="mCloseCommissionUnit" disabled><option value="binde">Binde</option><option value="onbinde" selected>Onbinde</option><option value="yuzbinde">Yüzbinde</option></select></div>
+          <div><label>Kapanış Komisyon Oranı</label><input id="mCloseCommissionRate" type="number" min="0" step="0.01" value="0" readonly></div>
+          <button type="button" class="success" id="mCloseBtn">Pozisyonu Kapat</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3256,14 +3307,27 @@ function nativeGrossPnlAt(p,price){
 }
 function positionFxPnlAt(p,price){
  if(nativeCurrency(p)==="TRY")return 0;
- const px=Number(price??p?.currentPrice??p?.entry)||0,entry=Number(p?.entry)||0,qty=Number(p?.qty)||0,mult=contractMultiplier(p);
- const sign=p?.direction?.startsWith("Uzun")?1:-1,openFx=positionOpenFx(p),currentFx=positionCurrentFx(p);
+ const currentFx=positionCurrentFx(p),openFx=positionOpenFx(p);
+ // Futures do not create FX exposure on the full contract notional.
+ // Only the native-currency P/L is translated into TRY.
+ if(isGlobalFuturesPosition(p)){
+  return nativeGrossPnlAt(p,price)*(currentFx-openFx);
+ }
+ const entry=Number(p?.entry)||0,qty=Number(p?.qty)||0,mult=contractMultiplier(p);
+ const sign=p?.direction?.startsWith("Uzun")?1:-1;
  return sign*entry*qty*mult*(currentFx-openFx);
 }
 function assetPnlTRYAt(p,price){
  return nativeGrossPnlAt(p,price)*positionCurrentFx(p);
 }
 function grossPnlAt(p,price){
+ // Correct futures P/L:
+ // Long  = (current-entry) × multiplier × quantity
+ // Short = (entry-current) × multiplier × quantity
+ // Then translate only that P/L into TRY at current FX.
+ if(isGlobalFuturesPosition(p)){
+  return nativeGrossPnlAt(p,price)*positionCurrentFx(p);
+ }
  const px=Number(price??p?.currentPrice??p?.entry)||0,entry=Number(p?.entry)||0,qty=Number(p?.qty)||0,mult=contractMultiplier(p);
  const sign=p?.direction?.startsWith("Uzun")?1:-1;
  return sign*qty*mult*(px*positionCurrentFx(p)-entry*positionOpenFx(p));
@@ -3308,6 +3372,137 @@ function liveReturn(p){
 }
 function positionSize(p){return tradeNotional(p,p.currentPrice??p.entry)}
 function positionSizeTRY(p){return tradeNotionalTRY(p,p.currentPrice??p.entry)}
+let tradeNotificationQueue=[];
+let tradeNotificationVisible=false;
+function tradeReturnPctAt(p,price){
+ const base=tradeNotionalTRY(p,p.entry,positionOpenFx(p));
+ if(!base)return 0;
+ const closeCommission=commissionAmount(
+  tradeNotional(p,price),
+  p.closeCommissionUnit||p.commissionUnit,
+  p.closeCommissionRate??p.commissionRate
+ )*positionCurrentFx(p);
+ const estimated=grossPnlAt(p,price)-openCommissionTRY(p)-closeCommission-financingCostTRY(p);
+ return estimated/base*100;
+}
+function queueTradeNotification(data){
+ tradeNotificationQueue.push(data);
+ if(!tradeNotificationVisible)showNextTradeNotification();
+}
+function showNextTradeNotification(){
+ if(!tradeNotificationQueue.length){tradeNotificationVisible=false;$("tradeNotificationOverlay")?.classList.add("hidden");return}
+ tradeNotificationVisible=true;
+ const data=tradeNotificationQueue.shift(),overlay=$("tradeNotificationOverlay");
+ const pnl=Number(data.pnlTRY),hasPnl=Number.isFinite(pnl),positive=!hasPnl||pnl>=0;
+ $("tradeNotificationEyebrow").textContent=data.eyebrow||"MODEL PORTFÖY İŞLEM BİLDİRİMİ";
+ $("tradeNotificationTitle").textContent=data.title||"İşlem Gerçekleşti";
+ const summary=$("tradeNotificationSummary");
+ summary.className=`tradeNotificationSummary ${hasPnl?(positive?"positive":"negative"):""}`;
+ summary.textContent=data.summary||"";
+ const details=data.details||[];
+ $("tradeNotificationDetails").innerHTML=details.map(item=>`<div><span>${esc(item.label)}</span><strong>${esc(String(item.value??"-"))}</strong></div>`).join("");
+ overlay.classList.remove("hidden");
+}
+function closeTradeNotification(){
+ $("tradeNotificationOverlay")?.classList.add("hidden");
+ tradeNotificationVisible=false;
+ setTimeout(showNextTradeNotification,30);
+}
+function notifyPositionOpened(p){
+ queueTradeNotification({
+  title:"Pozisyon Açıldı",
+  summary:`${positionDisplayName(p)} · ${p.direction} · ${f(p.entry,4)} ${nativeCurrency(p)}`,
+  details:[
+   {label:"Ürün",value:p.assetClass},
+   {label:"Sembol / Kontrat",value:positionDisplaySubline(p)||p.symbol},
+   {label:"Miktar",value:f(p.qty,2)},
+   {label:"Pozisyon Büyüklüğü",value:`${f(tradeNotional(p,p.entry),2)} ${nativeCurrency(p)}`},
+   {label:"Açılış Komisyonu",value:`${f(openCommissionValue(p),2)} ${nativeCurrency(p)}`},
+   {label:"Stop",value:p.stop?`${f(p.stop,4)} ${nativeCurrency(p)}`:"Yok"},
+   {label:"Kâr Al",value:p.target?`${f(p.target,4)} ${nativeCurrency(p)}`:"Yok"},
+   {label:"Açılış Zamanı",value:formatDateTime(p.openDateTime||p.openDate)}
+  ]
+ });
+}
+function notifyPositionClosed(p,reason="manual"){
+ const pnlTRY=Number(netClosedPnl(p)||0),pct=tradeReturnPctAt(p,p.closePrice);
+ const reasonTitle=reason==="target"?"Kâr Alındı":reason==="stop"?"Pozisyon Stoplandı":"Pozisyon Kapatıldı";
+ const reasonSummary=reason==="target"
+  ?`${f(p.closePrice,4)} ${nativeCurrency(p)} fiyatından kâr alındı.`
+  :reason==="stop"
+   ?`${f(p.closePrice,4)} ${nativeCurrency(p)} fiyatından stoplandı.`
+   :`${f(p.closePrice,4)} ${nativeCurrency(p)} fiyatından pozisyon kapatıldı.`;
+ queueTradeNotification({
+  title:reasonTitle,pnlTRY,
+  summary:`${reasonSummary} Net K/Z: ${pnlTRY>=0?"+":""}${f(pnlTRY,2)} TRY · ${pct>=0?"+":""}${f(pct,2)}%`,
+  details:[
+   {label:"Ürün",value:p.assetClass},
+   {label:"Pozisyon",value:positionDisplayName(p)},
+   {label:"Yön",value:p.direction},
+   {label:"Açılış",value:`${f(p.entry,4)} ${nativeCurrency(p)}`},
+   {label:"Kapanış",value:`${f(p.closePrice,4)} ${nativeCurrency(p)}`},
+   {label:"Native Net K/Z",value:`${f(nativeNetClosedPnl(p),2)} ${nativeCurrency(p)}`},
+   {label:"Net TRY K/Z",value:`${pnlTRY>=0?"+":""}${f(pnlTRY,2)} TRY`},
+   {label:"Net Getiri",value:`${pct>=0?"+":""}${f(pct,2)}%`}
+  ]
+ });
+}
+
+const GLOBAL_FUTURE_DISPLAY_FALLBACK={
+ GC:"Gold",MGC:"Micro Gold",QO:"E-mini Gold","1OZ":"1-Ounce Gold",
+ HG:"Copper",SI:"Silver",SIL:"Micro Silver",CL:"WTI Crude Oil",MCL:"Micro WTI Crude Oil",
+ BZ:"Brent Crude Oil",NG:"Natural Gas",ZC:"Corn",ZW:"Wheat",ZS:"Soybeans",
+ ES:"E-mini S&P 500",MES:"Micro E-mini S&P 500",NQ:"E-mini Nasdaq 100",MNQ:"Micro E-mini Nasdaq 100",
+ YM:"E-mini Dow",RTY:"E-mini Russell 2000",ZB:"30Y Treasury Bond",ZN:"10Y Treasury Note"
+};
+function friendlyGlobalFutureName(value){
+ const code=String(value||"").toUpperCase();
+ const row=globalFutures?.find?.(x=>String(x.code||x.id).toUpperCase()===code||String(x.id).toUpperCase()===code);
+ const name=String(row?.name||GLOBAL_FUTURE_DISPLAY_FALLBACK[code]||code||"Yurtdışı Futures");
+ return name.replace(/\s+Futures$/i,"").trim();
+}
+function positionDisplayName(p){
+ if(isGlobalFuturesPosition(p)){
+  return p.instrumentName||friendlyGlobalFutureName(p.futuresContract||p.globalFutureId||p.symbol);
+ }
+ if(isViopPosition(p))return p.viopContract||p.symbol||"-";
+ return p.symbol||"-";
+}
+function positionDisplaySubline(p){
+ if(isGlobalFuturesPosition(p)){
+  const code=String(p.futuresContract||p.symbol||"").toUpperCase();
+  return [code,p.yahooSymbol].filter(Boolean).join(" · ");
+ }
+ if(isViopPosition(p))return p.symbol||"";
+ return p.yahooSymbol||"";
+}
+function normalizeExistingGlobalFuturePositions(){
+ let changed=false;
+ for(const p of model){
+  if(!isGlobalFuturesPosition(p))continue;
+  const code=String(p.futuresContract||p.globalFutureId||p.symbol||"").toUpperCase();
+  const row=globalFutures?.find?.(x=>
+   String(x.id||"").toUpperCase()===String(p.globalFutureId||"").toUpperCase()||
+   String(x.code||"").toUpperCase()===code
+  );
+  if(row){
+   const friendly=String(row.name||friendlyGlobalFutureName(row.code)).replace(/\s+Futures$/i,"").trim();
+   if(p.symbol!==row.code){p.symbol=row.code;changed=true}
+   if(p.yahooSymbol!==row.yahooSymbol){p.yahooSymbol=row.yahooSymbol;changed=true}
+   if(p.futuresContract!==row.code){p.futuresContract=row.code;changed=true}
+   if(p.globalFutureId!==row.id){p.globalFutureId=row.id;changed=true}
+   if(p.instrumentName!==friendly){p.instrumentName=friendly;changed=true}
+   if(p.viopContract){p.viopContract="";changed=true}
+  }else{
+   const friendly=friendlyGlobalFutureName(code);
+   if(p.instrumentName!==friendly){p.instrumentName=friendly;changed=true}
+   if(p.viopContract){p.viopContract="";changed=true}
+  }
+ }
+ if(changed)save();
+ return changed;
+}
+
 function risk(p){return p.stop&&p.entry?Math.abs((p.entry-p.stop)/p.entry)*100:null}
 function reward(p){return p.target&&p.entry?((p.target-p.entry)/p.entry)*100*(p.direction.startsWith("Uzun")?1:-1):null}
 function rr(p){if(!p.stop||!p.target)return null;const a=Math.abs(p.entry-p.stop),b=Math.abs(p.target-p.entry);return a?b/a:null}
@@ -3908,32 +4103,58 @@ async function fetchYahooQuotes(symbols){
 async function refreshQuotes(scope){
   const list=scope==="general"?general:model;
   const active=list.filter(p=>p.status==="Aktif");
-  const symbols=active.map(inferYahooSymbol).filter(Boolean);
-  if(!symbols.length){
-    setLiveStatus(scope,"error","Yahoo Finance sembolü girilmiş aktif pozisyon yok");
+  const standard=active.filter(p=>!isViopPosition(p));
+  const viopActive=active.filter(isViopPosition);
+  const symbols=standard.map(inferYahooSymbol).filter(Boolean);
+
+  if(!symbols.length&&!viopActive.length){
+    setLiveStatus(scope,"error","Fiyat kaynağı bulunan aktif pozisyon yok");
     return;
   }
+
   setLiveStatus(scope,"loading","Fiyatlar ve döviz kurları güncelleniyor…");
   try{
     try{await refreshFxRatesData(false)}catch{}
-    const quotes=await fetchYahooQuotes(symbols);
+    const quotes=symbols.length?await fetchYahooQuotes(symbols):{};
     let updated=0;
-    active.forEach(p=>{
+
+    standard.forEach(p=>{
       const ys=inferYahooSymbol(p),q=quotes[ys];
       if(!q||q.price===null||q.price===undefined)return;
       p.yahooSymbol=ys;
-      p.currentPrice=q.price;
+      p.currentPrice=Number(q.price);
       p.dailyChange=q.changePercent??0;
       if(q.currency&&(!p.currency||p.currency==="TRY"&&q.currency!=="TRY")&&!isViopPosition(p))p.currency=String(q.currency).toUpperCase();
       p.marketTime=q.marketTime||null;
       p.quoteDelay=q.delay||null;
       updated++;
     });
+
+    if(scope==="model"&&viopActive.length){
+      const viopResults=await Promise.allSettled(viopActive.map(async p=>{
+        const params=new URLSearchParams({underlying:String(p.symbol||""),contract:String(p.viopContract||"")});
+        const response=await fetch(`/api/viop/quote?${params.toString()}`,{cache:"no-store"});
+        const payload=await response.json();
+        if(!response.ok)throw new Error(payload.error||"VİOP fiyatı alınamadı");
+        const price=Number(payload.price);
+        if(Number.isFinite(price)&&price>0){
+          p.currentPrice=price;p.marketTime=new Date().toISOString();p.quoteDelay="delayed";
+          return true;
+        }
+        return false;
+      }));
+      updated+=viopResults.filter(x=>x.status==="fulfilled"&&x.value).length;
+    }
+
     save();
-    if(scope==="general")renderGeneral();else renderModel();
+    if(scope==="model"){
+      const exits=checkModelAutomatedExits();
+      if(!exits)renderModel();
+    }else renderGeneral();
+
     setLiveStatus(scope,"ok",`${updated} pozisyon güncellendi · ${new Date().toLocaleTimeString("tr-TR")}`);
-  }catch(err){
-    setLiveStatus(scope,"error",err.message||"Yahoo Finance bağlantı hatası");
+  }catch(error){
+    setLiveStatus(scope,"error","Fiyat güncelleme hatası: "+error.message);
   }
 }
 function fillTypes(){["assetClass","mAssetClass"].forEach(x=>$(x).innerHTML=TYPES.map(t=>`<option>${t}</option>`).join(""));$("activeType").innerHTML='<option value="">Tüm ürün tipleri</option>'+TYPES.map(t=>`<option>${t}</option>`).join("")}
@@ -4697,9 +4918,9 @@ function modelTable(arr,closed){
  ${closed?'<th>Kapanış</th><th>Kapanış Tarihi / Saati</th><th>Net K/Z</th><th>Net Getiri %</th><th>Benchmark %</th>':''}<th>İşlem</th></tr></thead><tbody>
  ${arr.map(p=>{
   const net=closed?netClosedPnl(p):netLivePnl(p);
-  const base=tradeNotional(p,p.entry);
+  const base=tradeNotionalTRY(p,p.entry,positionOpenFx(p));
   const netPct=base?net/base*100:0;
-  return`<tr><td><strong class="clickableSymbol" onclick="openPositionResearch('model','${p.id}')">${esc(p.viopContract||p.symbol)}</strong><div class="muted">${esc(isViopPosition(p)?p.symbol:(p.yahooSymbol||""))}</div></td>
+  return`<tr><td><strong class="clickableSymbol" onclick="openPositionResearch('model','${p.id}')">${esc(positionDisplayName(p))}</strong><div class="muted">${esc(positionDisplaySubline(p))}</div></td>
  <td>${esc(p.optionType?`${p.assetClass} / ${p.optionType}`:p.assetClass)}${isViopPosition(p)?`<div><span class="viopPill">${esc(p.viopContract||"VİOP")}</span></div>`:isGlobalFuturesPosition(p)?`<div><span class="viopPill">${esc(p.futuresContract||"Futures")}</span></div>`:""}</td><td>${esc(p.direction)}</td>
  <td>${f(p.entry,4)}</td><td>${f(p.currentPrice??p.entry,4)}</td>
  <td class="netPnl ${net>=0?"positive":"negative"}"><strong>${f(net,2)} TRY</strong><div class="nativePnlLine">${f(closed?nativeNetClosedPnl(p):nativeNetLivePnl(p),2)} ${esc(p.currency||"TRY")}</div>${nativeCurrency(p)!=="TRY"?`<div class="fxPnlBreakdown">FX etkisi: ${positionFxPnlAt(p,closed?p.closePrice:(p.currentPrice??p.entry))>=0?"+":""}${f(positionFxPnlAt(p,closed?p.closePrice:(p.currentPrice??p.entry)),2)} TRY</div>`:""}</td>
@@ -4710,7 +4931,7 @@ function modelTable(arr,closed){
  <td class="costCell creditBadge">${f(financingCostValue(p),2)} ${esc(p.currency||"")}</td>
  <td class="costCell marginBadge">${isViopPosition(p)?f(viopInitialMargin(p),2)+" TRY":isGlobalFuturesPosition(p)?`<span class="globalMarginBadge">${f(globalFuturesInitialMargin(p),2)} ${esc(p.currency||"USD")}</span>`:"-"}</td>
  ${closed?`<td>${f(p.closePrice,4)}</td><td class="dateTimeCell">${formatDateTime(p.closeDateTime||p.closeDate)}</td><td class="${net>=0?"positive":"negative"}">${f(net,2)} TRY<div class="nativePnlLine">${f(nativeNetClosedPnl(p),2)} ${esc(p.currency||"TRY")}</div></td><td>${f(netPct,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}
- <td><div class="actionGroup">${!closed?`<button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`;
+ <td><div class="actionGroup">${!closed?`<button class="positionCloseBtn" onclick="openModelCloseTerminal('${p.id}')">Pozisyonu Kapat</button><button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`;
  }).join("")}</tbody></table></div>`}
 
 window.renderModel=function renderModel(){
@@ -4740,7 +4961,7 @@ window.renderModel=function renderModel(){
  $("mBeta").textContent=metricsData.beta===null?"-":f(metricsData.beta,2);$("mDuration").textContent=metricsData.dur;
 
  $("mActiveTable").innerHTML=modelTable(active,false);$("mClosedTable").innerHTML=modelTable(closed,true);
- $("mCloseSelect").innerHTML=active.length?active.map(p=>`<option value="${p.id}">${esc(p.symbol)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';
+ $("mCloseSelect").innerHTML=active.length?active.map(p=>`<option value="${p.id}">${esc(positionDisplayName(p))} · ${esc(p.direction)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';
 
  $("viopTransferredPrincipal").textContent=f(transferred,2);
  $("viopRealizedPnl").textContent=f(viopRealized,2);$("viopRealizedPnl").className="v "+(viopRealized>=0?"positive":"negative");
@@ -4990,6 +5211,7 @@ async function loadGlobalFutures(force=false){
   if(!response.ok)throw new Error(payload.error||"Yurtdışı futures alınamadı");
   globalFutures=Array.isArray(payload.contracts)?payload.contracts:[];
   globalFuturesLoaded=true;
+  normalizeExistingGlobalFuturePositions();
   ["gGlobalFutureContract","mGlobalFutureContract"].forEach(id=>{
    const select=$(id);if(!select)return;
    select.innerHTML='<option value="">Kontrat seçin</option>'+globalFutures.map(x=>`<option value="${esc(x.id)}">${esc(x.code)} · ${esc(x.name)} · ${esc(x.exchange)}</option>`).join("");
@@ -5077,19 +5299,28 @@ $("modelForm").addEventListener("submit",e=>{
  const nativeCur=$("mAssetClass").value==="Türev (VİOP/Vadeli)"?"TRY":$("mAssetClass").value==="Yurtdışı Futures"?(globalRow?.quoteCurrency||globalRow?.marginCurrency||"USD"):$("mCurrency").value;
  const openFx=fxRateTRY(nativeCur);
  if(!openFx){alert(`${nativeCur} için güncel TRY kuru bulunamadı. Önce Döviz Exchange bölümünden "Kurları Güncelle" butonuna basın.`);return}
+ const selectedAssetClass=$("mAssetClass").value;
+ const isNewViop=selectedAssetClass==="Türev (VİOP/Vadeli)";
+ const isNewGlobalFuture=selectedAssetClass==="Yurtdışı Futures";
+ const globalFriendlyName=isNewGlobalFuture&&globalRow
+  ?String(globalRow.name||friendlyGlobalFutureName(globalRow.code)).replace(/\s+Futures$/i,"").trim()
+  :"";
  const p={
-  id:id(),status:"Aktif",assetClass:$("mAssetClass").value,
-  optionType:isOptionType($("mAssetClass").value)?$("mOptionType").value:null,
-  symbol:$("mSymbol").value.trim().toUpperCase(),yahooSymbol:$("mYahooSymbol").value.trim().toUpperCase(),
+  id:id(),status:"Aktif",assetClass:selectedAssetClass,
+  optionType:isOptionType(selectedAssetClass)?$("mOptionType").value:null,
+  instrumentName:globalFriendlyName,
+  symbol:isNewGlobalFuture?(globalRow?.code||$("mSymbol").value.trim().toUpperCase()):$("mSymbol").value.trim().toUpperCase(),
+  yahooSymbol:isNewGlobalFuture?(globalRow?.yahooSymbol||$("mYahooSymbol").value.trim().toUpperCase()):$("mYahooSymbol").value.trim().toUpperCase(),
   direction:$("mDirection").value,currency:nativeCur,fxRateAtOpen:openFx,entry:n($("mEntry").value),
   currentPrice:n($("mEntry").value),dailyChange:n($("mDailyChange").value)||0,qty:n($("mQty").value)||1,
   openDateTime:$("mOpenDate").value||nowLocal(),openDate:($("mOpenDate").value||nowLocal()).slice(0,10),
   stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value,
   commissionUnit:$("mCommissionUnit").value,commissionRate:n($("mCommissionRate").value)||0,
   closeCommissionUnit:$("mCommissionUnit").value,closeCommissionRate:n($("mCommissionRate").value)||0,
-  viopContract:$("mViopContract").value||"",
-  globalFutureId:globalRow?.id||"",futuresContract:globalRow?.code||"",
-  tradingViewSymbol:globalRow?.tradingViewSymbol||"",
+  viopContract:isNewViop?($("mViopContract").value||""):"",
+  globalFutureId:isNewGlobalFuture?(globalRow?.id||""):"",
+  futuresContract:isNewGlobalFuture?(globalRow?.code||""):"",
+  tradingViewSymbol:isNewGlobalFuture?(globalRow?.tradingViewSymbol||""):"",
   contractSize:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureMultiplier")?.value)||globalRow?.multiplier||1):(n($("mContractSize").value)||1),
   marginMode:"fixed",
   initialMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureInitial")?.value)||globalRow?.initialMargin||0):(n($("mInitialMargin").value)||0),
@@ -5099,6 +5330,15 @@ $("modelForm").addEventListener("submit",e=>{
   marginSource:$("mAssetClass").value==="Yurtdışı Futures"?(globalRow?.marginSource||""):""
  };
  if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}
+ const isLong=p.direction?.startsWith("Uzun");
+ if(p.stop){
+  const invalidStop=isLong?p.stop>=p.entry:p.stop<=p.entry;
+  if(invalidStop){alert(isLong?"Long pozisyonda Stop fiyatı açılış fiyatının altında olmalıdır.":"Short pozisyonda Stop fiyatı açılış fiyatının üzerinde olmalıdır.");return}
+ }
+ if(p.target){
+  const invalidTarget=isLong?p.target<=p.entry:p.target>=p.entry;
+  if(invalidTarget){alert(isLong?"Long pozisyonda Kâr Al fiyatı açılış fiyatının üzerinde olmalıdır.":"Short pozisyonda Kâr Al fiyatı açılış fiyatının altında olmalıdır.");return}
+ }
  p.openCommission=commissionAmount(tradeNotional(p,p.entry),p.commissionUnit,p.commissionRate);
  if(isViopPosition(p)){
   p.initialMarginRequired=viopInitialMargin(p);
@@ -5132,7 +5372,7 @@ $("modelForm").addEventListener("submit",e=>{
  }
  model.unshift(p);save();e.target.reset();$("mOpenDate").value=nowLocal();$("mQty").value=1;
  $("mCommissionUnit").value="onbinde";$("mCommissionRate").value=0;$("mCurrency").value="TRY";$("mEntryFxRate").value="1";
- syncModelViopVisibility();renderModel();alert(`Pozisyon ${p.currency} cinsinden Model Portföye eklendi.`);
+ syncModelViopVisibility();renderModel();notifyPositionOpened(p);
 });
 $("saveModelSettings").onclick=()=>{
  settings={
@@ -5195,16 +5435,89 @@ async function refreshNemaRateData(showStatus=true){
 }
 $("refreshNemaRate").onclick=()=>refreshNemaRateData(true);
 
+function closeModelPositionAt(p,price,reason="manual",benchmark=0){
+ if(!p||p.status!=="Aktif"||!Number.isFinite(Number(price))||Number(price)<=0)return false;
+ p.status="Kapalı";
+ p.closePrice=Number(price);
+ p.closeDateTime=nowLocal();p.closeDate=p.closeDateTime.slice(0,10);
+ p.fxRateAtClose=fxRateTRY(p.currency)||positionCurrentFx(p);
+ p.benchmark=Number(benchmark)||0;
+ // Closing commission always mirrors the opening commission setup.
+ p.closeCommissionUnit=p.commissionUnit||"onbinde";
+ p.closeCommissionRate=Number(p.commissionRate)||0;
+ p.closeCommission=commissionAmount(tradeNotional(p,p.closePrice),p.closeCommissionUnit,p.closeCommissionRate);
+ p.closeReason=reason;
+ p.autoClosed=reason==="stop"||reason==="target";
+ save();
+ return true;
+}
+function populateModelCloseTerminal(p){
+ if(!p)return;
+ $("mCloseSelect").value=p.id;
+ $("mClosePrice").value=Number(p.currentPrice??p.entry)||"";
+ $("mCloseDate").value=nowLocal();
+ $("mBenchmark").value="";
+ $("mCloseCommissionUnit").value=p.commissionUnit||"onbinde";
+ $("mCloseCommissionRate").value=Number(p.commissionRate)||0;
+ $("modelCloseTitle").textContent=`Pozisyonu Kapat · ${positionDisplayName(p)}`;
+}
+window.openModelCloseTerminal=function openModelCloseTerminal(positionId){
+ const p=model.find(x=>x.id===positionId&&x.status==="Aktif");
+ if(!p)return;
+ populateModelCloseTerminal(p);
+ $("modelClosePanel").classList.remove("hidden");
+}
+function closeModelCloseTerminal(){
+ $("modelClosePanel")?.classList.add("hidden");
+}
+function automatedExitReason(p,price){
+ if(!p||p.status!=="Aktif"||!Number.isFinite(Number(price)))return null;
+ const px=Number(price),isLong=p.direction?.startsWith("Uzun");
+ if(p.stop){
+  if(isLong&&px<=Number(p.stop))return"stop";
+  if(!isLong&&px>=Number(p.stop))return"stop";
+ }
+ if(p.target){
+  if(isLong&&px>=Number(p.target))return"target";
+  if(!isLong&&px<=Number(p.target))return"target";
+ }
+ return null;
+}
+function checkModelAutomatedExits(){
+ const triggered=[];
+ for(const p of model.filter(x=>x.status==="Aktif")){
+  const price=Number(p.currentPrice);
+  const reason=automatedExitReason(p,price);
+  if(!reason)continue;
+  if(closeModelPositionAt(p,price,reason,0))triggered.push({p,reason});
+ }
+ if(triggered.length){
+  renderModel();
+  triggered.forEach(({p,reason})=>notifyPositionClosed(p,reason));
+ }
+ return triggered.length;
+}
 $("mCloseBtn").onclick=()=>{
  const p=model.find(x=>x.id===$("mCloseSelect").value),price=n($("mClosePrice").value);
  if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}
- p.status="Kapalı";p.closePrice=price;p.closeDateTime=$("mCloseDate").value||nowLocal();p.closeDate=p.closeDateTime.slice(0,10);
- p.fxRateAtClose=fxRateTRY(p.currency)||positionCurrentFx(p);
- p.benchmark=n($("mBenchmark").value);p.closeCommissionUnit=$("mCloseCommissionUnit").value;
- p.closeCommissionRate=n($("mCloseCommissionRate").value)||0;
- p.closeCommission=commissionAmount(tradeNotional(p,price),p.closeCommissionUnit,p.closeCommissionRate);
- save();$("mClosePrice").value="";$("mBenchmark").value="";$("mCloseDate").value=nowLocal();renderModel();
+ // Re-apply opening commission automatically even if old records have different close settings.
+ $("mCloseCommissionUnit").value=p.commissionUnit||"onbinde";
+ $("mCloseCommissionRate").value=Number(p.commissionRate)||0;
+ if(closeModelPositionAt(p,price,"manual",n($("mBenchmark").value))){
+  closeModelCloseTerminal();
+  renderModel();
+  notifyPositionClosed(p,"manual");
+ }
 };
+$("mCloseSelect").addEventListener("change",()=>{
+ const p=model.find(x=>x.id===$("mCloseSelect").value&&x.status==="Aktif");
+ if(p)populateModelCloseTerminal(p);
+});
+$("closeModelClosePanel")?.addEventListener("click",closeModelCloseTerminal);
+$("modelClosePanel")?.addEventListener("click",event=>{if(event.target===$("modelClosePanel"))closeModelCloseTerminal()});
+$("tradeNotificationClose")?.addEventListener("click",closeTradeNotification);
+$("tradeNotificationOverlay")?.addEventListener("click",event=>{if(event.target===$("tradeNotificationOverlay"))closeTradeNotification()});
+
 $("viopTransferBtn").onclick=()=>{
  const amount=n($("viopTransferAmount").value),direction=$("viopTransferDirection").value;
  if(!amount||amount<=0){alert("Geçerli bir aktarım tutarı girin.");return}
@@ -6339,7 +6652,7 @@ $("refreshMarkets").onclick=()=>loadMarkets();
 
 
 $("refreshModelQuotes").addEventListener("click",()=>refreshQuotes("model"));
-setInterval(()=>{if(document.visibilityState==="visible")refreshQuotes("model")},60000);
+setInterval(()=>{if(document.visibilityState==="visible")refreshQuotes("model")},30000);
 setInterval(()=>{if(document.visibilityState==="visible")refreshFxRatesData(false).catch(()=>{})},120000);
 setInterval(()=>{if(document.visibilityState==="visible")refreshAllTickers()},180000);
 document.querySelectorAll(".tabBtn").forEach(b=>b.onclick=()=>showMainTab(b.dataset.tab));["activeSearch","activeType","activeDir"].forEach(x=>$(x).addEventListener("input",renderGeneral));$("refreshGeneral").onclick=renderGeneral;
@@ -6705,6 +7018,22 @@ window.addEventListener("load",function(){
  },200);
 });
 </script>
+
+
+<div id="tradeNotificationOverlay" class="tradeNotificationOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="tradeNotificationTitle">
+  <div class="tradeNotificationCard">
+    <div class="tradeNotificationTop">
+      <div>
+        <div id="tradeNotificationEyebrow" class="tradeNotificationEyebrow">MODEL PORTFÖY İŞLEM BİLDİRİMİ</div>
+        <h3 id="tradeNotificationTitle">İşlem Gerçekleşti</h3>
+      </div>
+      <button type="button" id="tradeNotificationClose" class="tradeNotificationClose" aria-label="Bildirimi kapat">×</button>
+    </div>
+    <div id="tradeNotificationSummary" class="tradeNotificationSummary"></div>
+    <div id="tradeNotificationDetails" class="tradeNotificationDetails"></div>
+    <div class="tradeNotificationHint">Bu pencerenin dışındaki boş bir alana tıklayarak kapatabilirsiniz.</div>
+  </div>
+</div>
 
 </body>
 </html>
