@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320">
+  <defs>
+    <linearGradient id="blueText" x1="0" x2="1">
+      <stop offset="0" stop-color="#0b2c74"/>
+      <stop offset="1" stop-color="#123a8d"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(30 25)">
+    <!-- circular mark -->
+    <circle cx="132" cy="132" r="112" fill="none" stroke="#0b2c74" stroke-width="13"/>
+
+    <!-- clock ticks -->
+    <line x1="132" y1="20" x2="132" y2="42" stroke="#0b2c74" stroke-width="10" stroke-linecap="round"/>
+    <line x1="20" y1="132" x2="42" y2="132" stroke="#0b2c74" stroke-width="10" stroke-linecap="round"/>
+    <line x1="222" y1="132" x2="244" y2="132" stroke="#0b2c74" stroke-width="10" stroke-linecap="round"/>
+
+    <!-- baseline -->
+    <line x1="56" y1="150" x2="205" y2="150" stroke="#0b2c74" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- rising chart -->
+    <polyline points="58,145 102,111 145,139 198,78"
+              fill="none" stroke="#0b2c74" stroke-width="9"
+              stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="179,81 199,76 196,97"
+              fill="none" stroke="#0b2c74" stroke-width="9"
+              stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- bars -->
+    <rect x="86" y="202" width="28" height="48" rx="2" fill="#0b2c74"/>
+    <rect x="129" y="178" width="28" height="72" rx="2" fill="#0b2c74"/>
+    <rect x="172" y="157" width="28" height="93" rx="2" fill="#0b2c74"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="305" y="202"
+        font-family="Arial,Helvetica,sans-serif"
+        font-size="108"
+        font-weight="500"
+        fill="url(#blueText)">Invest</text>
+
+  <text x="620" y="202"
+        font-family="Arial,Helvetica,sans-serif"
+        font-size="108"
+        font-weight="500"
+        fill="#f3f6f9">Cockpit</text>
+</svg>
