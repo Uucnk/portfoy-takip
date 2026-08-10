@@ -2244,6 +2244,27 @@ const GLOBAL_FUTURES_CATALOG=[
 ];
 let globalFuturesCache={at:0,contracts:[],live:false,error:null};
 
+const GLOBAL_FUTURES_BROKER_MARGIN_SNAPSHOT={
+ GC:{
+  initial:27104,
+  maintenance:24640,
+  currency:"USD",
+  asOf:"2026-08-10",
+  source:"IBKR broker snapshot · GC Oct 2026 · 10.08.2026"
+ }
+};
+function globalFutureBrokerMarginSnapshot(code){
+ return GLOBAL_FUTURES_BROKER_MARGIN_SNAPSHOT[String(code||"").toUpperCase()]||null;
+}
+function globalFutureMarginPlausible(value,notional){
+ const margin=Number(value),n=Number(notional);
+ if(!Number.isFinite(margin)||margin<=0)return false;
+ if(!Number.isFinite(n)||n<=0)return true;
+ const ratio=margin/n;
+ return ratio>=0.005&&ratio<=0.70;
+}
+
+
 function normalizedHeader(value=""){
  return decodeBasicHtml(value).toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/ı/g,"i").replace(/ş/g,"s").replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ö/g,"o").replace(/ç/g,"c");
 }
@@ -2334,16 +2355,31 @@ async function getGlobalFutures(force=false){
   const quote=settled[index].status==="fulfilled"?settled[index].value:null;
   const price=quote?.price??null,tm=tradeMasterSpecs.get(item.id),amp=ampMargins.get(item.id);
   const multiplier=tm?.multiplier||item.multiplier;
+  const notional=price!=null?Math.abs(price*multiplier):null;
   const calculated=price!=null?Math.abs(price*multiplier*item.marginRate/100):null;
-  const initial=(tm?.initial&&tm.initial>0)?tm.initial:(amp?.initial??calculated);
-  const maintenance=(tm?.maintenance&&tm.maintenance>0)?tm.maintenance:(amp?.maintenance??(initial!=null?initial*.9:null));
-  const marginSource=(tm?.initial||tm?.maintenance)?tm.source:(amp?.source??`Notional × %${item.marginRate} risk tahmini`);
+  const snapshot=globalFutureBrokerMarginSnapshot(item.code);
+
+  const tmInitial=globalFutureMarginPlausible(tm?.initial,notional)?Number(tm.initial):null;
+  const tmMaintenance=globalFutureMarginPlausible(tm?.maintenance,notional)?Number(tm.maintenance):null;
+  const ampInitial=globalFutureMarginPlausible(amp?.initial,notional)?Number(amp.initial):null;
+  const ampMaintenance=globalFutureMarginPlausible(amp?.maintenance,notional)?Number(amp.maintenance):null;
+
+  const initial=Number(snapshot?.initial)||(tmInitial??ampInitial??calculated);
+  const maintenance=Number(snapshot?.maintenance)||(tmMaintenance??ampMaintenance??(initial!=null?initial*.9:null));
+  const marginSource=snapshot?.source||
+    (tmInitial||tmMaintenance?tm.source:
+      (ampInitial||ampMaintenance?amp.source:`Notional × %${item.marginRate} risk tahmini`));
+
   return{
    ...item,multiplier,aliases:globalFutureAliases(item),
-   quoteCurrency:quote?.currency||item.quoteCurrency,marginCurrency:tm?.currency||item.marginCurrency,
+   quoteCurrency:quote?.currency||item.quoteCurrency,
+   marginCurrency:snapshot?.currency||tm?.currency||item.marginCurrency,
    price,changePercent:quote?.changePercent??null,delayed:true,
    initialMargin:initial,maintenanceMargin:maintenance,
-   marginSource,marginEstimated:!(tm?.initial||tm?.maintenance||amp),priceTime:quote?.marketTime??null
+   marginSource,
+   marginEstimated:!snapshot&&!(tmInitial||tmMaintenance||ampInitial||ampMaintenance),
+   marginSnapshotAsOf:snapshot?.asOf||null,
+   priceTime:quote?.marketTime??null
   };
  });
  globalFuturesCache={at:Date.now(),contracts,live:contracts.some(x=>x.price!=null),error:errors.join(" · ")||null,tradeMasterCount:tradeMasterSpecs.size,ampCount:ampMargins.size};
@@ -2434,7 +2470,7 @@ app.get("/api/global-futures/contracts",async(req,res)=>{
  res.set("Cache-Control","public, max-age=120, s-maxage=120");
  res.json({
   contracts:cache.contracts,live:cache.live,error:cache.error,
-  sourceLabel:`Yahoo gecikmeli fiyat + ${cache.tradeMasterCount?`TradeMaster specs (${cache.tradeMasterCount}) + `:""}${cache.ampCount?"AMP margin":"risk oranı tahmini"}`,
+  sourceLabel:`Yahoo gecikmeli fiyat + broker teminat doğrulaması + ${cache.tradeMasterCount?`TradeMaster specs (${cache.tradeMasterCount}) + `:""}${cache.ampCount?"AMP margin sanity-check":"risk oranı tahmini"}`,
   sourceUrl:TRADEMASTER_FUTURES_SPECS_URL,fallbackSourceUrl:AMP_FUTURES_MARGIN_URL,asOf:new Date(cache.at).toISOString()
  });
 });
