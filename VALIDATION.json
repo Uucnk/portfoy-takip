@@ -1,21 +1,18 @@
 {
-  "version": "8.2.5",
-  "base": "8.2.4-svg-branding-fixed + v8.2.3",
+  "version": "8.2.6",
+  "base": "8.2.5",
   "validated": true,
   "fixes": [
-    "global futures short P/L direction",
-    "global futures FX P/L notional bug",
-    "TRY percentage denominator",
-    "stale VIOP name in global futures positions",
-    "Gold/Micro Gold friendly position names",
-    "row-level close position terminal",
-    "closing commission mirrors opening commission",
-    "automatic long/short stop loss",
-    "automatic long/short take profit",
-    "VIOP quote checking for automatic exits",
-    "open/close trade notification modal",
-    "click-outside notification close"
+    "global futures product label",
+    "exact contract quote endpoint",
+    "TradingView futures quote priority",
+    "Yahoo futures fallback",
+    "quote sanity validation",
+    "global futures removed from generic quote path",
+    "close modal .open class",
+    "close modal moved to body",
+    "USD/native + TRY PnL display"
   ],
-  "app_sha256": "5c149e84398ecea391a3864a67a8615bbf8497026433c145185a3c2275793354",
-  "server_sha256": "1457d6763ff70ca93bb5c0f1a954f18bbd58a087cf92e0b2ba96377b95c97dde"
+  "app_sha256": "895590b4d78a26f5ca23bb8252ec9dd86bf59c9040d64a8c7ffe71e690f039f4",
+  "server_sha256": "d0fadbc2494e701440b873470a894e825e6699f84a7d50016ea19fea3a8c4a57"
 }
