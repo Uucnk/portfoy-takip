@@ -1737,9 +1737,14 @@ const VIOP_PSR_FALLBACK={
  AEFES:14.1,AKBNK:15.7,AKSEN:14.3,ALARK:13.4,ARCLK:13.1,ASELS:15.8,ASTOR:16.1,
  BIMAS:12.7,BRSAN:15.5,CIMSA:13.4,DOAS:15.1,DOHOL:14.1,EKGYO:16.1,ENJSA:13.4,
  ENKAI:13.8,EREGL:14.0,KCHOL:14.0,KOZAL:15.0,PGSUS:16.0,SAHOL:14.0,SASA:18.0,
- SISE:14.0,TCELL:14.0,THYAO:15.0,TOASO:14.0,TUPRS:15.0,VAKBN:15.5,VESTL:17.0,
+ SISE:14.0,TCELL:14.0,THYAO:15.0,TOASO:14.0,TUPRS:15.0,VAKBN:15.5,VESTL:17.0,ODAS:17.63,
  YKBNK:15.5,XU030:10.0,USDTRY:10.0,EURTRY:10.4,XAUTRY:12.0
 };
+
+const VIOP_CONTRACT_MARGIN_SNAPSHOT_FALLBACK={
+ "F_ODAS0826":{initialMargin:114.76,spreadMargin:50.00,asOf:"2026-07-28",source:"Alnus VİOP 28.07.2026 snapshot"}
+};
+
 function parseDenizPsrRates(html){
  const rates=new Map(),rows=[...String(html||"").matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
  for(const row of rows){
@@ -1988,6 +1993,29 @@ function parseAlnusViopRows(html){
  unique.forEach(c=>c.isActive=!c.expiryDate||c.expiryDate>=today);
  return unique.sort((a,b)=>String(a.sortDate).localeCompare(String(b.sortDate))||a.code.localeCompare(b.code));
 }
+
+async function fetchFreshAlnusViopContract(contractCode){
+ const code=String(contractCode||"").trim().toUpperCase();
+ if(!code)return null;
+ try{
+  const html=await fetchPublicText(ALNUS_VIOP_URL,30000);
+  const rows=parseAlnusViopRows(html);
+  const contract=rows.find(row=>String(row.code||"").toUpperCase()===code);
+  if(contract)return{...contract,live:true};
+ }catch{}
+ const fallback=VIOP_CONTRACT_MARGIN_SNAPSHOT_FALLBACK[code];
+ if(fallback){
+  const underlying=contractUnderlying(code);
+  return{
+   id:code,code,underlying,contractSize:contractSizeForUnderlying(underlying),
+   initialMargin:fallback.initialMargin,maintenanceMargin:fallback.initialMargin*.75,
+   spreadMargin:fallback.spreadMargin,currency:"TRY",marginMode:"fixed",
+   marginSource:fallback.source,source:fallback.source,live:false
+  };
+ }
+ return null;
+}
+
 function viopUnderlyingRows(contracts){
  const map=new Map();
  for(const c of contracts){
@@ -2090,6 +2118,7 @@ app.get("/api/viop/quote",async(req,res)=>{
   const underlying=normalizeUnderlyingName(req.query.underlying||"");
   const contractCode=String(req.query.contract||"").trim().toUpperCase();
   if(!underlying&&!contractCode)return res.status(400).json({error:"underlying veya contract gerekli"});
+
   const cache=await getViopContracts(req.query.refresh==="1");
   let contract=contractCode?cache.contracts.find(c=>String(c.code).toUpperCase()===contractCode):null;
   if(!contract&&underlying){
@@ -2097,26 +2126,60 @@ app.get("/api/viop/quote",async(req,res)=>{
     .sort((a,b)=>String(a.sortDate||"9999").localeCompare(String(b.sortDate||"9999")))
     .find(c=>c.isActive!==false);
   }
+
+  // Highest priority for selected VİOP contract margin:
+  // live Alnus exact contract row. If temporarily inaccessible, use a dated snapshot
+  // fallback for known contracts rather than leaving margin fields blank.
+  const fresh=await fetchFreshAlnusViopContract(contractCode||contract?.code);
+  if(fresh){
+   contract={...(contract||{}),...fresh,
+    marginSource:fresh.marginSource||fresh.source||contract?.marginSource,
+    initialMargin:Number(fresh.initialMargin)||Number(contract?.initialMargin)||0,
+    maintenanceMargin:Number(fresh.maintenanceMargin)||Number(fresh.initialMargin)*.75||Number(contract?.maintenanceMargin)||0
+   };
+  }
+
+  // Exact/current contract market price, if available.
   if(contract?.marketPrice){
    return res.json({
     underlying:contract.underlying,contract:contract.code,price:contract.marketPrice,
-    referencePrice:contract.referencePrice||contract.marketPrice,initialMargin:contract.initialMargin,
-    maintenanceMargin:contract.maintenanceMargin,marginRate:contract.marginRate,
-    source:contract.priceSource||"İş Yatırım VİOP piyasa tablosu",exactContract:true
+    referencePrice:contract.referencePrice||contract.marketPrice,
+    initialMargin:Number(contract.initialMargin)||null,
+    maintenanceMargin:Number(contract.maintenanceMargin)||null,
+    spreadMargin:Number(contract.spreadMargin)||null,
+    marginRate:Number(contract.marginRate)||null,
+    marginSource:contract.marginSource||contract.source||null,
+    source:contract.priceSource||"İş Yatırım VİOP piyasa tablosu",
+    exactContract:true,exactMargin:!!fresh
    });
   }
+
+  // Even without a futures market-price feed, exact Alnus initial margin is enough
+  // to populate required collateral automatically.
   const ref=await fetchBistSpotReference(underlying||contract?.underlying);
-  if(!ref)return res.status(404).json({error:"Referans fiyat bulunamadı"});
   const size=Number(contract?.contractSize)||contractSizeForUnderlying(underlying||contract?.underlying);
-  const psr=Number(contract?.marginRate)||0;
-  const initial=Number(contract?.initialMargin)||(psr>0?ref.price*size*psr/100:null);
+  const psr=Number(contract?.marginRate)||VIOP_PSR_FALLBACK[underlying||contract?.underlying]||0;
+  const initial=Number(contract?.initialMargin)||
+    (ref&&psr>0?Number(ref.price)*size*psr/100:null);
+
+  if(!initial&&!ref)return res.status(404).json({error:"VİOP teminat ve referans fiyatı bulunamadı"});
+
   res.json({
-   underlying:underlying||contract?.underlying,contract:contract?.code||null,price:null,
-   referencePrice:ref.price,initialMargin:initial,
-   maintenanceMargin:initial?initial*.75:null,marginRate:psr,
-   source:`${ref.source} spot referansı`,exactContract:false
+   underlying:underlying||contract?.underlying,contract:contract?.code||null,
+   price:null,referencePrice:ref?.price??contract?.referencePrice??null,
+   initialMargin:initial||null,
+   maintenanceMargin:initial?initial*.75:(Number(contract?.maintenanceMargin)||null),
+   spreadMargin:Number(contract?.spreadMargin)||null,
+   marginRate:psr||null,
+   marginSource:contract?.marginSource||contract?.source||(psr?"PSR fallback":"Manuel"),
+   source:fresh
+    ?(fresh.live?"Alnus VİOP güncel kontrat teminatı":fresh.source)
+    :(ref?`${ref.source} spot referansı`:"VİOP teminat kaynağı"),
+   exactContract:false,exactMargin:!!fresh
   });
- }catch(error){res.status(502).json({error:error.message||"VİOP fiyatı alınamadı"})}
+ }catch(error){
+  res.status(502).json({error:error.message||"VİOP fiyat/teminat verisi alınamadı"})
+ }
 });
 
 app.get("/api/viop/search",async(req,res)=>{
