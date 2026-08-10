@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.2.7</title>
+<title>Invest Cockpit · v8.2.8</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1752,8 +1752,21 @@ body.modalOpen{overflow:hidden}
 }
 .manualPriceNote{font-size:8px;color:#6f8da7;margin-top:3px}
 
+
+/* v8.2.8 robust trade notification closing */
+.tradeNotificationOverlay{pointer-events:auto!important}
+.tradeNotificationCard{pointer-events:auto!important;position:relative}
+.tradeNotificationClose{
+ position:relative!important;
+ z-index:2147483647!important;
+ pointer-events:auto!important;
+ cursor:pointer!important;
+ flex:none!important;
+}
+.tradeNotificationClose *{pointer-events:none!important}
+
 </style>
-<meta name="portfolio-build" content="v8.2.7-manual-prices-purge-product-repair">
+<meta name="portfolio-build" content="v8.2.8-trade-notification-close-fix">
 </head>
 <body class="authLocked">
 
@@ -3435,9 +3448,16 @@ function queueTradeNotification(data){
  if(!tradeNotificationVisible)showNextTradeNotification();
 }
 function showNextTradeNotification(){
- if(!tradeNotificationQueue.length){tradeNotificationVisible=false;$("tradeNotificationOverlay")?.classList.add("hidden");return}
+ const overlay=$("tradeNotificationOverlay");
+ if(!overlay){tradeNotificationVisible=false;return}
+ if(!tradeNotificationQueue.length){
+  tradeNotificationVisible=false;
+  overlay.classList.add("hidden");
+  overlay.setAttribute("aria-hidden","true");
+  return;
+ }
  tradeNotificationVisible=true;
- const data=tradeNotificationQueue.shift(),overlay=$("tradeNotificationOverlay");
+ const data=tradeNotificationQueue.shift();
  const pnl=Number(data.pnlTRY),hasPnl=Number.isFinite(pnl),positive=!hasPnl||pnl>=0;
  $("tradeNotificationEyebrow").textContent=data.eyebrow||"MODEL PORTFÖY İŞLEM BİLDİRİMİ";
  $("tradeNotificationTitle").textContent=data.title||"İşlem Gerçekleşti";
@@ -3447,11 +3467,23 @@ function showNextTradeNotification(){
  const details=data.details||[];
  $("tradeNotificationDetails").innerHTML=details.map(item=>`<div><span>${esc(item.label)}</span><strong>${esc(String(item.value??"-"))}</strong></div>`).join("");
  overlay.classList.remove("hidden");
+ overlay.setAttribute("aria-hidden","false");
 }
-function closeTradeNotification(){
- $("tradeNotificationOverlay")?.classList.add("hidden");
+function closeTradeNotification(event){
+ event?.preventDefault?.();
+ event?.stopPropagation?.();
+ const overlay=$("tradeNotificationOverlay");
+ if(overlay){
+  overlay.classList.add("hidden");
+  overlay.setAttribute("aria-hidden","true");
+ }
  tradeNotificationVisible=false;
- setTimeout(showNextTradeNotification,30);
+
+ // Only open another notification if one is actually queued.
+ // If the queue is empty, remain closed.
+ if(tradeNotificationQueue.length){
+  setTimeout(()=>{if(!tradeNotificationVisible&&tradeNotificationQueue.length)showNextTradeNotification()},80);
+ }
 }
 function notifyPositionOpened(p){
  queueTradeNotification({
@@ -5690,10 +5722,24 @@ $("mCloseSelect").addEventListener("change",()=>{
 });
 $("closeModelClosePanel")?.addEventListener("click",closeModelCloseTerminal);
 $("modelClosePanel")?.addEventListener("click",event=>{if(event.target===$("modelClosePanel"))closeModelCloseTerminal()});
-$("tradeNotificationClose")?.addEventListener("click",closeTradeNotification);
-$("tradeNotificationOverlay")?.addEventListener("click",event=>{if(event.target===$("tradeNotificationOverlay"))closeTradeNotification()});
+document.addEventListener("click",event=>{
+ if(event.target.closest("#tradeNotificationClose")){
+  closeTradeNotification(event);
+  return;
+ }
+ const overlay=$("tradeNotificationOverlay");
+ if(overlay&&!overlay.classList.contains("hidden")&&event.target===overlay){
+  closeTradeNotification(event);
+ }
+});
 document.addEventListener("keydown",event=>{
- if(event.key==="Escape"&&$("modelClosePanel")?.classList.contains("open"))closeModelCloseTerminal();
+ if(event.key!=="Escape")return;
+ const tradeOverlay=$("tradeNotificationOverlay");
+ if(tradeOverlay&&!tradeOverlay.classList.contains("hidden")){
+  closeTradeNotification(event);
+  return;
+ }
+ if($("modelClosePanel")?.classList.contains("open"))closeModelCloseTerminal();
 });
 
 $("viopTransferBtn").onclick=()=>{
@@ -7244,13 +7290,13 @@ window.addEventListener("load",function(){
 
 
 <div id="tradeNotificationOverlay" class="tradeNotificationOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="tradeNotificationTitle">
-  <div class="tradeNotificationCard">
+  <div class="tradeNotificationCard" onclick="event.stopPropagation()">
     <div class="tradeNotificationTop">
       <div>
         <div id="tradeNotificationEyebrow" class="tradeNotificationEyebrow">MODEL PORTFÖY İŞLEM BİLDİRİMİ</div>
         <h3 id="tradeNotificationTitle">İşlem Gerçekleşti</h3>
       </div>
-      <button type="button" id="tradeNotificationClose" class="tradeNotificationClose" aria-label="Bildirimi kapat">×</button>
+      <button type="button" id="tradeNotificationClose" class="tradeNotificationClose" aria-label="Bildirimi kapat" onclick="closeTradeNotification(event)">×</button>
     </div>
     <div id="tradeNotificationSummary" class="tradeNotificationSummary"></div>
     <div id="tradeNotificationDetails" class="tradeNotificationDetails"></div>
