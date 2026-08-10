@@ -1,18 +1,19 @@
 {
-  "version": "8.2.6",
-  "base": "8.2.5",
+  "version": "8.2.7",
+  "base": "8.2.6",
   "validated": true,
   "fixes": [
-    "global futures product label",
-    "exact contract quote endpoint",
-    "TradingView futures quote priority",
-    "Yahoo futures fallback",
-    "quote sanity validation",
-    "global futures removed from generic quote path",
-    "close modal .open class",
-    "close modal moved to body",
-    "USD/native + TRY PnL display"
+    "strict VIOP vs global futures classification",
+    "legacy F_EREGL field purge from Gold/global futures",
+    "legacy wrong current-price reset",
+    "inline editable active current price",
+    "manual price override persistence",
+    "resume live quote button",
+    "edit modal current price",
+    "manual opening price protected from auto overwrite",
+    "hard delete from all model-derived reports and PMS",
+    "friendly names in activities/reports"
   ],
-  "app_sha256": "895590b4d78a26f5ca23bb8252ec9dd86bf59c9040d64a8c7ffe71e690f039f4",
+  "app_sha256": "d278504508242ca3807e396bc3f60cc8746989225b2e358fbc4c2617abdd00ee",
   "server_sha256": "d0fadbc2494e701440b873470a894e825e6699f84a7d50016ea19fea3a8c4a57"
 }
