@@ -2349,6 +2349,86 @@ async function getGlobalFutures(force=false){
  globalFuturesCache={at:Date.now(),contracts,live:contracts.some(x=>x.price!=null),error:errors.join(" · ")||null,tradeMasterCount:tradeMasterSpecs.size,ampCount:ampMargins.size};
  return globalFuturesCache;
 }
+
+function futuresQuotePlausible(price,reference){
+ const p=Number(price),r=Number(reference);
+ if(!Number.isFinite(p)||p<=0)return false;
+ if(!Number.isFinite(r)||r<=0)return true;
+ const ratio=p/r;
+ // Protect against symbol/scale mismatches (e.g. GC around 4,000 accidentally becoming 37.xx).
+ // Deliberately wide to allow genuine market moves while rejecting obvious wrong instruments.
+ return ratio>=0.20&&ratio<=5.0;
+}
+async function fetchTradingViewFuturesQuote(item){
+ const ticker=String(item?.tradingViewSymbol||"").trim();
+ if(!ticker)return null;
+ const columns=["close","currency","change","description"];
+ const regions=["futures","america"];
+ for(const region of regions){
+  try{
+   const row=await scanTradingViewColumns(ticker,columns,region);
+   const price=Number(row.close);
+   if(Number.isFinite(price)&&price>0){
+    return{
+     price,currency:row.currency||item.quoteCurrency||item.marginCurrency||"USD",
+     changePercent:Number(row.change)||null,
+     description:row.description||item.name,
+     source:`TradingView ${ticker}`,
+     marketTime:new Date().toISOString(),delayed:true
+    };
+   }
+  }catch{}
+ }
+ return null;
+}
+async function fetchYahooFuturesQuote(item){
+ const symbols=[item?.yahooSymbol,item?.priceProxySymbol].filter(Boolean);
+ for(const symbol of [...new Set(symbols)]){
+  try{
+   const quote=await fetchYahooChart(symbol);
+   if(Number.isFinite(Number(quote.price))&&Number(quote.price)>0){
+    return{
+     ...quote,price:Number(quote.price),
+     source:`Yahoo Finance ${symbol}`,yahooSymbol:symbol,delayed:true
+    };
+   }
+  }catch{}
+ }
+ return null;
+}
+async function getExactGlobalFutureQuote(item,referencePrice=0,force=false){
+ const candidates=[];
+ const tv=await fetchTradingViewFuturesQuote(item);
+ if(tv)candidates.push(tv);
+ const yahoo=await fetchYahooFuturesQuote(item);
+ if(yahoo)candidates.push(yahoo);
+
+ // Existing catalog quote is a final fallback, but it must pass the same sanity test.
+ if(force||!candidates.length){
+  try{
+   const cache=await getGlobalFutures(force);
+   const row=cache.contracts.find(x=>x.id===item.id||x.code===item.code);
+   if(row&&Number.isFinite(Number(row.price))){
+    candidates.push({
+     price:Number(row.price),currency:row.quoteCurrency||row.marginCurrency,
+     changePercent:row.changePercent,source:"Global Futures catalog",
+     marketTime:row.priceTime||new Date().toISOString(),delayed:true
+    });
+   }
+  }catch{}
+ }
+
+ const plausible=candidates.filter(q=>futuresQuotePlausible(q.price,referencePrice));
+ if(!plausible.length)return{quote:null,candidates};
+
+ // Prefer TradingView exact continuous contract, then Yahoo futures.
+ plausible.sort((a,b)=>{
+  const score=q=>String(q.source).startsWith("TradingView")?0:String(q.source).startsWith("Yahoo")?1:2;
+  return score(a)-score(b);
+ });
+ return{quote:plausible[0],candidates};
+}
+
 app.get("/api/global-futures/contracts",async(req,res)=>{
  const cache=await getGlobalFutures(req.query.refresh==="1");
  res.set("Cache-Control","public, max-age=120, s-maxage=120");
@@ -2358,6 +2438,40 @@ app.get("/api/global-futures/contracts",async(req,res)=>{
   sourceUrl:TRADEMASTER_FUTURES_SPECS_URL,fallbackSourceUrl:AMP_FUTURES_MARGIN_URL,asOf:new Date(cache.at).toISOString()
  });
 });
+app.get("/api/global-futures/quote",async(req,res)=>{
+ try{
+  const id=String(req.query.id||"").trim().toUpperCase();
+  const code=String(req.query.code||"").trim().toUpperCase();
+  const reference=Number(req.query.entry)||0;
+  const item=GLOBAL_FUTURES_CATALOG.find(x=>
+   String(x.id||"").toUpperCase()===id||
+   String(x.code||"").toUpperCase()===code
+  );
+  if(!item)return res.status(404).json({error:"Yurtdışı futures kontratı bulunamadı"});
+
+  const result=await getExactGlobalFutureQuote(item,reference,req.query.refresh==="1");
+  if(!result.quote){
+   return res.status(502).json({
+    error:"Kontrat için güvenilir fiyat bulunamadı; mevcut fiyat korunuyor.",
+    rejected:result.candidates.map(q=>({price:q.price,source:q.source}))
+   });
+  }
+
+  const q=result.quote;
+  res.set("Cache-Control","no-store");
+  res.json({
+   id:item.id,code:item.code,name:item.name,exchange:item.exchange,
+   price:q.price,currency:q.currency||item.quoteCurrency||"USD",
+   changePercent:q.changePercent??null,marketTime:q.marketTime||new Date().toISOString(),
+   delayed:q.delayed!==false,source:q.source,
+   yahooSymbol:item.yahooSymbol,tradingViewSymbol:item.tradingViewSymbol,
+   multiplier:item.multiplier
+  });
+ }catch(error){
+  res.status(502).json({error:error.message||"Yurtdışı futures fiyatı alınamadı"})
+ }
+});
+
 app.get("/api/global-futures/search",async(req,res)=>{
  const q=String(req.query.q||"").trim();
  const cache=await getGlobalFutures(false);
