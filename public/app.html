@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Model Portföy Takip · v8.2.2</title>
+<title>Invest Cockpit · v8.2.4</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1188,7 +1188,7 @@ body.authLocked .researchModal{visibility:hidden!important;pointer-events:none!i
 }
 .authBrand{
  padding:0;min-height:650px;position:relative;overflow:hidden;
- background:#07111c url("/login-market-hero.svg") center center/cover no-repeat
+ background:#07111c url("/invest-cockpit-login.svg") center center/cover no-repeat
 }
 .authBrand::before{
  content:"";position:absolute;inset:0;
@@ -1649,8 +1649,46 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 .searchResultRow[role="button"]{outline:none}
 .searchResultRow[role="button"]:focus{background:#152b45}
 
+
+/* v8.2.4 Invest Cockpit SVG branding */
+.authBrand{
+  background-image:url("/invest-cockpit-login.svg")!important;
+  background-color:#ffffff!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-size:contain!important;
+}
+.authBrand::before,
+.authBrand::after{
+  display:none!important;
+  content:none!important;
+}
+.sidebarBrand{
+  flex:1!important;
+  min-width:0!important;
+  height:46px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  overflow:hidden!important;
+  font-size:0!important;
+  letter-spacing:0!important;
+}
+.sidebarBrand img{
+  display:block!important;
+  width:100%!important;
+  max-width:168px!important;
+  max-height:42px!important;
+  height:auto!important;
+  object-fit:contain!important;
+  object-position:left center!important;
+}
+.sidebar.closed .sidebarBrand{
+  display:none!important;
+}
+
 </style>
-<meta name="portfolio-build" content="v8.2.2-viop-click-live-price-semantic-futures-search">
+<meta name="portfolio-build" content="v8.2.4-svg-branding-fixed">
 </head>
 <body class="authLocked">
 
@@ -1723,7 +1761,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
 <aside id="sidebar" class="sidebar open">
   <div class="sidebarTop">
     <button id="sidebarToggle" class="sidebarToggle" type="button" aria-label="Menüyü aç veya kapat"><span></span><span></span><span></span></button>
-    <div class="sidebarBrand">DASHBOARD</div>
+    <div class="sidebarBrand"><img src="/invest-cockpit-sidebar.svg" alt="Invest Cockpit"></div>
   </div>
   <nav class="sidebarNav">
     <div class="sideGroup modelSideGroup">
@@ -2201,7 +2239,7 @@ body.authLocked .accountSettingsOverlay{display:none!important}
             <div><label>Başlangıç Teminatı / Kontrat</label><input id="mInitialMargin" type="number" min="0" step="any"></div>
             <div><label>Sürdürme Teminatı / Kontrat</label><input id="mMaintenanceMargin" type="number" min="0" step="any"></div><input id="mViopMarginRate" type="hidden"><input id="mViopReferencePrice" type="hidden">
             <div><label>Vade Tarihi</label><input id="mContractExpiry" type="text" readonly></div>
-            <div style="display:flex;align-items:end"><button type="button" id="refreshViopContracts" class="secondary" style="width:100%">Alnus’tan Yenile</button></div>
+            <div style="display:flex;align-items:end"><button type="button" id="refreshViopContracts" class="secondary" style="width:100%">VİOP Verisini Yenile</button></div>
             <input id="mMarginMode" type="hidden" value="fixed">
             <input id="mMarginRate" type="hidden" value="">
           </div>
@@ -4732,21 +4770,35 @@ function viopCalculatedMargin(scope,c){
 }
 async function hydrateViopReference(scope,c){
  if(!c)return;
+ const status=$(scope==="general"?"gViopSourceStatus":"mViopSourceStatus");
  try{
-  const params=new URLSearchParams({underlying:String(c.underlying||""),contract:String(c.code||"")});
+  if(status)status.textContent=`${c.code||c.id} · Güncel kontrat fiyatı ve teminatı doğrulanıyor…`;
+  const params=new URLSearchParams({underlying:String(c.underlying||""),contract:String(c.code||""),refresh:"1"});
   const response=await fetch(`/api/viop/quote?${params.toString()}`,{cache:"no-store"});
   const payload=await response.json();
-  if(!response.ok)throw new Error(payload.error||"VİOP fiyatı alınamadı");
-  if(Number.isFinite(Number(payload.price)))c.marketPrice=Number(payload.price);
-  if(Number.isFinite(Number(payload.referencePrice)))c.referencePrice=Number(payload.referencePrice);
-  if(Number.isFinite(Number(payload.initialMargin)))c.initialMargin=Number(payload.initialMargin);
-  if(Number.isFinite(Number(payload.maintenanceMargin)))c.maintenanceMargin=Number(payload.maintenanceMargin);
-  if(Number.isFinite(Number(payload.marginRate)))c.marginRate=Number(payload.marginRate);
-  c.priceSource=payload.source||c.priceSource;
+  if(!response.ok)throw new Error(payload.error||"VİOP fiyat/teminat verisi alınamadı");
+
+  if(Number.isFinite(Number(payload.price))&&Number(payload.price)>0)c.marketPrice=Number(payload.price);
+  if(Number.isFinite(Number(payload.referencePrice))&&Number(payload.referencePrice)>0)c.referencePrice=Number(payload.referencePrice);
+  if(Number.isFinite(Number(payload.initialMargin))&&Number(payload.initialMargin)>0)c.initialMargin=Number(payload.initialMargin);
+  if(Number.isFinite(Number(payload.maintenanceMargin))&&Number(payload.maintenanceMargin)>0)c.maintenanceMargin=Number(payload.maintenanceMargin);
+  if(Number.isFinite(Number(payload.marginRate))&&Number(payload.marginRate)>0)c.marginRate=Number(payload.marginRate);
+  if(Number.isFinite(Number(payload.spreadMargin))&&Number(payload.spreadMargin)>0)c.spreadMargin=Number(payload.spreadMargin);
+
+  c.marginSource=payload.marginSource||payload.source||c.marginSource;
+  c.priceSource=payload.price?payload.source||c.priceSource:c.priceSource;
+
   applyContractFields(scope,c,false);
+
+  if(status){
+   const marginText=Number(c.initialMargin)>0?`Başlangıç ${f(c.initialMargin,2)} TRY`:"Teminat bulunamadı";
+   const priceText=Number(c.marketPrice)>0?` · Son ${f(c.marketPrice,4)} TRY`:"";
+   status.textContent=`${c.code||c.id}${priceText} · ${marginText} · ${c.marginSource||payload.source||"VİOP kaynakları"}`;
+   status.classList.toggle("sourceLive",Number(c.initialMargin)>0);
+   status.classList.toggle("sourceFallback",Number(c.initialMargin)<=0);
+  }
  }catch(error){
-  const status=$(scope==="general"?"gViopSourceStatus":"mViopSourceStatus");
-  if(status)status.textContent=`${c.code||c.id} · Fiyat güncellemesi alınamadı: ${error.message} · Manuel fiyat/teminat girebilirsiniz.`;
+  if(status)status.textContent=`${c.code||c.id} · Teminat güncellemesi alınamadı: ${error.message} · Manuel teminat girişi kullanılabilir.`;
  }
 }
 function contractsForUnderlying(underlying){
@@ -4807,7 +4859,7 @@ function applyContractFields(scope,c,fetchReference=true){
   status.classList.toggle("sourceFallback",calc.initial<=0);
  }
  updateViopMarginSummary(scope,c);updateModelTradePreview();
- if(fetchReference&&(livePrice<=0||calc.initial<=0))hydrateViopReference(scope,c);
+ if(fetchReference)hydrateViopReference(scope,c);
 }
 function applyViopUnderlying(scope,item){
  const underlying=String(item.underlying||item.symbol||"").toUpperCase();
@@ -4833,7 +4885,8 @@ function updateViopMarginSummary(scope,c=currentSelectedViopContract(scope)){
  if(isGeneral){
   $("gSelectedContract").textContent=c?.code||"-";
   $("gSelectedExpiry").textContent=c?.expiryDate||c?.maturityLabel||"-";
-  if($("gTotalNotional"))$("gTotalNotional").textContent=f(price*qty*contractSize,2)+" TRY";
+  const currentPrice=Number($("entry")?.value)||Number(c?.marketPrice)||Number(c?.referencePrice)||0;
+  if($("gTotalNotional"))$("gTotalNotional").textContent=f(currentPrice*qty*calc.size,2)+" TRY";
   $("gTotalInitialMargin").textContent=f(initial*qty,2)+" TRY";
   $("gTotalMaintenanceMargin").textContent=f(maintenance*qty,2)+" TRY";
  }
@@ -4853,21 +4906,31 @@ function parseNullableNumber(v){const x=Number(v);return Number.isFinite(x)?x:nu
 async function loadViopContracts(force=false){
  const statuses=[$("mViopSourceStatus"),$("gViopSourceStatus"),$("viopWorkspaceSource")].filter(Boolean);
  statuses.forEach(x=>x.textContent="Borsa İstanbul VİOP dayanak evreni ve teminat kaynakları kontrol ediliyor…");
+ let payload=null;
  try{
   const response=await fetch("/api/viop/contracts"+(force?"?refresh=1":""));
-  const payload=await response.json();
+  payload=await response.json();
   if(!response.ok)throw new Error(payload.error||"VİOP kontratları alınamadı");
   viopContracts=Array.isArray(payload.contracts)?payload.contracts:[];
   viopUnderlyings=Array.isArray(payload.underlyings)?payload.underlyings:[];
   const tone=payload.live?"viopSourceLive":"viopSourceFallback";
-  const msg=`Kaynak: ${payload.sourceLabel||"Deniz PSR + Yahoo referans fiyat"} · ${payload.live?"Canlı kontrat tablosu":"Yedek sözleşme kataloğu"} · ${payload.asOf?new Date(payload.asOf).toLocaleString("tr-TR"):""}`;
+  const msg=`Kaynak: ${payload.sourceLabel||"VİOP veri kaynakları"} · ${payload.live?"Canlı kontrat tablosu":"Yedek sözleşme kataloğu"} · ${payload.asOf?new Date(payload.asOf).toLocaleString("tr-TR"):""}`;
   statuses.forEach(x=>{x.classList.remove("viopSourceLive","viopSourceFallback");x.classList.add(tone);x.textContent=msg+" · Dayanak seçildiğinde yakın vade otomatik uygulanır.";});
-  if($("symbol")?.value&&$("assetClass")?.value==="Türev (VİOP/Vadeli)")ensureViopSelection("general",$("symbol").value);
-  if($("mSymbol")?.value&&$("mAssetClass")?.value==="Türev (VİOP/Vadeli)")ensureViopSelection("model",$("mSymbol").value);
  }catch(error){
   statuses.forEach(x=>x.textContent="VİOP dayanak/teminat verisi alınamadı: "+error.message+" Manuel teminat girişi kullanılabilir.");
+  return;
  }
- updateModelTradePreview();
+
+ // UI hydration errors must not be reported as data-source failures.
+ try{
+  if($("symbol")?.value&&$("assetClass")?.value==="Türev (VİOP/Vadeli)")ensureViopSelection("general",$("symbol").value);
+  if($("mSymbol")?.value&&$("mAssetClass")?.value==="Türev (VİOP/Vadeli)")ensureViopSelection("model",$("mSymbol").value);
+  updateModelTradePreview();
+ }catch(error){
+  console.error("VİOP UI hydration error:",error);
+  const status=$("mViopSourceStatus");
+  if(status)status.textContent=`VİOP verisi yüklendi ancak form güncellenirken hata oluştu: ${error.message}`;
+ }
 }
 function ensureViopSelection(scope,underlying){
  const rows=contractsForUnderlying(underlying);
@@ -4897,8 +4960,9 @@ function draftModelPosition(){
   maintenanceMargin:$("mAssetClass")?.value==="Yurtdışı Futures"?(Number($("mGlobalFutureMaintenance")?.value)||globalItem?.maintenanceMargin||0):(Number($("mMaintenanceMargin")?.value)||0)
  };
 }
+const buildModelDraft=draftModelPosition;
 function updateModelTradePreview(){
- const p=buildModelDraft(),currency=nativeCurrency(p),fx=fxRateTRY(currency)||1;
+ const p=draftModelPosition(),currency=nativeCurrency(p),fx=fxRateTRY(currency)||1;
  const notional=tradeNotional(p,p.entry),commission=commissionAmount(notional,p.commissionUnit,p.commissionRate);
  let initial=0,maintenance=0,credit=0;
  if(isViopPosition(p)){
