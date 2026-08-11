@@ -2497,7 +2497,11 @@ app.get("/api/global-futures/quote",async(req,res)=>{
   res.set("Cache-Control","no-store");
   res.json({
    id:item.id,code:item.code,name:item.name,exchange:item.exchange,
-   price:q.price,currency:q.currency||item.quoteCurrency||"USD",
+   price:q.price,
+   currency:q.currency||item.quoteCurrency||"USD",
+   quoteCurrency:q.currency||item.quoteCurrency||"USD",
+   marginCurrency:item.marginCurrency||((q.currency||item.quoteCurrency)==="USX"?"USD":(q.currency||item.quoteCurrency||"USD")),
+   settlementCurrency:item.marginCurrency||((q.currency||item.quoteCurrency)==="USX"?"USD":(q.currency||item.quoteCurrency||"USD")),
    changePercent:q.changePercent??null,marketTime:q.marketTime||new Date().toISOString(),
    delayed:q.delayed!==false,source:q.source,
    yahooSymbol:item.yahooSymbol,tradingViewSymbol:item.tradingViewSymbol,
