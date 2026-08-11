@@ -1,49 +1,19 @@
 {
-  "version": "8.3.3",
-  "base": "8.3.2",
+  "version": "8.3.4",
+  "base": "8.3.3",
   "validated": true,
-  "methodology": {
-    "realized_only": [
-      "Win Rate",
-      "Profit Factor",
-      "Payoff Ratio",
-      "Expectancy/Trade",
-      "Average Win/Loss",
-      "Best/Worst Trade"
-    ],
-    "nav_history_no_realization": [
-      "Sharpe",
-      "Sortino",
-      "Volatility",
-      "Downside Deviation",
-      "Historical VaR/CVaR",
-      "Alpha/Beta",
-      "Tracking Error",
-      "Information Ratio",
-      "Rolling Metrics",
-      "Regime Performance"
-    ],
-    "live_open_positions": [
-      "Risk Contribution",
-      "Portfolio Health",
-      "Sector Exposure",
-      "Momentum Factor",
-      "Return Sources",
-      "Holding-period Attribution",
-      "Gross Leverage"
-    ]
-  },
+  "scope": "UI-only polish",
   "fixes": [
-    "null no longer treated as numeric zero",
-    "robust live TRY exposure payload",
-    "absolute active-position weights",
-    "risk covariance fallback",
-    "factor-specific coverage",
-    "NAV-based regime performance",
-    "active+closed holding-period attribution",
-    "NAV-based historical VaR/CVaR",
-    "clear data-progress states for realized/NAV metrics"
+    "PMS/info tooltip portal above fixed sidebar",
+    "tooltip viewport clamping",
+    "white high-contrast Invest Cockpit sidebar brand",
+    "scrollable full sidebar navigation",
+    "all admin accounts reachable through sidebar scroll",
+    "fixed sidebar footer",
+    "dark thin order-terminal scrollbar",
+    "dark thin sidebar scrollbar",
+    "white native scrollbar controls suppressed"
   ],
-  "app_sha256": "d974c4d3953756890029e50ed475f9baeef1eabce00b930582abb094c624e81f",
+  "app_sha256": "923d47ce68987f6ea1cff2ec6b650926436c8b76e288fcf3ef6afb93b1e093b9",
   "server_sha256": "87c025f3bfd61c2967893699d5ec28ee4cdee71b0146f9534cfae408a3d924d9"
 }
