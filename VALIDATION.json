@@ -1,16 +1,27 @@
 {
-  "version": "8.3.1",
-  "base": "8.2.9",
+  "version": "8.3.2",
+  "base": "8.3.1",
   "validated": true,
-  "scope": "FX currency mapping only",
-  "guarantees": [
-    "no fixed SB quantity",
-    "no fixed SB entry price",
-    "mQty default remains 1",
-    "all futures catalog behavior remains dynamic",
-    "USX quote unit settles in USD",
-    "USD/TRY used for FX"
+  "fixes": [
+    "Composite benchmark numeric input locale bug",
+    "Composite auto-weight async refresh",
+    "Expanded strategic asset classification",
+    "Persistent NAV/equity history",
+    "NAV-based annualized volatility",
+    "NAV-based Sharpe",
+    "NAV-based Sortino",
+    "NAV-based Max Drawdown / Calmar / Recovery Factor",
+    "NAV + Composite benchmark Beta/Alpha/Tracking Error/IR",
+    "NAV-based rolling metrics",
+    "Professional target panel expanded with question-mark tooltips",
+    "PMS full re-render after live benchmark fetch"
   ],
-  "app_sha256": "53fc64fb3a10861931dd717ba476fbe9e248b9b5d921660163ebbe199d4d80a6",
+  "methodology": {
+    "risk_adjusted_series": "portfolio NAV/equity period returns",
+    "relative_series": "date-matched portfolio NAV vs composite benchmark returns",
+    "minimum_return_observations_for_vol_sharpe_sortino": 2,
+    "target_profile": "Invest Cockpit institutional target profile, not universal industry standard"
+  },
+  "app_sha256": "130df614a290364c33a185cfe6e1a5c90646481de860404de8185210dbdc507a",
   "server_sha256": "9e507c77945eaecfa6f09f80fe449dfb018af9066100c51961ec0b81da1725a1"
 }
