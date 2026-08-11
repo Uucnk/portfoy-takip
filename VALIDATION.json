@@ -1,25 +1,16 @@
 {
-  "version": "8.2.9",
-  "base": "8.2.8",
+  "version": "8.3.1",
+  "base": "8.2.9",
   "validated": true,
-  "gc_margin_snapshot": {
-    "source": "user-provided IBKR screenshot",
-    "as_of": "2026-08-10",
-    "initial_per_contract_usd": 27104,
-    "maintenance_per_contract_usd": 24640,
-    "ten_contract_initial_usd": 271040,
-    "ten_contract_maintenance_usd": 246400
-  },
-  "fixes": [
-    "short opening activity SELL",
-    "short closing activity BUY",
-    "GC initial/maintenance margin",
-    "existing GC margin repair",
-    "margin sanity validation",
-    "treasury initial/maintenance margin",
-    "active position margin display",
-    "price refresh button overlap"
+  "scope": "FX currency mapping only",
+  "guarantees": [
+    "no fixed SB quantity",
+    "no fixed SB entry price",
+    "mQty default remains 1",
+    "all futures catalog behavior remains dynamic",
+    "USX quote unit settles in USD",
+    "USD/TRY used for FX"
   ],
-  "app_sha256": "5f7cce3e676ff448fb32c865277b68a05fe820fc2483c58675df50378d61a4da",
-  "server_sha256": "dfe797801bf09ac315a6f61613612b0c5ed5f9cbce454ead1dc43f9200bf83dd"
+  "app_sha256": "53fc64fb3a10861931dd717ba476fbe9e248b9b5d921660163ebbe199d4d80a6",
+  "server_sha256": "9e507c77945eaecfa6f09f80fe449dfb018af9066100c51961ec0b81da1725a1"
 }
