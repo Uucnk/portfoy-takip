@@ -3028,8 +3028,18 @@ async function pmsMarketRegime(){
 app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
  try{
   const positions=Array.isArray(req.body?.positions)?req.body.positions.slice(0,60):[];
-  const usable=positions.filter(p=>p?.symbol&&Number(p.notional)>=0);
+  const exposureOf=p=>{
+   const rows=[p?.exposureTRY,p?.notional].map(Number).filter(v=>Number.isFinite(v)&&v>0);
+   return rows[0]||0;
+  };
+  const signedExposureOf=p=>{
+   const rows=[p?.signedExposureTRY,p?.signedNotional].map(Number).filter(Number.isFinite);
+   if(rows.length&&Math.abs(rows[0])>0)return rows[0];
+   return exposureOf(p)*(Number(p?.directionSign)<0?-1:1);
+  };
+  const usable=positions.filter(p=>p?.symbol);
   const unique=[...new Set(usable.map(p=>String(p.symbol).trim().toUpperCase()).filter(Boolean))].slice(0,30);
+
   const snapshotEntries=await Promise.all(unique.map(async symbol=>{
    const cacheKey=`snapshot:${symbol}`,cached=pmsLiveCache.get(cacheKey);
    if(cached&&Date.now()-cached.at<5*60*1000)return[symbol,cached.data];
@@ -3037,6 +3047,7 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
    pmsLiveCache.set(cacheKey,{at:Date.now(),data});return[symbol,data];
   }));
   const snapshots=new Map(snapshotEntries);
+
   const active=usable.filter(p=>p.status==="Aktif").slice(0,25);
   const activeSymbols=[...new Set(active.map(p=>String(p.symbol).toUpperCase()))];
   const historyEntries=await Promise.all(activeSymbols.map(async symbol=>{
@@ -3047,16 +3058,23 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
   }));
   const histories=new Map(historyEntries);
 
-  const gross=active.reduce((s,p)=>s+Math.abs(Number(p.notional)||0),0);
+  const gross=active.reduce((s,p)=>s+Math.abs(exposureOf(p)),0);
   const assets=usable.map(p=>{
    const snap=snapshots.get(String(p.symbol).toUpperCase())||{symbol:p.symbol};
    const hist=histories.get(String(p.symbol).toUpperCase())||null;
    const factors=p.status==="Aktif"?pmsFactorScores(snap,hist):{};
-   const liquidity=p.status==="Aktif"?pmsLiquidityScore(p,snap):{};
-   return{...p,sector:snap.sector||p.assetClass||"Diğer",industry:snap.industry||null,price:snap.price||null,averageVolume:snap.averageVolume||null,liquidity,...factors};
+   const liquidity=p.status==="Aktif"?pmsLiquidityScore({...p,notional:exposureOf(p)},snap):{};
+   const sector=snap.sector||p.economicBucket||p.assetClass||"Diğer";
+   return{
+    ...p,exposureTRY:exposureOf(p),signedExposureTRY:signedExposureOf(p),
+    sector,industry:snap.industry||null,price:snap.price||null,averageVolume:snap.averageVolume||null,
+    liquidity,...factors
+   };
   });
 
-  const activeAssets=assets.filter(x=>x.status==="Aktif"),weights=activeAssets.map(x=>gross?Math.abs(Number(x.notional)||0)/gross:0),signedWeights=activeAssets.map(x=>gross?(Number(x.signedNotional)||0)/gross:0);
+  const activeAssets=assets.filter(x=>x.status==="Aktif");
+  const weights=activeAssets.map(x=>gross?Math.abs(Number(x.exposureTRY)||0)/gross:0);
+  const signedWeights=activeAssets.map(x=>gross?(Number(x.signedExposureTRY)||0)/gross:0);
   const maps=activeAssets.map(x=>pmsReturnMap(histories.get(String(x.symbol).toUpperCase())));
   const n=activeAssets.length,covMatrix=Array.from({length:n},()=>Array(n).fill(0));
   let covarianceCoverage=0,totalPairs=0;
@@ -3067,23 +3085,54 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
     if(Number.isFinite(cv)){covMatrix[i][j]=cv;covarianceCoverage++}
    }
   }
+
   let portfolioVar=0;
   for(let i=0;i<n;i++)for(let j=0;j<n;j++)portfolioVar+=signedWeights[i]*signedWeights[j]*covMatrix[i][j];
+
+  // If pairwise covariance coverage is sparse, keep diagonal historical risk.
+  if(!(portfolioVar>0)){
+   portfolioVar=0;
+   for(let i=0;i<n;i++){
+    const v=Number(covMatrix[i][i])||0;
+    if(v>0)portfolioVar+=signedWeights[i]*signedWeights[i]*v;
+   }
+  }
   portfolioVar=Math.max(0,portfolioVar);
+
   const riskRows=activeAssets.map((asset,i)=>{
    let marginal=0;for(let j=0;j<n;j++)marginal+=covMatrix[i][j]*signedWeights[j];
    const component=portfolioVar>0?signedWeights[i]*marginal/portfolioVar:null;
    const annVol=covMatrix[i][i]>0?Math.sqrt(covMatrix[i][i]*252)*100:null;
-   return{label:asset.label,symbol:asset.symbol,weight:signedWeights[i],absoluteWeight:weights[i],annualVolatility:annVol,riskContributionPct:Number.isFinite(component)?component*100:null};
+   return{
+    label:asset.label,symbol:asset.symbol,
+    weight:signedWeights[i],absoluteWeight:weights[i],
+    exposureTRY:Number(asset.exposureTRY)||0,signedExposureTRY:Number(asset.signedExposureTRY)||0,
+    annualVolatility:annVol,
+    riskContributionPct:Number.isFinite(component)?component*100:null
+   };
   });
-  if(!riskRows.some(x=>Number.isFinite(x.riskContributionPct))){
+
+  const meaningfulComponent=riskRows.some(x=>Number.isFinite(x.riskContributionPct)&&Math.abs(x.riskContributionPct)>.000001);
+  if(!meaningfulComponent){
    const raw=riskRows.map((x,i)=>weights[i]*(Number(x.annualVolatility)||0)),den=raw.reduce((a,b)=>a+b,0);
    riskRows.forEach((x,i)=>x.riskContributionPct=den?raw[i]/den*100:null);
   }
-  const portfolioVolatility=portfolioVar>0?Math.sqrt(portfolioVar*252)*100:null;
+
+  let portfolioVolatility=portfolioVar>0?Math.sqrt(portfolioVar*252)*100:null;
+  if(!Number.isFinite(portfolioVolatility)){
+   const diagonal=riskRows.reduce((s,x,i)=>{
+    const annual=(Number(x.annualVolatility)||0)/100;
+    return s+(signedWeights[i]*annual)**2;
+   },0);
+   portfolioVolatility=diagonal>0?Math.sqrt(diagonal)*100:null;
+  }
   const riskCoverage=totalPairs?covarianceCoverage/totalPairs*100:0;
 
-  const sectorMap={};activeAssets.forEach((x,i)=>{const sector=x.sector||"Diğer";sectorMap[sector]=(sectorMap[sector]||0)+weights[i]});
+  const sectorMap={};
+  activeAssets.forEach((x,i)=>{
+   const sector=x.sector||"Diğer";
+   sectorMap[sector]=(sectorMap[sector]||0)+weights[i];
+  });
   const sectors=Object.entries(sectorMap).map(([sector,weight])=>({sector,weight})).sort((a,b)=>b.weight-a.weight);
 
   const hhi=weights.reduce((s,w)=>s+w*w,0),effN=hhi>0?1/hhi:0,maxW=Math.max(0,...weights);
@@ -3093,7 +3142,9 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
   const diversification=.7*positionDiv+.3*sectorDiv;
 
   let liqNum=0,liqDen=0,liqCoverageWeight=0;
-  activeAssets.forEach((x,i)=>{if(Number.isFinite(x.liquidity?.score)){liqNum+=weights[i]*x.liquidity.score;liqDen+=weights[i];liqCoverageWeight+=weights[i]}});
+  activeAssets.forEach((x,i)=>{
+   if(Number.isFinite(x.liquidity?.score)){liqNum+=weights[i]*x.liquidity.score;liqDen+=weights[i];liqCoverageWeight+=weights[i]}
+  });
   const liquidity=liqDen?liqNum/liqDen:45;
   const volScore=!Number.isFinite(portfolioVolatility)?55:portfolioVolatility<=10?100:portfolioVolatility<=15?85:portfolioVolatility<=20?70:portfolioVolatility<=30?50:portfolioVolatility<=40?30:15;
   const capital=Math.max(1,Number(req.body?.capital)||gross||1),leverage=gross/capital;
@@ -3107,15 +3158,25 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
   const coverage=(.45*(riskCoverage||0)+.30*(liqCoverageWeight*100)+.25*(activeAssets.length?100:0));
   const overall=.35*diversification+.25*liquidity+.40*risk;
 
-  const factorKeys=["value","growth","momentum","quality","lowQuality"],factorExposure={};
-  let factorCoverageWeight=0;
+  // Factor exposure: each factor gets its own coverage. Null factors are not zero.
+  const factorKeys=["value","growth","momentum","quality","lowQuality"],factorExposure={},coverageByFactor={};
   for(const key of factorKeys){
    let num=0,den=0;
-   activeAssets.forEach((x,i)=>{if(Number.isFinite(x[key])){num+=weights[i]*x[key];den+=weights[i]}});
+   activeAssets.forEach((x,i)=>{
+    if(Number.isFinite(x[key])){num+=weights[i]*x[key];den+=weights[i]}
+   });
    factorExposure[key]=den?num/den:null;
-   if(key==="quality")factorCoverageWeight=den;
+   coverageByFactor[key]=den*100;
   }
-  factorExposure.coverage=factorCoverageWeight*100;factorExposure.sectors=sectors;
+  const anyFactorCoverage=activeAssets.reduce((sum,x,i)=>{
+   const any=factorKeys.some(key=>Number.isFinite(x[key]));
+   return sum+(any?weights[i]:0);
+  },0)*100;
+  const fundamentalCoverage=Math.max(coverageByFactor.value||0,coverageByFactor.growth||0,coverageByFactor.quality||0);
+  factorExposure.coverage=anyFactorCoverage;
+  factorExposure.coverageByFactor=coverageByFactor;
+  factorExposure.fundamentalCoverage=fundamentalCoverage;
+  factorExposure.sectors=sectors;
 
   const [regime,compositeBenchmark]=await Promise.all([
    pmsMarketRegime(),
@@ -3126,7 +3187,7 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
    fetchedAt:new Date().toISOString(),
    source:"Yahoo Finance gecikmeli piyasa/fundamental verileri + Model Portföy kayıtları",
    assets,
-   risk:{portfolioVolatility,coverage:riskCoverage,rows:riskRows},
+   risk:{portfolioVolatility,coverage:riskCoverage,grossExposureTRY:gross,rows:riskRows},
    portfolioHealth:{overall,diversification,liquidity,risk,coverage,comment:pmsHealthComment(overall,diversification,liquidity,risk),effectivePositions:effN,maxWeight:maxW,stopCoverage,leverage},
    factorExposure,
    regime,
