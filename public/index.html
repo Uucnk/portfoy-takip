@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.3.3</title>
+<title>Invest Cockpit · v8.3.4</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1834,8 +1834,208 @@ body.modalOpen{overflow:hidden}
  background:#0b1824;color:#7fa0ba;font-size:9px;line-height:1.35
 }
 
+
+/* =========================================================
+   v8.3.4 — Sidebar / tooltip / scrollbar polish
+   ========================================================= */
+
+/* Sidebar becomes a proper flex column:
+   top bar + independently scrollable navigation + fixed user footer. */
+.sidebar{
+ display:flex!important;
+ flex-direction:column!important;
+ overflow:hidden!important;
+}
+.sidebarTop{
+ flex:0 0 60px!important;
+ min-height:60px!important;
+}
+.sidebarNav{
+ flex:1 1 auto!important;
+ min-height:0!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ padding:12px 8px 18px!important;
+ overscroll-behavior:contain;
+ scrollbar-gutter:stable;
+}
+.sidebarFooter{
+ position:static!important;
+ left:auto!important;
+ right:auto!important;
+ bottom:auto!important;
+ flex:0 0 auto!important;
+ margin:0 8px 10px!important;
+}
+.sidebar.closed .sidebarFooter{
+ margin:0 6px 8px!important;
+}
+
+/* Let the main sidebar own the scroll instead of creating a nested
+   accounts scrollbar that hides users below the visible panel. */
+.adminAccountsList{
+ max-height:none!important;
+ overflow:visible!important;
+}
+
+/* Make the Invest Cockpit sidebar brand fully white/readable.
+   The supplied SVG contains blue/black artwork; filter turns all opaque
+   pixels white without changing the actual asset file. */
+.sidebarBrand{
+ flex:1 1 auto!important;
+ min-width:0!important;
+ display:flex!important;
+ align-items:center!important;
+}
+.sidebarBrand img{
+ width:auto!important;
+ max-width:174px!important;
+ max-height:45px!important;
+ height:38px!important;
+ object-fit:contain!important;
+ object-position:left center!important;
+ filter:brightness(0) invert(1)!important;
+ opacity:1!important;
+}
+
+/* Dark, restrained scrollbars for Edge/Chrome/Firefox. */
+.orderTerminal,
+.sidebarNav,
+.globalSymbolSuggestions,
+.terminalSymbolSuggestions,
+.marketContent,
+.adminPositionTable,
+.researchBody,
+.modalBox,
+.aiMessages{
+ scrollbar-width:thin;
+ scrollbar-color:#31485d #09111b;
+}
+.orderTerminal::-webkit-scrollbar,
+.sidebarNav::-webkit-scrollbar,
+.globalSymbolSuggestions::-webkit-scrollbar,
+.terminalSymbolSuggestions::-webkit-scrollbar,
+.marketContent::-webkit-scrollbar,
+.adminPositionTable::-webkit-scrollbar,
+.researchBody::-webkit-scrollbar,
+.modalBox::-webkit-scrollbar,
+.aiMessages::-webkit-scrollbar{
+ width:7px;
+ height:7px;
+}
+.orderTerminal::-webkit-scrollbar-track,
+.sidebarNav::-webkit-scrollbar-track,
+.globalSymbolSuggestions::-webkit-scrollbar-track,
+.terminalSymbolSuggestions::-webkit-scrollbar-track,
+.marketContent::-webkit-scrollbar-track,
+.adminPositionTable::-webkit-scrollbar-track,
+.researchBody::-webkit-scrollbar-track,
+.modalBox::-webkit-scrollbar-track,
+.aiMessages::-webkit-scrollbar-track{
+ background:#09111b;
+}
+.orderTerminal::-webkit-scrollbar-thumb,
+.sidebarNav::-webkit-scrollbar-thumb,
+.globalSymbolSuggestions::-webkit-scrollbar-thumb,
+.terminalSymbolSuggestions::-webkit-scrollbar-thumb,
+.marketContent::-webkit-scrollbar-thumb,
+.adminPositionTable::-webkit-scrollbar-thumb,
+.researchBody::-webkit-scrollbar-thumb,
+.modalBox::-webkit-scrollbar-thumb,
+.aiMessages::-webkit-scrollbar-thumb{
+ background:#31485d;
+ border-radius:999px;
+ border:1px solid #09111b;
+}
+.orderTerminal::-webkit-scrollbar-thumb:hover,
+.sidebarNav::-webkit-scrollbar-thumb:hover,
+.globalSymbolSuggestions::-webkit-scrollbar-thumb:hover,
+.terminalSymbolSuggestions::-webkit-scrollbar-thumb:hover,
+.marketContent::-webkit-scrollbar-thumb:hover,
+.adminPositionTable::-webkit-scrollbar-thumb:hover,
+.researchBody::-webkit-scrollbar-thumb:hover,
+.modalBox::-webkit-scrollbar-thumb:hover,
+.aiMessages::-webkit-scrollbar-thumb:hover{
+ background:#45637d;
+}
+.orderTerminal::-webkit-scrollbar-button,
+.sidebarNav::-webkit-scrollbar-button,
+.globalSymbolSuggestions::-webkit-scrollbar-button,
+.terminalSymbolSuggestions::-webkit-scrollbar-button,
+.marketContent::-webkit-scrollbar-button,
+.adminPositionTable::-webkit-scrollbar-button,
+.researchBody::-webkit-scrollbar-button,
+.modalBox::-webkit-scrollbar-button,
+.aiMessages::-webkit-scrollbar-button{
+ display:none!important;
+ width:0!important;
+ height:0!important;
+}
+
+/* Disable old pseudo-element help balloons. They lived inside the PMS
+   stacking context and could therefore slide behind the fixed sidebar. */
+.pmsHelp::after,
+.pmsHelp::before,
+.infoTip::after,
+.infoTip::before{
+ display:none!important;
+ content:none!important;
+}
+
+/* Viewport-level help portal: always above sidebar/terminal/modals. */
+#investCockpitHelpPortal{
+ position:fixed;
+ z-index:2147483646;
+ display:none;
+ width:min(310px,calc(100vw - 28px));
+ max-width:310px;
+ padding:10px 11px;
+ box-sizing:border-box;
+ border:1px solid #45647d;
+ border-radius:9px;
+ background:#07131e;
+ color:#d4e1ec;
+ box-shadow:0 16px 42px rgba(0,0,0,.62);
+ font:500 10px/1.5 Arial,sans-serif;
+ text-align:left;
+ white-space:normal;
+ pointer-events:none;
+ opacity:0;
+ transform:translateY(3px);
+ transition:opacity .1s ease,transform .1s ease;
+}
+#investCockpitHelpPortal.open{
+ display:block;
+ opacity:1;
+ transform:translateY(0);
+}
+#investCockpitHelpPortal:after{
+ content:"";
+ position:absolute;
+ width:9px;
+ height:9px;
+ background:#07131e;
+ border-left:1px solid #45647d;
+ border-top:1px solid #45647d;
+ transform:rotate(45deg);
+ left:var(--help-arrow-left,24px);
+}
+#investCockpitHelpPortal[data-placement="above"]:after{
+ bottom:-5px;
+ transform:rotate(225deg);
+}
+#investCockpitHelpPortal[data-placement="below"]:after{
+ top:-5px;
+ transform:rotate(45deg);
+}
+
+@media(max-width:900px){
+ .sidebarNav{padding-bottom:14px!important}
+ #investCockpitHelpPortal{max-width:min(300px,calc(100vw - 20px))}
+}
+
 </style>
-<meta name="portfolio-build" content="v8.3.3-pms-live-open-position-analytics">
+<meta name="portfolio-build" content="v8.3.4-sidebar-tooltip-scroll-polish">
 </head>
 <body class="authLocked">
 
@@ -7893,6 +8093,113 @@ window.addEventListener("load",function(){
     <div class="tradeNotificationHint">Bu pencerenin dışındaki boş bir alana tıklayarak kapatabilirsiniz.</div>
   </div>
 </div>
+
+
+<div id="investCockpitHelpPortal" role="tooltip" aria-hidden="true"></div>
+<script>
+(function(){
+  const portal=document.getElementById("investCockpitHelpPortal");
+  if(!portal)return;
+
+  let activeTrigger=null;
+
+  function sidebarBoundary(){
+    const sidebar=document.getElementById("sidebar");
+    if(!sidebar||window.innerWidth<=900)return 8;
+    const rect=sidebar.getBoundingClientRect();
+    return Math.max(8,rect.right+8);
+  }
+
+  function terminalBoundary(){
+    const terminal=document.getElementById("orderTerminal");
+    if(!terminal||window.innerWidth<=900||getComputedStyle(terminal).display==="none")return window.innerWidth-8;
+    const rect=terminal.getBoundingClientRect();
+    return Math.min(window.innerWidth-8,rect.left-8);
+  }
+
+  function helpText(trigger){
+    return trigger?.dataset?.help||trigger?.dataset?.tip||"";
+  }
+
+  function positionPortal(trigger){
+    if(!trigger||!portal.classList.contains("open"))return;
+
+    const rect=trigger.getBoundingClientRect();
+    const margin=10;
+    const leftBoundary=sidebarBoundary();
+    const rightBoundary=Math.max(leftBoundary+220,terminalBoundary());
+
+    // First display at a safe temporary point so width/height are measurable.
+    portal.style.left=`${Math.max(leftBoundary,margin)}px`;
+    portal.style.top=`${margin}px`;
+
+    const box=portal.getBoundingClientRect();
+    const width=box.width||300;
+    const height=box.height||80;
+
+    let left=rect.left+rect.width/2-width/2;
+    left=Math.max(leftBoundary,Math.min(left,rightBoundary-width));
+
+    const roomAbove=rect.top-margin;
+    const placement=roomAbove>=height+12?"above":"below";
+    let top=placement==="above"
+      ?rect.top-height-10
+      :rect.bottom+10;
+
+    top=Math.max(margin,Math.min(top,window.innerHeight-height-margin));
+
+    portal.dataset.placement=placement;
+    portal.style.left=`${Math.round(left)}px`;
+    portal.style.top=`${Math.round(top)}px`;
+
+    const arrowCenter=rect.left+rect.width/2-left;
+    portal.style.setProperty("--help-arrow-left",`${Math.max(12,Math.min(width-18,arrowCenter-4))}px`);
+  }
+
+  function show(trigger){
+    const text=helpText(trigger);
+    if(!text)return;
+    activeTrigger=trigger;
+    portal.textContent=text;
+    portal.setAttribute("aria-hidden","false");
+    portal.classList.add("open");
+    positionPortal(trigger);
+  }
+
+  function hide(trigger){
+    if(trigger&&activeTrigger&&trigger!==activeTrigger)return;
+    activeTrigger=null;
+    portal.classList.remove("open");
+    portal.setAttribute("aria-hidden","true");
+  }
+
+  document.addEventListener("pointerover",event=>{
+    const trigger=event.target.closest?.(".pmsHelp,.infoTip");
+    if(trigger)show(trigger);
+  });
+
+  document.addEventListener("pointerout",event=>{
+    const trigger=event.target.closest?.(".pmsHelp,.infoTip");
+    if(!trigger)return;
+    const related=event.relatedTarget;
+    if(related&&trigger.contains(related))return;
+    hide(trigger);
+  });
+
+  document.addEventListener("focusin",event=>{
+    const trigger=event.target.closest?.(".pmsHelp,.infoTip");
+    if(trigger)show(trigger);
+  });
+
+  document.addEventListener("focusout",event=>{
+    const trigger=event.target.closest?.(".pmsHelp,.infoTip");
+    if(trigger)hide(trigger);
+  });
+
+  window.addEventListener("resize",()=>activeTrigger&&positionPortal(activeTrigger));
+  document.addEventListener("scroll",()=>activeTrigger&&positionPortal(activeTrigger),true);
+})();
+</script>
 
 </body>
 </html>
