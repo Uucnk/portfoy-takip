@@ -1,6 +1,9 @@
 
 (function(){
-  const data=Array.isArray(window.CORE_MARKET_INTELLIGENCE_50)?window.CORE_MARKET_INTELLIGENCE_50:[];
+  const data=[
+    ...(Array.isArray(window.CORE_MARKET_INTELLIGENCE_50)?window.CORE_MARKET_INTELLIGENCE_50:[]),
+    ...(Array.isArray(window.CORE_MARKET_INTELLIGENCE_51_100)?window.CORE_MARKET_INTELLIGENCE_51_100:[])
+  ].sort((a,b)=>a.rank-b.rank);
   let selectedRank=1;
 
   const esc=value=>String(value??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
