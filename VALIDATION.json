@@ -1,16 +1,16 @@
 {
-  "version": "8.3.7",
-  "base": "8.3.6",
+  "version": "8.3.8",
+  "base": "8.3.7",
   "validated": true,
-  "feature": "Learning Hub / Core Market Intelligence 100",
-  "indicator_count": 100,
+  "feature": "Learning Hub / Core Market Intelligence 150",
+  "indicator_count": 150,
   "new_rank_range": [
-    51,
-    100
+    101,
+    150
   ],
-  "new_data_file": "public/learning-hub-core51-100.js",
-  "app_sha256": "250e7e88a27d0bfae85bdf18aea76e1bc4e74c4e79fac28980e90601a6fb6312",
-  "data_51_100_sha256": "d3aa45d16cb9c1d797a719655b4feaf834f81a7b59da1a0d00dc7aaaa5216391",
-  "renderer_sha256": "7fb4053f40dffece35b6c1f1756764f5fadbd5a3a9564f020ebbb0a1abc0e24d",
+  "new_data_file": "public/learning-hub-core101-150.js",
+  "app_sha256": "e33e0907e5af426ace8debcf99928738a819587cd3dafe3950f734c665a7680a",
+  "data_101_150_sha256": "de1a0da38112c37502428e9e3315d3e83173a4bdc4d521061b6069e72adf6e18",
+  "renderer_sha256": "d4c9ce7aae0c6474ff327598d6c0a84078d9e257c6f8e837ac8070fbe2e6ef38",
   "server_sha256": "87c025f3bfd61c2967893699d5ec28ee4cdee71b0146f9534cfae408a3d924d9"
 }
