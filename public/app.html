@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.3.1</title>
+<title>Invest Cockpit · v8.3.2</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1824,8 +1824,18 @@ body.modalOpen{overflow:hidden}
  white-space:normal;
 }
 
+
+/* v8.3.2 professional target + methodology */
+.pmsProfessionalTargets .metricRow{min-height:43px}
+.pmsProfessionalTargets .metricRow span{display:flex;align-items:center;gap:4px;min-width:0}
+.pmsProfessionalTargets .metricRow strong{text-align:right;white-space:nowrap}
+.pmsTargetNote{
+ margin:5px 0 9px;padding:8px 9px;border:1px solid #294156;border-radius:8px;
+ background:#0b1824;color:#7fa0ba;font-size:9px;line-height:1.35
+}
+
 </style>
-<meta name="portfolio-build" content="v8.3.1-usx-fx-only-fix">
+<meta name="portfolio-build" content="v8.3.2-pms-trackrecord-benchmark-engine">
 </head>
 <body class="authLocked">
 
@@ -2677,7 +2687,7 @@ body.modalOpen{overflow:hidden}
     <div class="pmsKpi"><span>Güncel Portföy Değeri</span><strong id="pmsPortfolioValue">-</strong><small>Model Portföy özvarlığı</small></div>
     <div class="pmsKpi"><span>Toplam Getiri</span><strong id="pmsTotalReturn">-</strong><small>Başlangıçtan bugüne</small></div>
     <div class="pmsKpi"><span>CAGR</span><strong id="pmsCagr">-</strong><small>Yıllıklandırılmış bileşik getiri</small></div>
-    <div class="pmsKpi"><span>Annualized Volatility</span><strong id="pmsVolatility">-</strong><small>Trade-return volatilitesi</small></div>
+    <div class="pmsKpi"><span>Annualized Volatility</span><strong id="pmsVolatility">-</strong><small>NAV getirilerinin yıllıklandırılmış volatilitesi</small></div>
     <div class="pmsKpi"><span>Sharpe</span><strong id="pmsSharpe">-</strong><small>Toplam risk başına excess return</small></div>
     <div class="pmsKpi"><span>Sortino</span><strong id="pmsSortino">-</strong><small>Aşağı yönlü risk başına getiri</small></div>
     <div class="pmsKpi"><span>Max Drawdown</span><strong id="pmsMaxDrawdown">-</strong><small>Zirveden dip seviyeye maksimum kayıp</small></div>
@@ -2687,7 +2697,7 @@ body.modalOpen{overflow:hidden}
   <div id="pmsTrackRecord" class="pmsSectionBlock">
     <div class="pmsSectionTitle">
       <div><div class="pmsEyebrow">PERFORMANCE HISTORY</div><h3>Track Record</h3></div>
-      <span id="pmsTrackCoverage" class="pmsBadge">0 kapalı işlem</span>
+      <span id="pmsTrackCoverage" class="pmsBadge">NAV geçmişi hazırlanıyor</span>
     </div>
 
     <div class="trackGrid pmsTrackGrid">
@@ -2706,16 +2716,24 @@ body.modalOpen{overflow:hidden}
         <div class="metricRow"><span>Süre</span><strong id="mDuration">-</strong></div>
       </div>
 
-      <div class="panel">
-        <h3>Profesyonel Hedef Kıyasları</h3>
-        <div class="metricRow"><span>CAGR <span class="infoTip" data-tip="Bileşik yıllık büyüme oranıdır. Track recordun yıllıklandırılmış büyümesini gösterir.">i</span></span><strong>%12–%18</strong></div>
-        <div class="metricRow"><span>Sharpe <span class="infoTip" data-tip="Risksiz faiz üzerindeki getiriyi toplam volatiliteye böler. Daha yüksek değer risk başına daha güçlü performans anlamına gelir.">i</span></span><strong>1.5+</strong></div>
-        <div class="metricRow"><span>Sortino <span class="infoTip" data-tip="Yalnızca aşağı yönlü volatiliteyi risk kabul eder.">i</span></span><strong>2.0+</strong></div>
-        <div class="metricRow"><span>Max Drawdown <span class="infoTip" data-tip="Bir zirveden sonraki en büyük yüzdesel portföy kaybıdır.">i</span></span><strong>&lt;%15</strong></div>
-        <div class="metricRow"><span>Beta <span class="infoTip" data-tip="Portföyün benchmark hareketlerine duyarlılığıdır.">i</span></span><strong>&lt;0.70</strong></div>
-        <div class="metricRow"><span>Süre <span class="infoTip" data-tip="Daha uzun track record farklı piyasa rejimlerinde tutarlılığın değerlendirilmesini kolaylaştırır.">i</span></span><strong>3+ yıl</strong></div>
+      <div class="panel pmsProfessionalTargets">
+        <h3>Profesyonel Hedef Kıyasları <button class="pmsHelp" type="button" data-help="Bu panel Invest Cockpit için tanımlanmış kurumsal hedef profilidir; her fonun mandate'i, varlık sınıfı ve risk bütçesi farklı olduğundan evrensel bir sektör standardı değildir. Amaç aynı track recordu tutarlı bir hedef çerçevesiyle izlemektir.">?</button></h3>
+        <div class="pmsTargetNote">Invest Cockpit kurumsal hedef profili · aynı mandate ve aynı Composite Benchmark ile değerlendirilmelidir.</div>
+        <div class="metricRow"><span>Güncel Portföy Değeri <button class="pmsHelp" type="button" data-help="Portföyün mevcut net özvarlığıdır. Tek başına performans oranı değildir. Hedef, dışarıdan yeni sermaye eklenmediği varsayımıyla başlangıç sermayesinin üzerinde kalması ve kaybın risk bütçesi içinde tutulmasıdır.">?</button></span><strong>&gt; Başlangıç Sermayesi</strong></div>
+        <div class="metricRow"><span>Toplam Getiri <button class="pmsHelp" type="button" data-help="Başlangıç sermayesinden bugünkü NAV'a toplam bileşik değişimdir. Profesyonel değerlendirmede yalnızca pozitif olması değil, aynı dönemdeki Composite Benchmark getirisini aşması beklenir.">?</button></span><strong>&gt; Composite Benchmark</strong></div>
+        <div class="metricRow"><span>CAGR <button class="pmsHelp" type="button" data-help="Bileşik yıllık büyüme oranıdır. Farklı sürelerdeki track recordları yıllıklandırılmış bazda karşılaştırır. Çok kısa geçmişte yıllıklandırma yanıltıcı olabileceği için süreyle birlikte yorumlanmalıdır.">?</button></span><strong>%12–%18</strong></div>
+        <div class="metricRow"><span>Annualized Volatility <button class="pmsHelp" type="button" data-help="NAV dönem getirilerinin standart sapmasının yıllıklandırılmış halidir. Daha düşük volatilite aynı getiri seviyesinde daha kontrollü risk anlamına gelir. Bu PMS hedef profilinde %15 ve altı tercih edilir.">?</button></span><strong>≤ %15</strong></div>
+        <div class="metricRow"><span>Sharpe <button class="pmsHelp" type="button" data-help="Portföyün risksiz faiz üzerindeki getirisini toplam volatiliteye böler. 1'in üzeri güçlü, 1,5 ve üzeri bu PMS için profesyonel hedef, 2 ve üzeri çok güçlü risk-adjusted performans olarak izlenir. Hesaplama NAV zaman serisinden yapılır.">?</button></span><strong>≥ 1,50</strong></div>
+        <div class="metricRow"><span>Sortino <button class="pmsHelp" type="button" data-help="Sharpe'a benzer ancak yalnızca hedefin altındaki/aşağı yönlü getirileri risk olarak kullanır. Yüksek Sortino, negatif sapma başına daha iyi getiri üretildiğini gösterir.">?</button></span><strong>≥ 2,00</strong></div>
+        <div class="metricRow"><span>Calmar <button class="pmsHelp" type="button" data-help="CAGR'ın maksimum drawdown'a oranıdır. Portföyün yaşadığı en büyük tarihsel kayıp karşılığında ne kadar yıllıklandırılmış getiri ürettiğini gösterir. 1'in üzeri kabul edilebilir, 1,5 ve üzeri güçlü kabul edilir.">?</button></span><strong>≥ 1,00</strong></div>
+        <div class="metricRow"><span>Max Drawdown <button class="pmsHelp" type="button" data-help="NAV'ın bir zirveden sonraki en büyük yüzdesel düşüşüdür. Zararın büyüklüğünü ve yatırımcının yaşayabileceği en kötü tarihsel sermaye gerilemesini gösterir.">?</button></span><strong>≤ %15</strong></div>
+        <div class="metricRow"><span>Recovery Factor <button class="pmsHelp" type="button" data-help="Net kârın maksimum drawdown tutarına oranıdır. Portföyün yaşadığı en büyük parasal düşüşü ne ölçüde telafi ettiğini ölçer. 1'in üzeri toparlanmayı, 1,5 ve üzeri daha güçlü sermaye verimliliğini gösterir.">?</button></span><strong>≥ 1,50</strong></div>
+        <div class="metricRow"><span>Beta <button class="pmsHelp" type="button" data-help="Portföy NAV getirilerinin Composite Benchmark getirilerine duyarlılığıdır. 1 benchmarkla aynı sistematik risk, 1'in altı daha düşük benchmark duyarlılığı anlamına gelir. Invest Cockpit düşük-beta hedef profili 0,70 ve altıdır.">?</button></span><strong>≤ 0,70</strong></div>
+        <div class="metricRow"><span>Süre <button class="pmsHelp" type="button" data-help="Track recordun toplam zaman uzunluğudur. Sharpe, drawdown ve alpha gibi oranlar örneklem uzadıkça daha güvenilir hale gelir. Farklı piyasa rejimlerini kapsaması için en az 3 yıllık geçmiş hedeflenir.">?</button></span><strong>≥ 3 yıl</strong></div>
       </div>
     </div>
+
+    <div id="pmsTrackMethodology" class="pmsDataNotice">Risk-adjusted oranlar günlük NAV/equity gözlemlerinden hesaplanır. Minimum gözlem sayısına ulaşılmadığında sistem sahte bir oran üretmez; veri birikme durumunu gösterir.</div>
 
     <div class="pmsChartGrid">
       <div class="panel pmsChartPanel">
@@ -2723,7 +2741,7 @@ body.modalOpen{overflow:hidden}
         <canvas id="pmsEquityBenchmarkChart" class="pmsCanvas"></canvas>
       </div>
       <div class="panel pmsChartPanel">
-        <div class="pmsChartHead"><div><h3>Drawdown Profile</h3><span>Gerçekleşen kapalı işlemlerden hesaplanır</span></div></div>
+        <div class="pmsChartHead"><div><h3>Drawdown Profile</h3><span>Portföy NAV / equity geçmişinden hesaplanır</span></div></div>
         <canvas id="pmsDrawdownChart" class="pmsCanvas"></canvas>
       </div>
     </div>
@@ -2812,13 +2830,13 @@ body.modalOpen{overflow:hidden}
       <div class="pmsMetricCard"><span>Downside Capture</span><strong id="pmsDownsideCapture">-</strong><small>Composite düşerken capture</small></div>
     </div>
 
-    <div class="pmsDataNotice">Composite Benchmark otomatik olarak dört politika sepetini kullanır. Trade bazlı Alpha/Beta/Rolling metriklerinde her kapalı işlemin açılış ve kapanış tarihleri arasındaki Composite Benchmark getirisi eşleştirilir. Eski manuel <strong>Benchmark %</strong> kayıtları yalnızca canlı composite veri henüz yoksa geriye dönük yedek olarak kullanılır.</div>
+    <div class="pmsDataNotice">Composite Benchmark dört politika sepetini kullanır. Beta, Alpha, Tracking Error, Information Ratio ve Rolling relative metrikler NAV/equity dönem getirileri ile aynı tarihlerdeki Composite Benchmark getirileri eşleştirilerek hesaplanır. Attribution modülleri ise işlem bazlı holding-period benchmark eşleşmesini ayrıca kullanır.</div>
   </div>
 
   <div id="pmsRolling" class="pmsSectionBlock">
     <div class="pmsSectionTitle">
       <div><div class="pmsEyebrow">WINDOW ANALYTICS</div><h3>Rolling Metrics</h3></div>
-      <div class="pmsRollingControls"><label>Rolling Window</label><select id="pmsRollingWindow"><option value="5">5 işlem</option><option value="10" selected>10 işlem</option><option value="20">20 işlem</option><option value="30">30 işlem</option></select></div>
+      <div class="pmsRollingControls"><label>Rolling Window</label><select id="pmsRollingWindow"><option value="5">5 NAV getirisi</option><option value="10" selected>10 NAV getirisi</option><option value="20">20 NAV getirisi</option><option value="30">30 NAV getirisi</option></select></div>
     </div>
     <div class="pmsRollingLatest">
       <div><span>Rolling Sharpe</span><strong id="pmsRollingSharpeLatest">-</strong></div>
@@ -2832,7 +2850,7 @@ body.modalOpen{overflow:hidden}
       <div class="panel pmsRollingPanel"><div class="pmsChartHead"><div><h3>Rolling Alpha</h3><span id="pmsRollingAlphaMeta">Annualized</span></div></div><canvas id="pmsRollingAlphaChart" class="pmsRollingCanvas"></canvas></div>
       <div class="panel pmsRollingPanel"><div class="pmsChartHead"><div><h3>Rolling Beta</h3><span id="pmsRollingBetaMeta">Benchmark duyarlılığı</span></div></div><canvas id="pmsRollingBetaChart" class="pmsRollingCanvas"></canvas></div>
     </div>
-    <div class="pmsDataNotice">Rolling Sharpe ve Sortino seçilen son kapalı işlem penceresi üzerinden hesaplanır. Rolling Alpha ve Beta için aynı pencere içinde Composite Benchmark tarih eşleşmesi bulunan en az 3 işlem gerekir.</div>
+    <div class="pmsDataNotice">Rolling Sharpe ve Sortino seçilen NAV getiri penceresinden hesaplanır. Rolling Alpha ve Beta için aynı NAV penceresinde Composite Benchmark ile eşleşen en az 3 dönem getirisi gerekir.</div>
   </div>
 
   <div id="pmsRisk" class="pmsSectionBlock">
@@ -3200,9 +3218,10 @@ const DEFAULT_MODEL_SETTINGS={
  nemaSource:"",nemaRateHistory:[],nemaAccruals:[],
  compositeBenchmarkWeights:{bist:25,sp500:25,gold:25,bond:25},
  compositeBenchmarkInitialized:false,compositeBenchmarkRebalance:"quarterly",
- compositeBenchmarkBaseCurrency:"TRY",compositeBenchmarkUpdatedAt:"",
+ compositeBenchmarkBaseCurrency:"TRY",compositeBenchmarkUpdatedAt:"",compositeBenchmarkAutoCoverage:null,
  fxTrades:[],fxRates:{TRY:1},fxUpdatedAt:"",fxSource:"",
- viopCollateral:0,viopTransfers:[]
+ viopCollateral:0,viopTransfers:[],
+ pmsEquityHistory:[],pmsEquityHistoryMeta:{}
 };
 let settings={...DEFAULT_MODEL_SETTINGS,...JSON.parse(localStorage.getItem(SK)||"{}")};
 settings.viopTransfers=Array.isArray(settings.viopTransfers)?settings.viopTransfers:[];
@@ -3213,6 +3232,8 @@ settings.compositeBenchmarkRebalance=["monthly","quarterly","annual"].includes(s
 settings.fxTrades=Array.isArray(settings.fxTrades)?settings.fxTrades:[];
 settings.fxRates=settings.fxRates&&typeof settings.fxRates==="object"?settings.fxRates:{TRY:1};
 settings.fxRates.TRY=1;
+settings.pmsEquityHistory=Array.isArray(settings.pmsEquityHistory)?settings.pmsEquityHistory:[];
+settings.pmsEquityHistoryMeta=settings.pmsEquityHistoryMeta&&typeof settings.pmsEquityHistoryMeta==="object"?settings.pmsEquityHistoryMeta:{};
 const $=id=>document.getElementById(id), today=new Date().toISOString().slice(0,10);
 const localDateTimeValue=(date=new Date())=>{
  const p=n=>String(n).padStart(2,"0");
@@ -4666,26 +4687,171 @@ $("openDate").value=nowLocal();$("qty").value=1;syncModelViopVisibility();render
 $("closeGeneralBtn").onclick=()=>{const p=general.find(x=>x.id===$("closeGeneralSelect").value),price=n($("closeGeneralPrice").value);if(!p||!price){alert("Pozisyon ve kapanış fiyatı seçin.");return}p.status="Kapalı";p.closePrice=price;p.closeDateTime=$("closeGeneralDate").value||nowLocal();p.closeDate=p.closeDateTime.slice(0,10);save();$("closeGeneralPrice").value="";renderGeneral()};
 window.deleteGeneral=x=>{if(confirm("Kayıt silinsin mi?")){general=general.filter(p=>p.id!==x);save();renderGeneral()}};
 
-function mpnl(p){return netClosedPnl(p)}function mret(p){if(p.status!=="Kapalı")return null;const base=tradeNotional(p,p.entry)*positionOpenFx(p);return base?(mpnl(p)||0)/base:0}
+function mpnl(p){return netClosedPnl(p)}
+function mret(p){
+ if(p.status!=="Kapalı")return null;
+ const base=tradeNotionalTRY(p,p.entry,positionOpenFx(p));
+ return base?(mpnl(p)||0)/base:0
+}
 const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const sd=a=>a.length<2?0:Math.sqrt(a.reduce((s,x)=>s+(x-mean(a))**2,0)/(a.length-1));
 const variance=a=>sd(a)**2;
 const cov=(a,b)=>a.length<2||a.length!==b.length?0:a.reduce((s,x,i)=>s+(x-mean(a))*(b[i]-mean(b)),0)/(a.length-1);
-function duration(s,e){if(!s)return"-";let d=Math.max(0,Math.floor((new Date(e||today)-new Date(s))/86400000)),y=Math.floor(d/365);d-=y*365;let m=Math.floor(d/30);d-=m*30;return`${y} yıl ${m} ay ${d} gün`}
-function metrics(){
- const c=model.filter(p=>p.status==="Kapalı").sort((a,b)=>String(a.closeDateTime||a.closeDate||"").localeCompare(String(b.closeDateTime||b.closeDate||"")));
- const active=model.filter(p=>p.status==="Aktif"),start=Number(settings.capital)||0;
- let closedEq=start,peak=start,dd=0;const rs=[];
- c.forEach(p=>{const net=mpnl(p)||0,before=closedEq;closedEq+=net;if(before>0)rs.push(net/before);peak=Math.max(peak,closedEq);if(peak>0)dd=Math.max(dd,(peak-closedEq)/peak)});
- const activeNet=active.reduce((s,p)=>s+(netLivePnl(p)||0),0),nema=postedNemaTotal(),eq=portfolioEquityTRY();
- const sdte=settings.startDate||c[0]?.openDateTime||c[0]?.openDate||today;
- const edte=c.at(-1)?.closeDateTime||c.at(-1)?.closeDate||today;
- const years=Math.max((new Date(edte)-new Date(sdte))/(365.25*86400000),1/365.25),ppy=rs.length/years;
- const rf=(settings.riskFree||0)/100,rfp=ppy?rf/ppy:0,ex=rs.map(r=>r-rfp),st=sd(ex),down=ex.filter(r=>r<0),downDev=down.length?Math.sqrt(down.reduce((s,r)=>s+r*r,0)/down.length):0;
- const paired=c.filter(p=>p.benchmark!==null&&p.benchmark!==undefined),pr=paired.map(mret),br=paired.map(p=>p.benchmark/100);
- return{eq,total:start?eq/start-1:null,cagr:start&&closedEq+nema>0?Math.pow((closedEq+nema)/start,1/years)-1:null,sharpe:st?mean(ex)/st*Math.sqrt(ppy):null,sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,dd,beta:variance(br)?cov(pr,br)/variance(br):null,dur:duration(sdte,edte)}
+function duration(s,e){
+ if(!s)return"-";
+ let d=Math.max(0,Math.floor((new Date(e||today)-new Date(s))/86400000)),y=Math.floor(d/365);
+ d-=y*365;let m=Math.floor(d/30);d-=m*30;
+ return`${y} yıl ${m} ay ${d} gün`
 }
+function pmsCleanEquityHistory(){
+ const byDate=new Map();
+ for(const row of Array.isArray(settings.pmsEquityHistory)?settings.pmsEquityHistory:[]){
+  const date=String(row?.date||"").slice(0,10),equity=Number(row?.equity);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&Number.isFinite(equity)&&equity>0){
+   byDate.set(date,{date,equity,source:row.source||"NAV snapshot",updatedAt:row.updatedAt||""});
+  }
+ }
+ settings.pmsEquityHistory=[...byDate.values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(-1500);
+ return settings.pmsEquityHistory;
+}
+function pmsRebuildEquityHistory(){
+ const capital=Number(settings.capital)||0;
+ const firstPositionDate=model.map(p=>String(p.openDateTime||p.openDate||"").slice(0,10)).filter(Boolean).sort()[0];
+ const startDate=String(settings.startDate||firstPositionDate||today).slice(0,10);
+ const rows=[];
+ if(capital>0)rows.push({date:startDate,equity:capital,source:"Başlangıç sermayesi",updatedAt:new Date().toISOString()});
+ let reconstructed=capital;
+ const closed=[...model].filter(p=>p.status==="Kapalı")
+  .sort((a,b)=>String(a.closeDateTime||a.closeDate||"").localeCompare(String(b.closeDateTime||b.closeDate||"")));
+ for(const p of closed){
+  reconstructed+=Number(netClosedPnl(p)||0);
+  const date=String(p.closeDateTime||p.closeDate||"").slice(0,10);
+  if(!date)continue;
+  const existing=rows.find(x=>x.date===date);
+  if(existing){existing.equity=reconstructed;existing.source="Kapalı işlem rekonstrüksiyonu";existing.updatedAt=new Date().toISOString()}
+  else rows.push({date,equity:reconstructed,source:"Kapalı işlem rekonstrüksiyonu",updatedAt:new Date().toISOString()});
+ }
+ settings.pmsEquityHistory=rows;
+ settings.pmsEquityHistoryMeta={capital,startDate,rebuildAt:new Date().toISOString()};
+ pmsCleanEquityHistory();
+ return settings.pmsEquityHistory;
+}
+function pmsEnsureEquityHistory(){
+ const capital=Number(settings.capital)||0;
+ const firstPositionDate=model.map(p=>String(p.openDateTime||p.openDate||"").slice(0,10)).filter(Boolean).sort()[0];
+ const startDate=String(settings.startDate||firstPositionDate||today).slice(0,10);
+ const meta=settings.pmsEquityHistoryMeta||{};
+ if(!Array.isArray(settings.pmsEquityHistory))settings.pmsEquityHistory=[];
+ if(!settings.pmsEquityHistory.length){
+  pmsRebuildEquityHistory();
+ }else if(meta.startDate&&meta.startDate!==startDate){
+  pmsRebuildEquityHistory();
+ }else if(Number.isFinite(Number(meta.capital))&&Math.abs(Number(meta.capital)-capital)>.01){
+  pmsRebuildEquityHistory();
+ }else{
+  pmsCleanEquityHistory();
+  settings.pmsEquityHistoryMeta={...meta,capital,startDate};
+ }
+ return settings.pmsEquityHistory;
+}
+function recordPmsEquitySnapshot(saveIfChanged=true){
+ const history=pmsEnsureEquityHistory(),equity=Number(portfolioEquityTRY()),date=String(today).slice(0,10);
+ if(!Number.isFinite(equity)||equity<=0)return false;
+ const existing=history.find(x=>x.date===date),stamp=new Date().toISOString();
+ let changed=false;
+ if(existing){
+  if(Math.abs(Number(existing.equity)-equity)>.01||existing.source!=="Güncel NAV"){
+   existing.equity=equity;existing.source="Güncel NAV";existing.updatedAt=stamp;changed=true;
+  }
+ }else{
+  history.push({date,equity,source:"Güncel NAV",updatedAt:stamp});changed=true;
+ }
+ pmsCleanEquityHistory();
+ if(changed&&saveIfChanged)save();
+ return changed;
+}
+function pmsPerformanceCore(){
+ const history=pmsEnsureEquityHistory().map(x=>({...x,equity:Number(x.equity)})).filter(x=>x.equity>0);
+ const returnRows=[];
+ for(let i=1;i<history.length;i++){
+  const previous=history[i-1],current=history[i];
+  if(previous.equity<=0)continue;
+  returnRows.push({
+   startDate:previous.date,date:current.date,
+   startEquity:previous.equity,equity:current.equity,
+   return:current.equity/previous.equity-1
+  });
+ }
+ const returns=returnRows.map(x=>x.return).filter(Number.isFinite);
+ const startEquity=history[0]?.equity||Number(settings.capital)||0;
+ const currentEquity=Number(portfolioEquityTRY())||history.at(-1)?.equity||startEquity;
+ const startDate=history[0]?.date||settings.startDate||today,endDate=history.at(-1)?.date||today;
+ const years=Math.max((new Date(endDate)-new Date(startDate))/(365.25*86400000),1/365.25);
+ const estimatedPpy=returns.length&&years>0?returns.length/years:252;
+ const ppy=Math.max(1,Math.min(252,estimatedPpy||252));
+ const rfAnnual=(Number(settings.riskFree)||0)/100;
+ const rfPeriod=Math.pow(1+rfAnnual,1/ppy)-1;
+ const excess=returns.map(r=>r-rfPeriod);
+ const sigma=returns.length>=2?sd(returns):0;
+ const annualVol=returns.length>=2&&sigma>0?sigma*Math.sqrt(ppy):returns.length>=2?0:null;
+ const excessSigma=excess.length>=2?sd(excess):0;
+ let sharpe=null,sharpeState="";
+ if(excess.length<2)sharpeState="insufficient";
+ else if(excessSigma>0)sharpe=mean(excess)/excessSigma*Math.sqrt(ppy);
+ else if(mean(excess)>0)sharpeState="positiveInfinity";
+ else if(mean(excess)<0)sharpeState="negativeInfinity";
+ else sharpe=0;
+ const downside=excess.map(r=>Math.min(0,r));
+ const downsideSquares=downside.filter(r=>r<0).map(r=>r*r);
+ const downsidePerPeriod=downsideSquares.length?Math.sqrt(mean(downsideSquares)):0;
+ const downsideDev=returns.length>=2?downsidePerPeriod*Math.sqrt(ppy):null;
+ let sortino=null,sortinoState="";
+ if(excess.length<2)sortinoState="insufficient";
+ else if(downsidePerPeriod>0)sortino=mean(excess)/downsidePerPeriod*Math.sqrt(ppy);
+ else if(mean(excess)>0)sortinoState="positiveInfinity";
+ else if(mean(excess)<0)sortinoState="negativeInfinity";
+ else sortino=0;
 
+ let peak=0,maxDdPct=0,maxDdAmount=0;
+ const drawdownRows=history.map(row=>{
+  peak=Math.max(peak,Number(row.equity)||0);
+  const ddAmount=peak>0?Math.max(0,peak-row.equity):0,ddPct=peak>0?ddAmount/peak:0;
+  maxDdPct=Math.max(maxDdPct,ddPct);maxDdAmount=Math.max(maxDdAmount,ddAmount);
+  return{...row,drawdown:-ddPct*100};
+ });
+ const totalReturn=startEquity>0?currentEquity/startEquity-1:null;
+ const cagr=startEquity>0&&currentEquity>0?Math.pow(currentEquity/startEquity,1/years)-1:null;
+ const calmar=Number.isFinite(cagr)&&maxDdPct>0?cagr/maxDdPct:null;
+ const netProfit=currentEquity-startEquity;
+ const recoveryFactor=maxDdAmount>0?netProfit/maxDdAmount:null;
+ return{
+  history,returnRows,returns,startEquity,currentEquity,startDate,endDate,years,ppy,rfAnnual,rfPeriod,excess,
+  annualVol,downsideDev,sharpe,sharpeState,sortino,sortinoState,
+  maxDdPct,maxDdAmount,drawdownRows,totalReturn,cagr,calmar,recoveryFactor
+ };
+}
+function pmsPerformanceBenchmarkPairs(core=pmsPerformanceCore()){
+ return core.returnRows.map(row=>{
+  const a=pmsCompositeIndexAt(row.startDate),b=pmsCompositeIndexAt(row.date);
+  return{
+   ...row,
+   portfolio:row.return,
+   benchmark:pmsFinite(a)&&pmsFinite(b)&&Number(a)>0?Number(b)/Number(a)-1:null
+  };
+ }).filter(x=>pmsFinite(x.portfolio)&&pmsFinite(x.benchmark));
+}
+function metrics(){
+ const core=pmsPerformanceCore(),pairs=pmsPerformanceBenchmarkPairs(core);
+ const pr=pairs.map(x=>x.portfolio),br=pairs.map(x=>x.benchmark);
+ const beta=br.length>=2&&variance(br)?cov(pr,br)/variance(br):null;
+ return{
+  eq:core.currentEquity,total:core.totalReturn,cagr:core.cagr,sharpe:core.sharpe,sortino:core.sortino,
+  dd:core.maxDdPct,beta,dur:duration(core.startDate,core.endDate),
+  annualVol:core.annualVol,calmar:core.calmar,recoveryFactor:core.recoveryFactor,
+  observationCount:core.history.length,returnCount:core.returns.length,
+  sharpeState:core.sharpeState,sortinoState:core.sortinoState
+ };
+}
 
 
 const COMPOSITE_DEFAULT_WEIGHTS={bist:25,sp500:25,gold:25,bond:25};
@@ -4702,27 +4868,54 @@ function pmsStrategicBucket(position){
  const a=String(position.assetClass||"").toLocaleLowerCase("tr-TR");
  const s=String(position.symbol||"").toUpperCase();
  const y=String(position.yahooSymbol||"").toUpperCase();
- const name=`${a} ${s} ${y}`;
- if(/altın|gold|xau|gc=f|gld|iau|kıymetli maden/.test(name.toLowerCase()))return"gold";
- if(/tahvil|bond|eurobond|fixed income|sabit getir|agg|ief|tlt|shy|bnd|lqd/.test(name.toLowerCase()))return"bond";
- if(/yurtiçi|bist|viop|vadeli/.test(a)||y.endsWith(".IS")||/^(XU030|XU100|XU050|XU500)/.test(s))return"bist";
- if(/yurtdışı hisse|us stock|abd|amerika|etf|fon|fund/.test(a)||(!y.endsWith(".IS")&&/[A-Z]/.test(y)))return"sp500";
+ const contract=String(position.futuresContract||position.viopContract||"").toUpperCase();
+ const instrument=String(position.instrumentName||"").toLocaleLowerCase("tr-TR");
+ const text=`${a} ${s} ${y} ${contract} ${instrument}`.toLocaleLowerCase("tr-TR");
+
+ // Real assets / commodities use Gold as the policy proxy because the requested
+ // composite has four sleeves only: BIST + S&P 500 + Gold + Bonds.
+ const commodityCodes=new Set(["GC","MGC","QO","1OZ","HG","SI","SIL","CL","MCL","BZ","NG","SB","ZC","ZW","ZS","KC","CT","CC"]);
+ const rateCodes=new Set(["ZB","UB","ZN","ZF","ZT","SR3"]);
+ const globalEquityCodes=new Set(["ES","MES","NQ","MNQ","YM","MYM","RTY","M2K"]);
+
+ if(/altın|gold|xau|kıymetli maden|emtia|commodity|copper|bakır|silver|gümüş|oil|petrol|natural gas|doğal gaz|sugar|şeker|corn|wheat|soy/.test(text))return"gold";
+ if(commodityCodes.has(s)||commodityCodes.has(contract))return"gold";
+
+ if(/tahvil|bond|eurobond|fixed income|sabit getir|treasury|faiz|rate|agg|ief|tlt|shy|bnd|lqd/.test(text))return"bond";
+ if(rateCodes.has(s)||rateCodes.has(contract))return"bond";
+
+ if(a.includes("türev (viop")||/viop|bist/.test(a)||y.endsWith(".IS")||/^(XU030|XU100|XU050|XU500)/.test(s))return"bist";
+
+ if(globalEquityCodes.has(s)||globalEquityCodes.has(contract))return"sp500";
+ if(/yurtdışı hisse|us stock|abd|amerika|s&p|nasdaq|dow|russell|etf|fon|fund/.test(a)||(!y.endsWith(".IS")&&/[A-Z]/.test(y)&&!/=X$/.test(y)))return"sp500";
+
+ // Pure FX positions do not belong to the requested four-sleeve policy benchmark.
+ if(/fx|döviz|currency/.test(text)||/=X$/.test(y))return null;
  return null;
+}
+function pmsStrategicExposureTRY(p){
+ const direct=Math.abs(Number(positionSizeTRY(p)));
+ if(Number.isFinite(direct)&&direct>0)return direct;
+ const px=Math.abs(Number(p.currentPrice??p.entry)||0),qty=Math.abs(Number(p.qty)||0),mult=Math.abs(Number(p.contractSize)||1);
+ const fx=Math.abs(Number(positionCurrentFx(p)||positionOpenFx(p)||1));
+ const fallback=px*qty*mult*fx;
+ return Number.isFinite(fallback)?fallback:0;
 }
 function pmsAutoStrategicWeights(){
  const active=model.filter(p=>p.status==="Aktif");
- const totals={bist:0,sp500:0,gold:0,bond:0},unknown=[];
+ const totals={bist:0,sp500:0,gold:0,bond:0},counts={bist:0,sp500:0,gold:0,bond:0},unknown=[];
  let classified=0,gross=0;
  for(const p of active){
-  const value=Math.abs(positionSizeTRY(p)||tradeNotionalTRY(p,p.currentPrice??p.entry)||0);
+  const value=pmsStrategicExposureTRY(p);
   if(!value)continue;
   gross+=value;
   const bucket=pmsStrategicBucket(p);
-  if(bucket){totals[bucket]+=value;classified+=value}else unknown.push({p,value});
+  if(bucket){totals[bucket]+=value;counts[bucket]+=1;classified+=value}
+  else unknown.push({p,value});
  }
  const coverage=gross?classified/gross*100:0;
- if(classified<=0)return{weights:{...COMPOSITE_DEFAULT_WEIGHTS},coverage,usedDefault:true};
- return{weights:pmsNormalizeCompositeWeights(totals),coverage,usedDefault:false};
+ if(classified<=0)return{weights:{...COMPOSITE_DEFAULT_WEIGHTS},coverage,usedDefault:true,totals,counts,unknown,gross};
+ return{weights:pmsNormalizeCompositeWeights(totals),coverage,usedDefault:false,totals,counts,unknown,gross};
 }
 function ensureCompositeBenchmarkSettings(){
  settings.compositeBenchmarkWeights=pmsNormalizeCompositeWeights(settings.compositeBenchmarkWeights||COMPOSITE_DEFAULT_WEIGHTS);
@@ -4762,17 +4955,18 @@ function updateCompositeWeightTotal(){
 function renderCompositeBenchmarkPanel(){
  ensureCompositeBenchmarkSettings();
  const w=settings.compositeBenchmarkWeights||COMPOSITE_DEFAULT_WEIGHTS;
- if($("compositeWeightBist"))$("compositeWeightBist").value=f(w.bist,1);
- if($("compositeWeightSp500"))$("compositeWeightSp500").value=f(w.sp500,1);
- if($("compositeWeightGold"))$("compositeWeightGold").value=f(w.gold,1);
- if($("compositeWeightBond"))$("compositeWeightBond").value=f(w.bond,1);
+ if($("compositeWeightBist"))$("compositeWeightBist").value=Number(w.bist||0).toFixed(1);
+ if($("compositeWeightSp500"))$("compositeWeightSp500").value=Number(w.sp500||0).toFixed(1);
+ if($("compositeWeightGold"))$("compositeWeightGold").value=Number(w.gold||0).toFixed(1);
+ if($("compositeWeightBond"))$("compositeWeightBond").value=Number(w.bond||0).toFixed(1);
  if($("compositeRebalance"))$("compositeRebalance").value=settings.compositeBenchmarkRebalance||"quarterly";
  updateCompositeWeightTotal();
  const auto=pmsAutoStrategicWeights();
  if($("compositeAutoCoverage"))$("compositeAutoCoverage").textContent=`%${f(auto.coverage,1)}`;
  if($("compositeBenchmarkMethod")){
   const stamp=settings.compositeBenchmarkUpdatedAt?new Date(settings.compositeBenchmarkUpdatedAt).toLocaleString("tr-TR"):"-";
-  $("compositeBenchmarkMethod").textContent=`Policy weights sabit · Son stratejik güncelleme: ${stamp}`;
+  const savedCoverage=Number(settings.compositeBenchmarkAutoCoverage);
+  $("compositeBenchmarkMethod").textContent=`Policy weights sabit · Son stratejik güncelleme: ${stamp}${Number.isFinite(savedCoverage)?` · Son auto coverage %${f(savedCoverage,1)}`:""}`;
  }
  const composite=pmsLiveData?.compositeBenchmark;
  if(composite){
@@ -4783,10 +4977,10 @@ function renderCompositeBenchmarkPanel(){
   $("compositeBenchmarkSource").innerHTML=`Kaynak: <strong>${esc(composite.source||"Yahoo Finance")}</strong> · BIST 100 ${f(w.bist,1)}% + S&P 500 ${f(w.sp500,1)}% + Altın ${f(w.gold,1)}% + Tahvil ${f(w.bond,1)}% · ${settings.compositeBenchmarkRebalance==="monthly"?"Aylık":settings.compositeBenchmarkRebalance==="annual"?"Yıllık":"Çeyreklik"} rebalancing · TRY bazlı.`;
  }
 }
-function saveCompositeBenchmarkWeights(useAuto=false){
- let weights,coverage=null;
+async function saveCompositeBenchmarkWeights(useAuto=false){
+ let weights,coverage=null,autoResult=null;
  if(useAuto){
-  const auto=pmsAutoStrategicWeights();weights=auto.weights;coverage=auto.coverage;
+  autoResult=pmsAutoStrategicWeights();weights=autoResult.weights;coverage=autoResult.coverage;
  }else{
   const total=updateCompositeWeightTotal();
   if(Math.abs(total-100)>.05){alert("Composite Benchmark stratejik ağırlıklarının toplamı %100 olmalıdır.");return false}
@@ -4797,11 +4991,21 @@ function saveCompositeBenchmarkWeights(useAuto=false){
  }
  settings.compositeBenchmarkWeights=pmsNormalizeCompositeWeights(weights);
  settings.compositeBenchmarkRebalance=$("compositeRebalance")?.value||settings.compositeBenchmarkRebalance||"quarterly";
- settings.compositeBenchmarkInitialized=true;settings.compositeBenchmarkUpdatedAt=new Date().toISOString();
- save();renderCompositeBenchmarkPanel();
+ settings.compositeBenchmarkInitialized=true;
+ settings.compositeBenchmarkUpdatedAt=new Date().toISOString();
+ if(useAuto)settings.compositeBenchmarkAutoCoverage=Number(coverage)||0;
+ save();
+ renderCompositeBenchmarkPanel();
+
+ if(useAuto&&$("compositeBenchmarkMethod")){
+  const w=settings.compositeBenchmarkWeights;
+  const unknownCount=autoResult?.unknown?.length||0;
+  $("compositeBenchmarkMethod").textContent=`Portföyden otomatik hesaplandı · BIST %${f(w.bist,1)} · S&P 500 %${f(w.sp500,1)} · Altın/Emtia %${f(w.gold,1)} · Tahvil %${f(w.bond,1)} · Coverage %${f(coverage,1)}${unknownCount?` · ${unknownCount} sınıflandırılamayan pozisyon`:""}`;
+ }
+
  pmsLiveData=null;pmsLiveSignature="";
- refreshPmsLiveAnalytics(true);
- if(useAuto&&coverage!==null)alert(`Stratejik benchmark ağırlıkları Model Portföyden otomatik hesaplandı. Sınıflandırma coverage: %${f(coverage,1)}.`);
+ await refreshPmsLiveAnalytics(true);
+ renderPMS();
  return true;
 }
 
@@ -4838,7 +5042,9 @@ function pmsLiveRequestPayload(){
 function pmsCurrentSignature(){
  return JSON.stringify({
   model:model.map(p=>[p.id,p.status,p.currentPrice,p.closePrice,p.qty,p.yahooSymbol,p.symbol,p.assetClass,p.stop]),
-  benchmark:settings.compositeBenchmarkWeights,rebalance:settings.compositeBenchmarkRebalance
+  benchmark:settings.compositeBenchmarkWeights,rebalance:settings.compositeBenchmarkRebalance,
+  capital:settings.capital,startDate:settings.startDate,riskFree:settings.riskFree,
+  navLast:settings.pmsEquityHistory?.at?.(-1)
  });
 }
 function setPmsLiveStatus(text,state=""){
@@ -4855,7 +5061,7 @@ async function refreshPmsLiveAnalytics(force=false){
   const payload=await authFetch("/api/pms/live-analytics",{method:"POST",body:JSON.stringify(pmsLiveRequestPayload())});
   pmsLiveData=payload;pmsLiveFetchedAt=Date.now();pmsLiveSignature=signature;
   setPmsLiveStatus(`Canlı veri güncel · ${new Date(payload.fetchedAt).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})}`,"ok");
-  renderPmsLiveModules();
+  renderPMS();
  }catch(error){
   setPmsLiveStatus("Canlı PMS verisi alınamadı","error");
   if($("pmsHealthComment"))$("pmsHealthComment").textContent=`Canlı veri hatası: ${error.message}`;
@@ -5030,108 +5236,109 @@ function pmsClosedTrades(){
   .sort((a,b)=>String(a.closeDateTime||a.closeDate||"").localeCompare(String(b.closeDateTime||b.closeDate||"")));
 }
 function pmsAnalysis(){
- const closed=pmsClosedTrades(),returns=closed.map(p=>Number(mret(p)));
- const start=Number(settings.capital)||0;
- const startDate=String(settings.startDate||closed[0]?.openDateTime||closed[0]?.openDate||today).slice(0,10);
- const endDate=String(closed.at(-1)?.closeDateTime||closed.at(-1)?.closeDate||today).slice(0,10);
- const years=Math.max((new Date(endDate)-new Date(startDate))/(365.25*86400000),1/365.25);
- const ppy=returns.length?Math.max(1,returns.length/years):1;
- const rfAnnual=(Number(settings.riskFree)||0)/100,rfPeriod=rfAnnual/ppy;
- const excess=returns.map(r=>r-rfPeriod);
- const annualVol=returns.length>1?sd(returns)*Math.sqrt(ppy):null;
- const downsidePeriods=excess.map(r=>Math.min(0,r));
- const downsideDev=downsidePeriods.some(r=>r<0)?Math.sqrt(mean(downsidePeriods.map(r=>r*r)))*Math.sqrt(ppy):null;
+ const closed=pmsClosedTrades(),tradeReturns=closed.map(p=>Number(mret(p))).filter(pmsFinite);
+ const perf=pmsPerformanceCore();
+ const {
+  history,returnRows,returns,startEquity:start,startDate,endDate,years,ppy,rfAnnual,rfPeriod,currentEquity,
+  totalReturn,cagr,annualVol,downsideDev,sharpe,sharpeState,sortino,sortinoState,
+  maxDdPct,maxDdAmount,calmar,recoveryFactor
+ }=perf;
 
- let equity=start,peak=start,maxDdPct=0,maxDdAmount=0,portfolioIndex=100;
  const benchmarkStartIndex=pmsCompositeIndexAt(startDate);
- const equitySeries=[{label:startDate,index:100,equity:start||100,benchmarkIndex:100,drawdown:0}];
- let fallbackBenchmarkIndex=100;
- for(const trade of closed){
-  const pnl=Number(netClosedPnl(trade)||0);
-  equity+=pnl;peak=Math.max(peak,equity);
-  const ddAmount=Math.max(0,peak-equity),ddPct=peak>0?ddAmount/peak:0;
-  maxDdPct=Math.max(maxDdPct,ddPct);maxDdAmount=Math.max(maxDdAmount,ddAmount);
-  const r=Number(mret(trade)||0);portfolioIndex*=1+r;
-  const closeDate=String(trade.closeDateTime||trade.closeDate||"").slice(0,10);
+ const firstEquity=history[0]?.equity||start||100;
+ const equitySeries=history.map(row=>{
   let benchmarkIndex=100;
-  const liveIdx=pmsCompositeIndexAt(closeDate);
+  const liveIdx=pmsCompositeIndexAt(row.date);
   if(pmsFinite(benchmarkStartIndex)&&pmsFinite(liveIdx)&&Number(benchmarkStartIndex)>0){
    benchmarkIndex=100*Number(liveIdx)/Number(benchmarkStartIndex);
-  }else{
-   const fallback=pmsFinite(trade.benchmark)?Number(trade.benchmark)/100:0;
-   fallbackBenchmarkIndex*=1+fallback;benchmarkIndex=fallbackBenchmarkIndex;
   }
-  equitySeries.push({label:closeDate,index:portfolioIndex,equity,benchmarkIndex,drawdown:-ddPct*100});
- }
-
- const nema=postedNemaTotal(),live=model.filter(p=>p.status==="Aktif").reduce((s,p)=>s+(netLivePnl(p)||0),0);
- const currentEquity=portfolioEquityTRY();
- const totalReturn=start?currentEquity/start-1:null;
- const cagr=start&&equity+nema>0?Math.pow((equity+nema)/start,1/years)-1:null;
- const sharpe=excess.length>1&&sd(excess)?mean(excess)/sd(excess)*Math.sqrt(ppy):null;
- const downsideRaw=excess.filter(r=>r<0),downsidePerPeriod=downsideRaw.length?Math.sqrt(mean(downsideRaw.map(r=>r*r))):0;
- const sortino=downsidePerPeriod?mean(excess)/downsidePerPeriod*Math.sqrt(ppy):null;
- const calmar=cagr!==null&&maxDdPct>0?cagr/maxDdPct:null;
+  return{
+   label:row.date,
+   index:firstEquity>0?100*Number(row.equity)/firstEquity:100,
+   equity:Number(row.equity),
+   benchmarkIndex,
+   drawdown:perf.drawdownRows.find(x=>x.date===row.date)?.drawdown??0
+  };
+ });
 
  const pnls=closed.map(p=>Number(netClosedPnl(p)||0)),wins=pnls.filter(x=>x>0),losses=pnls.filter(x=>x<0);
  const grossProfit=wins.reduce((s,x)=>s+x,0),grossLoss=Math.abs(losses.reduce((s,x)=>s+x,0));
  const avgWin=mean(wins),avgLoss=mean(losses),profitFactor=grossLoss?grossProfit/grossLoss:null;
  const payoff=losses.length&&avgLoss?avgWin/Math.abs(avgLoss):null,expectancy=mean(pnls);
- const bestTrade=returns.length?Math.max(...returns):null,worstTrade=returns.length?Math.min(...returns):null;
- const q05=pmsPercentile(returns,.05),tail=q05===null?[]:returns.filter(r=>r<=q05);
+ const bestTrade=tradeReturns.length?Math.max(...tradeReturns):null,worstTrade=tradeReturns.length?Math.min(...tradeReturns):null;
+ const q05=pmsPercentile(tradeReturns,.05),tail=q05===null?[]:tradeReturns.filter(r=>r<=q05);
  const var95=q05===null?null:Math.max(0,-q05),cvar95=tail.length?Math.max(0,-mean(tail)):null;
- const netProfit=pnls.reduce((s,x)=>s+x,0)+nema,recoveryFactor=maxDdAmount>0?netProfit/maxDdAmount:null;
 
+ // Trade-level pairs remain for attribution modules.
  const benchmarkPairs=closed.map(trade=>({
   trade,portfolio:Number(mret(trade)),benchmark:pmsTradeBenchmarkReturn(trade)
  })).filter(x=>pmsFinite(x.portfolio)&&pmsFinite(x.benchmark));
- const paired=benchmarkPairs.map(x=>x.trade),pr=benchmarkPairs.map(x=>x.portfolio),br=benchmarkPairs.map(x=>x.benchmark);
- const coverage=closed.length?benchmarkPairs.length/closed.length:0;
+ const paired=benchmarkPairs.map(x=>x.trade);
+
+ // NAV-level benchmark pairs drive professional relative-performance ratios.
+ const performanceBenchmarkPairs=pmsPerformanceBenchmarkPairs(perf);
+ const pr=performanceBenchmarkPairs.map(x=>x.portfolio),br=performanceBenchmarkPairs.map(x=>x.benchmark);
+ const coverage=returnRows.length?performanceBenchmarkPairs.length/returnRows.length:0;
+
  let beta=null,alpha=null,corr=null,r2=null,trackingError=null,informationRatio=null,treynor=null,upsideCapture=null,downsideCapture=null;
- const benchmarkReturn=pmsCompositeReturnBetween(startDate,today);
+ const benchmarkReturn=pmsCompositeReturnBetween(startDate,endDate||today);
  const pairedPortfolioReturn=totalReturn;
  const activeReturn=pmsFinite(totalReturn)&&pmsFinite(benchmarkReturn)?Number(totalReturn)-Number(benchmarkReturn):null;
 
- if(benchmarkPairs.length>=2){
+ if(performanceBenchmarkPairs.length>=2){
   const bvar=variance(br);beta=bvar?cov(pr,br)/bvar:null;
   corr=pmsCorrelation(pr,br);r2=corr===null?null:corr*corr;
   const active=pr.map((r,i)=>r-br[i]);
   trackingError=active.length>1?sd(active)*Math.sqrt(ppy):null;
   informationRatio=active.length>1&&sd(active)?mean(active)/sd(active)*Math.sqrt(ppy):null;
   if(beta!==null){
-   const alphaPerTrade=(mean(pr)-rfPeriod)-beta*(mean(br)-rfPeriod);
-   alpha=alphaPerTrade*ppy;treynor=beta?((mean(pr)-rfPeriod)*ppy)/beta:null;
+   const alphaPerPeriod=(mean(pr)-rfPeriod)-beta*(mean(br)-rfPeriod);
+   alpha=alphaPerPeriod*ppy;
+   treynor=beta?((mean(pr)-rfPeriod)*ppy)/beta:null;
   }
-  const up=benchmarkPairs.filter(x=>x.benchmark>0),down=benchmarkPairs.filter(x=>x.benchmark<0);
+  const up=performanceBenchmarkPairs.filter(x=>x.benchmark>0),down=performanceBenchmarkPairs.filter(x=>x.benchmark<0);
   if(up.length){const den=mean(up.map(x=>x.benchmark));upsideCapture=den?mean(up.map(x=>x.portfolio))/den*100:null}
   if(down.length){const den=mean(down.map(x=>x.benchmark));downsideCapture=den?mean(down.map(x=>x.portfolio))/den*100:null}
  }
 
  return{
-  closed,returns,start,startDate,endDate,years,ppy,rfAnnual,currentEquity,totalReturn,cagr,annualVol,downsideDev,
-  sharpe,sortino,maxDdPct,maxDdAmount,calmar,recoveryFactor,equitySeries,wins,losses,grossProfit,grossLoss,avgWin,avgLoss,
-  profitFactor,payoff,expectancy,bestTrade,worstTrade,var95,cvar95,paired,benchmarkPairs,coverage,
+  closed,tradeReturns,history,returnRows,returns,start,startDate,endDate,years,ppy,rfAnnual,rfPeriod,currentEquity,totalReturn,cagr,annualVol,downsideDev,
+  sharpe,sharpeState,sortino,sortinoState,maxDdPct,maxDdAmount,calmar,recoveryFactor,equitySeries,
+  wins,losses,grossProfit,grossLoss,avgWin,avgLoss,profitFactor,payoff,expectancy,bestTrade,worstTrade,var95,cvar95,
+  paired,benchmarkPairs,performanceBenchmarkPairs,coverage,
   pairedPortfolioReturn,benchmarkReturn,activeReturn,beta,alpha,corr,r2,trackingError,informationRatio,treynor,upsideCapture,downsideCapture
  };
 }
 function pmsRollingMetrics(windowSize,analysis=pmsAnalysis()){
- const closed=analysis.closed,ppy=analysis.ppy||1,rfPeriod=(analysis.rfAnnual||0)/ppy,points=[];
- for(let i=windowSize-1;i<closed.length;i++){
-  const slice=closed.slice(i-windowSize+1,i+1),rs=slice.map(p=>Number(mret(p))).filter(pmsFinite);
+ const rows=analysis.returnRows||[],ppy=analysis.ppy||252,rfPeriod=analysis.rfPeriod??0,points=[];
+ for(let i=windowSize-1;i<rows.length;i++){
+  const slice=rows.slice(i-windowSize+1,i+1),rs=slice.map(x=>Number(x.return)).filter(pmsFinite);
   if(rs.length<windowSize)continue;
-  const ex=rs.map(r=>r-rfPeriod),sigma=sd(ex),negative=ex.filter(r=>r<0),downDev=negative.length?Math.sqrt(mean(negative.map(r=>r*r))):0;
-  const pairs=slice.map(trade=>({portfolio:Number(mret(trade)),benchmark:pmsTradeBenchmarkReturn(trade)})).filter(x=>pmsFinite(x.portfolio)&&pmsFinite(x.benchmark));
+  const ex=rs.map(r=>r-rfPeriod),sigma=sd(ex);
+  const negative=ex.filter(r=>r<0),downDev=negative.length?Math.sqrt(mean(negative.map(r=>r*r))):0;
+  const pairs=slice.map(row=>{
+   const a=pmsCompositeIndexAt(row.startDate),b=pmsCompositeIndexAt(row.date);
+   return{
+    portfolio:row.return,
+    benchmark:pmsFinite(a)&&pmsFinite(b)&&Number(a)>0?Number(b)/Number(a)-1:null
+   };
+  }).filter(x=>pmsFinite(x.portfolio)&&pmsFinite(x.benchmark));
   let beta=null,alpha=null;
   if(pairs.length>=3){
    const pr=pairs.map(x=>x.portfolio),br=pairs.map(x=>x.benchmark),bvar=variance(br);
    beta=bvar?cov(pr,br)/bvar:null;
    if(beta!==null)alpha=((mean(pr)-rfPeriod)-beta*(mean(br)-rfPeriod))*ppy;
   }
-  points.push({
-   label:String(slice.at(-1).closeDateTime||slice.at(-1).closeDate||"").slice(0,10),
-   sharpe:sigma?mean(ex)/sigma*Math.sqrt(ppy):null,
-   sortino:downDev?mean(ex)/downDev*Math.sqrt(ppy):null,alpha,beta
-  });
+  let sharpe=null,sortino=null;
+  if(sigma>0)sharpe=mean(ex)/sigma*Math.sqrt(ppy);
+  else if(mean(ex)>0)sharpe=Infinity;
+  else if(mean(ex)<0)sharpe=-Infinity;
+  else sharpe=0;
+  if(downDev>0)sortino=mean(ex)/downDev*Math.sqrt(ppy);
+  else if(mean(ex)>0)sortino=Infinity;
+  else if(mean(ex)<0)sortino=-Infinity;
+  else sortino=0;
+  points.push({label:slice.at(-1).date,sharpe,sortino,alpha,beta});
  }
  return points;
 }
@@ -5142,6 +5349,24 @@ function pmsSetValue(id,value,options={}){
  const n=Number(value);
  el.textContent=money?`${f(n,decimals)} TRY`:percent?`${sign&&n>0?"+":""}%${f(n*100,decimals)}`:`${sign&&n>0?"+":""}${f(n,decimals)}`;
  el.classList.toggle("pmsPositive",sign&&n>0);el.classList.toggle("pmsNegative",sign&&n<0);
+}
+function pmsSetRatioValue(id,value,state="",observations=0,minReturns=2){
+ const el=$(id);if(!el)return;
+ el.classList.remove("pmsPositive","pmsNegative");
+ if(Number.isFinite(Number(value))){
+  el.textContent=f(Number(value),2);
+  return;
+ }
+ if(state==="positiveInfinity"){el.textContent="∞";el.classList.add("pmsPositive");return}
+ if(state==="negativeInfinity"){el.textContent="-∞";el.classList.add("pmsNegative");return}
+ if(observations<minReturns){el.textContent=`Veri birikiyor (${observations}/${minReturns})`;return}
+ el.textContent="-";
+}
+function pmsSetObservationMetric(id,value,observations,minReturns=2,options={}){
+ const el=$(id);if(!el)return;
+ if(Number.isFinite(Number(value))){pmsSetValue(id,value,options);return}
+ if(observations<minReturns){el.textContent=`Veri birikiyor (${observations}/${minReturns})`;return}
+ el.textContent="-";
 }
 function pmsCanvasSetup(id,height=200){
  const canvas=$(id);if(!canvas)return null;
@@ -5188,28 +5413,46 @@ function pmsDrawDrawdown(analysis){
 }
 window.renderPMS=function renderPMS(){
  ensureCompositeBenchmarkSettings();
+ recordPmsEquitySnapshot(false);
  const a=pmsAnalysis(),base=metrics();
  renderCompositeBenchmarkPanel();
  pmsSetValue("pmsPortfolioValue",a.currentEquity,{money:true});
  pmsSetValue("pmsTotalReturn",a.totalReturn,{percent:true,sign:true});
  pmsSetValue("pmsCagr",a.cagr,{percent:true,sign:true});
- pmsSetValue("pmsVolatility",a.annualVol,{percent:true});
- pmsSetValue("pmsSharpe",a.sharpe);pmsSetValue("pmsSortino",a.sortino);
- pmsSetValue("pmsMaxDrawdown",a.maxDdPct,{percent:true});pmsSetValue("pmsCalmar",a.calmar);
+ pmsSetObservationMetric("pmsVolatility",a.annualVol,a.returns.length,2,{percent:true});
+ pmsSetRatioValue("pmsSharpe",a.sharpe,a.sharpeState,a.returns.length,2);
+ pmsSetRatioValue("pmsSortino",a.sortino,a.sortinoState,a.returns.length,2);
+ pmsSetValue("pmsMaxDrawdown",a.maxDdPct,{percent:true});
+ if(Number.isFinite(Number(a.calmar)))pmsSetValue("pmsCalmar",a.calmar);
+ else if(a.maxDdPct===0&&Number(a.cagr)>0)$("pmsCalmar").textContent="∞";
+ else $("pmsCalmar").textContent="-";
 
- pmsSetValue("pmsTrackVolatility",a.annualVol,{percent:true});
- pmsSetValue("pmsTrackCalmar",a.calmar);pmsSetValue("pmsRecoveryFactor",a.recoveryFactor);
- $("pmsTrackCoverage").textContent=`${a.closed.length} kapalı işlem · ${duration(settings.startDate||a.closed[0]?.openDate||today,a.closed.at(-1)?.closeDate||today)}`;
+ pmsSetObservationMetric("pmsTrackVolatility",a.annualVol,a.returns.length,2,{percent:true});
+ if(Number.isFinite(Number(a.calmar)))pmsSetValue("pmsTrackCalmar",a.calmar);
+ else if(a.maxDdPct===0&&Number(a.cagr)>0)$("pmsTrackCalmar").textContent="∞";
+ else $("pmsTrackCalmar").textContent="-";
+ if(Number.isFinite(Number(a.recoveryFactor)))pmsSetValue("pmsRecoveryFactor",a.recoveryFactor);
+ else if(a.maxDdAmount===0&&a.currentEquity>a.start)$("pmsRecoveryFactor").textContent="∞";
+ else $("pmsRecoveryFactor").textContent="-";
+ $("pmsTrackCoverage").textContent=`${a.history.length} NAV gözlemi · ${a.returns.length} dönem getirisi · ${a.closed.length} kapalı işlem · ${duration(a.startDate,a.endDate)}`;
+ if($("pmsTrackMethodology")){
+  $("pmsTrackMethodology").innerHTML=a.returns.length<2
+   ?`Sharpe, Sortino ve yıllık volatilite için en az <strong>2 dönem getirisi</strong> gerekir. Şu anda ${a.returns.length} getiri / ${a.history.length} NAV gözlemi var. Sistem günlük NAV'ı bulutta saklayarak örneklemi otomatik büyütür.`
+   :`Risk-adjusted oranlar <strong>${a.returns.length} NAV dönem getirisi</strong> üzerinden, yaklaşık ${f(a.ppy,0)} dönem/yıl annualization ile hesaplanıyor. Risksiz faiz: yıllık %${f(a.rfAnnual*100,2)}.`;
+ }
 
  pmsSetValue("pmsPairedPortfolioReturn",a.pairedPortfolioReturn,{percent:true,sign:true});
  pmsSetValue("pmsBenchmarkReturn",a.benchmarkReturn,{percent:true,sign:true});
  pmsSetValue("pmsActiveReturn",a.activeReturn,{percent:true,sign:true});
- pmsSetValue("pmsAlpha",a.alpha,{percent:true,sign:true});pmsSetValue("pmsBenchmarkBeta",a.beta);
- pmsSetValue("pmsCorrelation",a.corr);pmsSetValue("pmsRSquared",a.r2);
- pmsSetValue("pmsTrackingError",a.trackingError,{percent:true});pmsSetValue("pmsInformationRatio",a.informationRatio);
+ pmsSetObservationMetric("pmsAlpha",a.alpha,a.performanceBenchmarkPairs.length,2,{percent:true,sign:true});
+ pmsSetObservationMetric("pmsBenchmarkBeta",a.beta,a.performanceBenchmarkPairs.length,2);
+ pmsSetObservationMetric("pmsCorrelation",a.corr,a.performanceBenchmarkPairs.length,2);
+ pmsSetObservationMetric("pmsRSquared",a.r2,a.performanceBenchmarkPairs.length,2);
+ pmsSetObservationMetric("pmsTrackingError",a.trackingError,a.performanceBenchmarkPairs.length,2,{percent:true});
+ pmsSetObservationMetric("pmsInformationRatio",a.informationRatio,a.performanceBenchmarkPairs.length,2);
  pmsSetValue("pmsTreynor",a.treynor);pmsSetValue("pmsUpsideCapture",a.upsideCapture===null?null:a.upsideCapture/100,{percent:true});
  pmsSetValue("pmsDownsideCapture",a.downsideCapture===null?null:a.downsideCapture/100,{percent:true});
- $("pmsBenchmarkCoverage").textContent=`Composite coverage %${f(a.coverage*100,1)}`;
+ $("pmsBenchmarkCoverage").textContent=`NAV benchmark coverage %${f(a.coverage*100,1)}`;
  pmsSetValue("pmsBenchmarkCoverageRisk",a.coverage,{percent:true});
 
  pmsSetValue("pmsWinRate",a.closed.length?a.wins.length/a.closed.length:null,{percent:true});
@@ -5222,8 +5465,8 @@ window.renderPMS=function renderPMS(){
  const windowSize=Number($("pmsRollingWindow")?.value)||10,rolling=pmsRollingMetrics(windowSize,a),latest=rolling.at(-1)||{};
  pmsSetValue("pmsRollingSharpeLatest",latest.sharpe);pmsSetValue("pmsRollingSortinoLatest",latest.sortino);
  pmsSetValue("pmsRollingAlphaLatest",latest.alpha,{percent:true,sign:true});pmsSetValue("pmsRollingBetaLatest",latest.beta);
- $("pmsRollingSharpeMeta").textContent=`${windowSize} kapalı işlem penceresi`;
- $("pmsRollingSortinoMeta").textContent=`${windowSize} kapalı işlem penceresi`;
+ $("pmsRollingSharpeMeta").textContent=`${windowSize} NAV getirisi penceresi`;
+ $("pmsRollingSortinoMeta").textContent=`${windowSize} NAV getirisi penceresi`;
 
  // Existing Track Record IDs live in PMS from v7.8 onward.
  $("mValue").textContent=settings.capital?f(a.currentEquity,2):"-";
@@ -5283,6 +5526,7 @@ function modelTable(arr,closed){
 window.renderModel=function renderModel(){
  repairLegacyModelPositions();
  ensureDailyNemaAccruals();
+ recordPmsEquitySnapshot(false);
  const metricsData=metrics(),active=model.filter(p=>p.status==="Aktif"),closed=model.filter(p=>p.status==="Kapalı");
  const closedReturns=closed.map(mret).filter(value=>value!==null),cash=modelCashState();
  const usedMargin=modelUsedViopMargin(),transferred=viopTransferNet(),viopRealized=modelViopRealizedGrossPnl(),nema=postedNemaTotal(),viopLive=modelViopOpenGrossPnl();
@@ -5303,9 +5547,12 @@ window.renderModel=function renderModel(){
  $("mViopCollateral").textContent=f(collateral,2);$("mViopFreeMargin").textContent=f(freeMargin,2);
 
  $("mValue").textContent=settings.capital?f(metricsData.eq,2):"-";$("mTotal").textContent=metricsData.total===null?"-":"%"+f(metricsData.total*100,2);
- $("mCagr").textContent=metricsData.cagr===null?"-":"%"+f(metricsData.cagr*100,2);$("mSharpe").textContent=metricsData.sharpe===null?"-":f(metricsData.sharpe,2);
- $("mSortino").textContent=metricsData.sortino===null?"-":f(metricsData.sortino,2);$("mDD").textContent="%"+f(metricsData.dd*100,2);
- $("mBeta").textContent=metricsData.beta===null?"-":f(metricsData.beta,2);$("mDuration").textContent=metricsData.dur;
+ $("mCagr").textContent=metricsData.cagr===null?"-":"%"+f(metricsData.cagr*100,2);
+ pmsSetRatioValue("mSharpe",metricsData.sharpe,metricsData.sharpeState,metricsData.returnCount,2);
+ pmsSetRatioValue("mSortino",metricsData.sortino,metricsData.sortinoState,metricsData.returnCount,2);
+ $("mDD").textContent="%"+f(metricsData.dd*100,2);
+ $("mBeta").textContent=metricsData.beta===null?(metricsData.returnCount<2?`Veri birikiyor (${metricsData.returnCount}/2)`:"-"):f(metricsData.beta,2);
+ $("mDuration").textContent=metricsData.dur;
 
  $("mActiveTable").innerHTML=modelTable(active,false);$("mClosedTable").innerHTML=modelTable(closed,true);
  $("mCloseSelect").innerHTML=active.length?active.map(p=>`<option value="${p.id}">${esc(positionDisplayName(p))} · ${esc(p.direction)}</option>`).join(""):'<option value="">Aktif pozisyon yok</option>';
@@ -5745,6 +5992,7 @@ $("modelForm").addEventListener("submit",e=>{
  syncModelViopVisibility();renderModel();notifyPositionOpened(p);
 });
 $("saveModelSettings").onclick=()=>{
+ const previousCapital=Number(settings.capital)||0,previousStartDate=String(settings.startDate||"");
  settings={
   ...settings,
   capital:n($("startCapital").value)||0,startDate:$("modelStartDate").value||today,riskFree:n($("riskFree").value)||0,
@@ -5763,7 +6011,11 @@ $("saveModelSettings").onclick=()=>{
    if(index>=0)settings.nemaRateHistory[index]=row;else settings.nemaRateHistory.push(row);
   }
  }
- ensureDailyNemaAccruals();save();renderModel();alert("Model portföy, kredi, teminat ve nema ayarları kaydedildi.");
+ if(Math.abs(previousCapital-Number(settings.capital||0))>.01||previousStartDate!==String(settings.startDate||"")){
+  settings.pmsEquityHistory=[];settings.pmsEquityHistoryMeta={};
+  pmsRebuildEquityHistory();
+ }
+ ensureDailyNemaAccruals();recordPmsEquitySnapshot(false);save();renderModel();alert("Model portföy, kredi, teminat ve nema ayarları kaydedildi.");
 };
 $("refreshReferenceRate").onclick=async()=>{
  $("referenceRateStatus").textContent="TCMB referans oranı kontrol ediliyor…";
@@ -5994,8 +6246,12 @@ $("pmsRollingWindow")?.addEventListener("change",renderPMS);
 $("pmsRefreshLiveData")?.addEventListener("click",()=>refreshPmsLiveAnalytics(true));
 
 ["compositeWeightBist","compositeWeightSp500","compositeWeightGold","compositeWeightBond"].forEach(id=>$(id)?.addEventListener("input",updateCompositeWeightTotal));
-$("compositeSaveWeights")?.addEventListener("click",()=>saveCompositeBenchmarkWeights(false));
-$("compositeAutoWeights")?.addEventListener("click",()=>saveCompositeBenchmarkWeights(true));
+$("compositeSaveWeights")?.addEventListener("click",async()=>{await saveCompositeBenchmarkWeights(false)});
+$("compositeAutoWeights")?.addEventListener("click",async()=>{
+ const btn=$("compositeAutoWeights"),old=btn.textContent;
+ btn.disabled=true;btn.textContent="Hesaplanıyor…";
+ try{await saveCompositeBenchmarkWeights(true)}finally{btn.disabled=false;btn.textContent=old}
+});
 $("compositeRebalance")?.addEventListener("change",()=>{
  settings.compositeBenchmarkRebalance=$("compositeRebalance").value;
  settings.compositeBenchmarkUpdatedAt=new Date().toISOString();save();
@@ -6025,6 +6281,8 @@ window.deleteModel=x=>{
  if(!confirm(`${label} kaydı tamamen silinsin mi?\n\nBu işlem pozisyonu; Hareketler, Nakit Ekstresi, Cash Flow, Transactions, Commission History ve PMS analizlerinden de kaldırır. Kayıt hiç oluşturulmamış gibi silinir.`))return;
 
  model=model.filter(row=>row.id!==x);
+ settings.pmsEquityHistory=[];settings.pmsEquityHistoryMeta={};
+ pmsRebuildEquityHistory();
 
  // Derived reporting is model-driven. Clearing the model row removes every
  // position-specific transaction/commission/cash-flow/report record.
@@ -6080,6 +6338,7 @@ $("editPositionForm").addEventListener("submit",e=>{
  }
  p.openDateTime=$("editOpenDate").value||nowLocal();p.openDate=p.openDateTime.slice(0,10);p.stop=n($("editStop").value);p.target=n($("editTarget").value);
  if(scope==="general")p.riskNote=$("editNote").value;else p.note=$("editNote").value;
+ if(scope==="model"){settings.pmsEquityHistory=[];settings.pmsEquityHistoryMeta={};pmsRebuildEquityHistory()}
  save();$("editPositionPanel").classList.remove("open");renderGeneral();renderModel();
  if(scope==="model"&&!p.manualPriceOverride)refreshQuotes("model");
 });
