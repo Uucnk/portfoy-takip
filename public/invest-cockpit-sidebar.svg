@@ -26,10 +26,10 @@
               fill="none" stroke="#0b2c74" stroke-width="9"
               stroke-linecap="round" stroke-linejoin="round"/>
 
-    <!-- bars -->
-    <rect x="86" y="202" width="28" height="48" rx="2" fill="#0b2c74"/>
-    <rect x="129" y="178" width="28" height="72" rx="2" fill="#0b2c74"/>
-    <rect x="172" y="157" width="28" height="93" rx="2" fill="#0b2c74"/>
+    <!-- bars — deliberately terminate inside the circle's inner edge -->
+    <rect x="86" y="197" width="28" height="36" rx="2" fill="#0b2c74"/>
+    <rect x="129" y="174" width="28" height="59" rx="2" fill="#0b2c74"/>
+    <rect x="172" y="154" width="28" height="79" rx="2" fill="#0b2c74"/>
   </g>
 
   <!-- wordmark -->
