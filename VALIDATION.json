@@ -1,27 +1,49 @@
 {
-  "version": "8.3.2",
-  "base": "8.3.1",
+  "version": "8.3.3",
+  "base": "8.3.2",
   "validated": true,
-  "fixes": [
-    "Composite benchmark numeric input locale bug",
-    "Composite auto-weight async refresh",
-    "Expanded strategic asset classification",
-    "Persistent NAV/equity history",
-    "NAV-based annualized volatility",
-    "NAV-based Sharpe",
-    "NAV-based Sortino",
-    "NAV-based Max Drawdown / Calmar / Recovery Factor",
-    "NAV + Composite benchmark Beta/Alpha/Tracking Error/IR",
-    "NAV-based rolling metrics",
-    "Professional target panel expanded with question-mark tooltips",
-    "PMS full re-render after live benchmark fetch"
-  ],
   "methodology": {
-    "risk_adjusted_series": "portfolio NAV/equity period returns",
-    "relative_series": "date-matched portfolio NAV vs composite benchmark returns",
-    "minimum_return_observations_for_vol_sharpe_sortino": 2,
-    "target_profile": "Invest Cockpit institutional target profile, not universal industry standard"
+    "realized_only": [
+      "Win Rate",
+      "Profit Factor",
+      "Payoff Ratio",
+      "Expectancy/Trade",
+      "Average Win/Loss",
+      "Best/Worst Trade"
+    ],
+    "nav_history_no_realization": [
+      "Sharpe",
+      "Sortino",
+      "Volatility",
+      "Downside Deviation",
+      "Historical VaR/CVaR",
+      "Alpha/Beta",
+      "Tracking Error",
+      "Information Ratio",
+      "Rolling Metrics",
+      "Regime Performance"
+    ],
+    "live_open_positions": [
+      "Risk Contribution",
+      "Portfolio Health",
+      "Sector Exposure",
+      "Momentum Factor",
+      "Return Sources",
+      "Holding-period Attribution",
+      "Gross Leverage"
+    ]
   },
-  "app_sha256": "130df614a290364c33a185cfe6e1a5c90646481de860404de8185210dbdc507a",
-  "server_sha256": "9e507c77945eaecfa6f09f80fe449dfb018af9066100c51961ec0b81da1725a1"
+  "fixes": [
+    "null no longer treated as numeric zero",
+    "robust live TRY exposure payload",
+    "absolute active-position weights",
+    "risk covariance fallback",
+    "factor-specific coverage",
+    "NAV-based regime performance",
+    "active+closed holding-period attribution",
+    "NAV-based historical VaR/CVaR",
+    "clear data-progress states for realized/NAV metrics"
+  ],
+  "app_sha256": "d974c4d3953756890029e50ed475f9baeef1eabce00b930582abb094c624e81f",
+  "server_sha256": "87c025f3bfd61c2967893699d5ec28ee4cdee71b0146f9534cfae408a3d924d9"
 }
