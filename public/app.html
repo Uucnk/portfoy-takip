@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.3.4</title>
+<title>Invest Cockpit · v8.3.5</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2034,8 +2034,19 @@ body.modalOpen{overflow:hidden}
  #investCockpitHelpPortal{max-width:min(300px,calc(100vw - 20px))}
 }
 
+
+/* v8.3.5 — global redundant page header removed */
+.app > header{
+ display:none!important;
+ margin:0!important;
+ padding:0!important;
+ min-height:0!important;
+ height:0!important;
+ border:0!important;
+}
+
 </style>
-<meta name="portfolio-build" content="v8.3.4-sidebar-tooltip-scroll-polish">
+<meta name="portfolio-build" content="v8.3.5-logo-header-cleanup">
 </head>
 <body class="authLocked">
 
@@ -2245,14 +2256,6 @@ body.modalOpen{overflow:hidden}
 
 <div id="topTicker" class="fixedTicker top"><div id="topTickerTrack" class="tickerTrack"><span class="tickerItem">BIST 100 verileri yükleniyor…</span></div></div>
 <div class="app">
-<header>
-  <div><h1>📈 Model Portföy Takip</h1><div class="muted">Profesyonel track record, nakit, komisyon, kredi ve VİOP teminat yönetimi</div></div>
-  <div class="headerCloudBadge" title="Hesap verileri otomatik olarak buluta kaydedilir">
-    <span class="headerCloudDot"></span>
-    Otomatik Bulut Senkronizasyonu
-  </div>
-</header>
-
 <div class="tabs legacyTopTabs">
   <button class="tabBtn active" data-tab="model">Model Portföy</button>
   <button class="tabBtn" data-tab="reports">Reports</button>
