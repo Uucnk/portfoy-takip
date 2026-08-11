@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.2.9</title>
+<title>Invest Cockpit · v8.3.1</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -1825,7 +1825,7 @@ body.modalOpen{overflow:hidden}
 }
 
 </style>
-<meta name="portfolio-build" content="v8.2.9-futures-margin-direction-layout">
+<meta name="portfolio-build" content="v8.3.1-usx-fx-only-fix">
 </head>
 <body class="authLocked">
 
@@ -3411,6 +3411,23 @@ function positionCurrentFx(p){
  return fxRateTRY(p?.currency)||positionOpenFx(p)||1;
 }
 function nativeCurrency(p){return String(p?.currency||"TRY").toUpperCase()}
+function globalFutureQuoteCurrency(value){
+ const raw=String(value?.quoteCurrency||value?.priceCurrency||value?.currency||"USD").toUpperCase();
+ return raw||"USD";
+}
+function globalFutureSettlementCurrency(value){
+ const explicit=String(value?.marginCurrency||value?.pnlCurrency||"").toUpperCase();
+ if(explicit)return explicit;
+ const quote=globalFutureQuoteCurrency(value);
+ // USX/USC are US-cent quote units, not FX currencies.
+ if(quote==="USX"||quote==="USC"||quote==="US¢")return"USD";
+ return quote||"USD";
+}
+function priceCurrency(p){
+ return isGlobalFuturesPosition(p)
+  ?String(p?.quoteCurrency||p?.priceCurrency||"USD").toUpperCase()
+  :nativeCurrency(p);
+}
 function tradeNotional(p,price){
  const px=Number(price??p?.entry)||0,qty=Number(p?.qty)||0;
  return Math.abs(px*qty*contractMultiplier(p));
@@ -3684,6 +3701,8 @@ function repairLegacyModelPositions(){
    if(row){
     const friendly=String(row.name||friendlyGlobalFutureName(row.code)).replace(/\s+Futures$/i,"").trim();
     const snapshot=globalFutureMarginSnapshot(row.code);
+    const repairedQuoteCurrency=globalFutureQuoteCurrency(row);
+    const repairedSettlementCurrency=globalFutureSettlementCurrency(row);
     const correctInitial=Number(snapshot?.initial)||Number(row.initialMargin)||0;
     const correctMaintenance=Number(snapshot?.maintenance)||Number(row.maintenanceMargin)||0;
     const correctMarginSource=snapshot?.source||row.marginSource||p.marginSource||"";
@@ -3699,7 +3718,14 @@ function repairLegacyModelPositions(){
     if(correctInitial>0&&Math.abs(Number(p.initialMargin||0)-correctInitial)>.0001){p.initialMargin=correctInitial;changed=true}
     if(correctMaintenance>0&&Math.abs(Number(p.maintenanceMargin||0)-correctMaintenance)>.0001){p.maintenanceMargin=correctMaintenance;changed=true}
     if(correctMarginSource&&p.marginSource!==correctMarginSource){p.marginSource=correctMarginSource;changed=true}
-    if(snapshot?.currency&&p.marginCurrency!==snapshot.currency){p.marginCurrency=snapshot.currency;changed=true}
+    const finalSettlementCurrency=String(snapshot?.currency||repairedSettlementCurrency||"USD").toUpperCase();
+    if(p.quoteCurrency!==repairedQuoteCurrency){p.quoteCurrency=repairedQuoteCurrency;changed=true}
+    if(p.priceCurrency!==repairedQuoteCurrency){p.priceCurrency=repairedQuoteCurrency;changed=true}
+    if(p.marginCurrency!==finalSettlementCurrency){p.marginCurrency=finalSettlementCurrency;changed=true}
+    if(p.pnlCurrency!==finalSettlementCurrency){p.pnlCurrency=finalSettlementCurrency;changed=true}
+    if(p.currency!==finalSettlementCurrency){p.currency=finalSettlementCurrency;changed=true}
+    const repairedFx=fxRateTRY(finalSettlementCurrency);
+    if(repairedFx&&(!Number.isFinite(Number(p.fxRateAtOpen))||Number(p.fxRateAtOpen)<=1)){p.fxRateAtOpen=repairedFx;changed=true}
     if(Number(p.initialMarginRequired)>0){delete p.initialMarginRequired;changed=true}
     if(Number(p.maintenanceMarginRequired)>0){delete p.maintenanceMarginRequired;changed=true}
    }else{
@@ -4322,8 +4348,16 @@ async function syncModelNativeCurrency(symbol,explicitCurrency=null,fillPrice=fa
   $("mCurrency").value="TRY";$("mEntryFxRate").value="1";$("mNativeCurrencyStatus").textContent="VİOP pozisyonları TRY teminat ve fiyatlama altyapısında tutulur.";return"TRY";
  }
  if(assetClass==="Yurtdışı Futures"){
-  const row=currentGlobalFuture("model"),currency=row?.quoteCurrency||row?.marginCurrency||"USD";
-  $("mCurrency").value=currency;$("mEntryFxRate").value=f(fxRateTRY(currency)||1,8);$("mNativeCurrencyStatus").textContent=`${row?.exchange||"Global Futures"} native para birimi: ${currency}.`;return currency;
+  const row=currentGlobalFuture("model");
+  const quoteCurrency=globalFutureQuoteCurrency(row||{});
+  const settlementCurrency=globalFutureSettlementCurrency(row||{});
+  $("mCurrency").value=settlementCurrency;
+  $("mEntryFxRate").value=f(fxRateTRY(settlementCurrency)||1,8);
+  $("mNativeCurrencyStatus").textContent=quoteCurrency!==settlementCurrency
+   ?`${row?.exchange||"Global Futures"} fiyat birimi ${quoteCurrency}; teminat, nakit ve K/Z ${settlementCurrency}. FX ${settlementCurrency}/TRY üzerinden hesaplanır.`
+   :`${row?.exchange||"Global Futures"} fiyat, teminat ve K/Z para birimi ${settlementCurrency}.`;
+  updateModelTradePreview();
+  return settlementCurrency;
  }
  const ys=String(symbol||$("mYahooSymbol")?.value||$("mSymbol")?.value||"").trim().toUpperCase();
  if(!ys)return null;
@@ -4408,7 +4442,13 @@ async function refreshQuotes(scope){
         p.dailyChange=Number(payload.changePercent)||0;
         p.marketTime=payload.marketTime||new Date().toISOString();
         p.quoteDelay=payload.delayed?"delayed":null;
-        if(payload.currency)p.currency=String(payload.currency).toUpperCase();
+        const feedQuoteCurrency=String(payload.quoteCurrency||payload.currency||p.quoteCurrency||"USD").toUpperCase();
+        const feedSettlementCurrency=String(payload.settlementCurrency||payload.marginCurrency||p.marginCurrency||globalFutureSettlementCurrency({...p,quoteCurrency:feedQuoteCurrency})).toUpperCase();
+        p.quoteCurrency=feedQuoteCurrency;
+        p.priceCurrency=feedQuoteCurrency;
+        p.marginCurrency=feedSettlementCurrency;
+        p.pnlCurrency=feedSettlementCurrency;
+        p.currency=feedSettlementCurrency;
         if(payload.yahooSymbol)p.yahooSymbol=payload.yahooSymbol;
         if(payload.tradingViewSymbol)p.tradingViewSymbol=payload.tradingViewSymbol;
         return true;
@@ -4549,7 +4589,7 @@ function activityRows(list){
       date:p.openDateTime||p.openDate,
       type:isLong?"buy":"sell",
       symbol:positionDisplayName(p),name:positionProductLabel(p),
-      qty:p.qty||0,price:p.entry||0,currency:p.currency||"TRY",note:p.thesis||p.note||"",
+      qty:p.qty||0,price:p.entry||0,priceCurrency:priceCurrency(p),currency:nativeCurrency(p),note:p.thesis||p.note||"",
       total:tradeNotional(p,p.entry),commission:openCommissionValue(p),
       creditCost:financingCostValue(p),
       margin:isViopPosition(p)?viopInitialMargin(p):isGlobalFuturesPosition(p)?globalFuturesInitialMargin(p):0,
@@ -4560,7 +4600,7 @@ function activityRows(list){
         date:p.closeDateTime||p.closeDate,
         type:isLong?"sell":"buy",
         symbol:positionDisplayName(p),name:positionProductLabel(p),
-        qty:p.qty||0,price:p.closePrice||0,currency:p.currency||"TRY",note:p.riskNote||p.note||"",
+        qty:p.qty||0,price:p.closePrice||0,priceCurrency:priceCurrency(p),currency:nativeCurrency(p),note:p.riskNote||p.note||"",
         total:tradeNotional(p,p.closePrice),commission:estimatedCloseCommission(p,p.closePrice),
         creditCost:0,margin:0,marginCurrency:isGlobalFuturesPosition(p)?(p.marginCurrency||p.currency||"USD"):"TRY"
       });
@@ -4597,7 +4637,7 @@ function activityHTML(list,filter,isModel=false){
       <td class="activityType ${r.type}">${r.type==="buy"?"⌃ Al":"⌄ Sat"}</td>
       <td>${dateTR(r.date)}</td>
       <td>${f(r.qty,3)}</td>
-      <td>${f(r.price,4)} ${esc(r.currency)}</td>
+      <td>${f(r.price,4)} ${esc(r.priceCurrency||r.currency)}</td>
       <td>${f(r.commission,2)} ${esc(r.currency)}<div class="activityCostBreakdown">${r.creditCost?`Kredi: ${f(r.creditCost,2)} ${esc(r.currency)}`:""}${r.margin?` Teminat: ${f(r.margin,2)} ${esc(r.marginCurrency||"TRY")}`:""}</div></td>
       <td>${f(r.total,2)} ${esc(r.currency)}</td>
       <td>${esc(r.note||"-")}</td>
@@ -5479,9 +5519,15 @@ function applyViopContract(scope="model"){
 }
 function draftModelPosition(){
  const globalItem=currentGlobalFuture("model");
+ const assetClass=$("mAssetClass")?.value||"";
+ const isGlobal=assetClass==="Yurtdışı Futures";
+ const settlementCurrency=isGlobal?globalFutureSettlementCurrency(globalItem||{}):($("mCurrency")?.value||"TRY");
+ const quoteCurrency=isGlobal?globalFutureQuoteCurrency(globalItem||{}):settlementCurrency;
  return{
-  assetClass:$("mAssetClass")?.value||"",entry:Number($("mEntry")?.value)||0,qty:Number($("mQty")?.value)||0,
-  currency:$("mCurrency")?.value||"TRY",commissionUnit:$("mCommissionUnit")?.value||"onbinde",
+  assetClass,entry:Number($("mEntry")?.value)||0,qty:Number($("mQty")?.value)||0,
+  currency:settlementCurrency,pnlCurrency:settlementCurrency,quoteCurrency,priceCurrency:quoteCurrency,
+  marginCurrency:isGlobal?settlementCurrency:"TRY",
+  commissionUnit:$("mCommissionUnit")?.value||"onbinde",
   commissionRate:Number($("mCommissionRate")?.value)||0,contractSize:Number($("mContractSize")?.value)||1,
   viopContract:$("mViopContract")?.value||"",marginMode:"fixed",
   initialMargin:Number($("mInitialMargin")?.value)||0,
@@ -5573,11 +5619,15 @@ function applyGlobalFuture(scope,item){
  $(p+"GlobalFutureMaintenance").value=Number(marginSnapshot?.maintenance||row.maintenanceMargin)||"";
  $(p+"GlobalFutureCurrency").value=marginSnapshot?.currency||row.marginCurrency||"USD";
  const symbolInput=$(isGeneral?"symbol":"mSymbol"),yahooInput=$(isGeneral?"yahooSymbol":"mYahooSymbol"),currency=$(isGeneral?"currency":"mCurrency"),entry=$(isGeneral?"entry":"mEntry");
+ const quoteCurrency=globalFutureQuoteCurrency(row);
+ const settlementCurrency=globalFutureSettlementCurrency(row);
  if(symbolInput)symbolInput.value=row.code||row.id;
  if(yahooInput)yahooInput.value=row.yahooSymbol||"";
- if(currency)currency.value=row.quoteCurrency||row.marginCurrency||"USD";
- if(!isGeneral&&$("mEntryFxRate"))$("mEntryFxRate").value=f(fxRateTRY(row.quoteCurrency||row.marginCurrency||"USD")||1,8);
- if(!isGeneral&&$("mNativeCurrencyStatus"))$("mNativeCurrencyStatus").textContent=`${row.exchange||"Global Futures"} kontratı ${row.quoteCurrency||row.marginCurrency||"USD"} cinsinden fiyatlanır; teminat ${row.marginCurrency||"USD"} bakiyesinden kontrol edilir.`;
+ if(currency)currency.value=settlementCurrency;
+ if(!isGeneral&&$("mEntryFxRate"))$("mEntryFxRate").value=f(fxRateTRY(settlementCurrency)||1,8);
+ if(!isGeneral&&$("mNativeCurrencyStatus"))$("mNativeCurrencyStatus").textContent=quoteCurrency!==settlementCurrency
+  ?`${row.exchange||"Global Futures"} fiyat birimi ${quoteCurrency}; teminat, nakit ve K/Z ${settlementCurrency} cinsindedir.`
+  :`${row.exchange||"Global Futures"} fiyat, teminat ve K/Z ${settlementCurrency} cinsindedir.`;
  if(entry&&row.price){if(isGeneral)entry.value=row.price;else setModelEntryAutoPrice(row.price)}
  const status=$(p+"GlobalFutureStatus");
  if(status){
@@ -5610,12 +5660,14 @@ function renderViopTransferHistory(){
 $("modelForm").addEventListener("submit",e=>{
  e.preventDefault();
  const globalRow=currentGlobalFuture("model");
- const nativeCur=$("mAssetClass").value==="Türev (VİOP/Vadeli)"?"TRY":$("mAssetClass").value==="Yurtdışı Futures"?(globalRow?.quoteCurrency||globalRow?.marginCurrency||"USD"):$("mCurrency").value;
- const openFx=fxRateTRY(nativeCur);
- if(!openFx){alert(`${nativeCur} için güncel TRY kuru bulunamadı. Önce Döviz Exchange bölümünden "Kurları Güncelle" butonuna basın.`);return}
  const selectedAssetClass=$("mAssetClass").value;
  const isNewViop=selectedAssetClass==="Türev (VİOP/Vadeli)";
  const isNewGlobalFuture=selectedAssetClass==="Yurtdışı Futures";
+ const quoteCurrency=isNewGlobalFuture?globalFutureQuoteCurrency(globalRow||{}):null;
+ const settlementCurrency=isNewGlobalFuture?globalFutureSettlementCurrency(globalRow||{}):null;
+ const nativeCur=isNewViop?"TRY":isNewGlobalFuture?settlementCurrency:$("mCurrency").value;
+ const openFx=fxRateTRY(nativeCur);
+ if(!openFx){alert(`${nativeCur} için güncel TRY kuru bulunamadı. Önce Döviz Exchange bölümünden "Kurları Güncelle" butonuna basın.`);return}
  const globalFriendlyName=isNewGlobalFuture&&globalRow
   ?String(globalRow.name||friendlyGlobalFutureName(globalRow.code)).replace(/\s+Futures$/i,"").trim()
   :"";
@@ -5626,7 +5678,12 @@ $("modelForm").addEventListener("submit",e=>{
   exchange:isNewGlobalFuture?(globalRow?.exchange||""):"",
   symbol:isNewGlobalFuture?(globalRow?.code||$("mSymbol").value.trim().toUpperCase()):$("mSymbol").value.trim().toUpperCase(),
   yahooSymbol:isNewGlobalFuture?(globalRow?.yahooSymbol||$("mYahooSymbol").value.trim().toUpperCase()):$("mYahooSymbol").value.trim().toUpperCase(),
-  direction:$("mDirection").value,currency:nativeCur,fxRateAtOpen:openFx,entry:n($("mEntry").value),
+  direction:$("mDirection").value,
+  currency:nativeCur,
+  pnlCurrency:isNewGlobalFuture?settlementCurrency:nativeCur,
+  quoteCurrency:isNewGlobalFuture?quoteCurrency:nativeCur,
+  priceCurrency:isNewGlobalFuture?quoteCurrency:nativeCur,
+  fxRateAtOpen:openFx,entry:n($("mEntry").value),
   currentPrice:n($("mEntry").value),dailyChange:n($("mDailyChange").value)||0,qty:n($("mQty").value)||1,
   openDateTime:$("mOpenDate").value||nowLocal(),openDate:($("mOpenDate").value||nowLocal()).slice(0,10),
   stop:n($("mStop").value),target:n($("mTarget").value),note:$("mNote").value,
@@ -5641,7 +5698,7 @@ $("modelForm").addEventListener("submit",e=>{
   initialMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureInitial")?.value)||globalFutureMarginSnapshot(globalRow?.code)?.initial||globalRow?.initialMargin||0):(n($("mInitialMargin").value)||0),
   maintenanceMargin:$("mAssetClass").value==="Yurtdışı Futures"?(n($("mGlobalFutureMaintenance")?.value)||globalFutureMarginSnapshot(globalRow?.code)?.maintenance||globalRow?.maintenanceMargin||0):(n($("mMaintenanceMargin").value)||0),
   contractExpiry:currentSelectedViopContract("model")?.expiryDate||$("mContractExpiry").value||"",marginRate:0,
-  marginCurrency:$("mAssetClass").value==="Yurtdışı Futures"?(globalRow?.marginCurrency||nativeCur):"TRY",
+  marginCurrency:isNewGlobalFuture?settlementCurrency:"TRY",
   marginSource:$("mAssetClass").value==="Yurtdışı Futures"?(globalFutureMarginSnapshot(globalRow?.code)?.source||globalRow?.marginSource||""):""
  };
  if(!p.symbol||!p.entry){alert("Sembol ve açılış fiyatı zorunludur.");return}
@@ -5664,9 +5721,6 @@ $("modelForm").addEventListener("submit",e=>{
  }else if(isGlobalFuturesPosition(p)){
   p.initialMarginRequired=Math.abs(Number(p.qty)||0)*(Number(p.initialMargin)||0);
   const marginCurrency=String(p.marginCurrency||p.currency||"USD").toUpperCase();
-  if(marginCurrency!==p.currency){
-   alert(`Bu kontrat ${p.currency} cinsinden fiyatlanıyor ancak teminat ${marginCurrency}. v8.1 yalnızca fiyat ve teminat para birimi aynı olan kontratlarda otomatik teminat kontrolü yapar.`);return;
-  }
   const before=globalFuturesMarginState(marginCurrency),required=p.initialMarginRequired+p.openCommission;
   if(required>before.free+1e-8){
    alert(`Yetersiz ${marginCurrency} futures teminatı. Gerekli başlangıç teminatı + komisyon: ${f(required,2)} ${marginCurrency} · Serbest: ${f(before.free,2)} ${marginCurrency}. Döviz Exchange bölümünden ${marginCurrency} bakiyesi oluşturun.`);return;
