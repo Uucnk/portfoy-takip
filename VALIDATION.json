@@ -1,31 +1,16 @@
 {
-  "version": "8.3.6",
-  "base": "8.3.5",
+  "version": "8.3.7",
+  "base": "8.3.6",
   "validated": true,
-  "feature": "Learning Hub / Core Market Intelligence",
-  "indicator_count": 50,
-  "rank_range": [
-    1,
-    50
+  "feature": "Learning Hub / Core Market Intelligence 100",
+  "indicator_count": 100,
+  "new_rank_range": [
+    51,
+    100
   ],
-  "sections": [
-    "definition",
-    "use",
-    "up scenario",
-    "down scenario",
-    "typical long/short expressions",
-    "affected markets",
-    "fund manager rationale",
-    "related indicators",
-    "caveats",
-    "source"
-  ],
-  "new_files": [
-    "public/learning-hub-core50.js",
-    "public/learning-hub.js"
-  ],
-  "app_sha256": "3bc07307438bfe77f94eb0bffd09e848c9b3cbd77bf1f1c021ccbeaebd49ab7b",
-  "data_sha256": "90767883d47b5b67b74269fb663af03e9cbde049aded974e3b7440c76e169c08",
-  "renderer_sha256": "e0e4e07ae2c24774d76d6f6a34e74bd57ed1f7ae5b11d552221ab7a25d062067",
+  "new_data_file": "public/learning-hub-core51-100.js",
+  "app_sha256": "250e7e88a27d0bfae85bdf18aea76e1bc4e74c4e79fac28980e90601a6fb6312",
+  "data_51_100_sha256": "d3aa45d16cb9c1d797a719655b4feaf834f81a7b59da1a0d00dc7aaaa5216391",
+  "renderer_sha256": "7fb4053f40dffece35b6c1f1756764f5fadbd5a3a9564f020ebbb0a1abc0e24d",
   "server_sha256": "87c025f3bfd61c2967893699d5ec28ee4cdee71b0146f9534cfae408a3d924d9"
 }
