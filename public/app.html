@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.3.5</title>
+<title>Invest Cockpit · v8.3.6</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2045,8 +2045,146 @@ body.modalOpen{overflow:hidden}
  border:0!important;
 }
 
+
+/* =========================================================
+   v8.3.6 — Learning Hub / Core Market Intelligence
+   ========================================================= */
+.learningHubHeader{align-items:center;margin-bottom:10px}
+.learningEyebrow{font-size:8px;letter-spacing:.17em;font-weight:900;color:#6eaaf2;text-transform:uppercase}
+.learningHubHeader h2{font-size:25px;margin:4px 0}
+.learningHubVersion{
+ min-width:112px;padding:9px 12px;border:1px solid #29475f;border-radius:10px;
+ background:linear-gradient(145deg,#0d1d2a,#091520);display:grid;grid-template-columns:auto auto;gap:0 6px;
+ align-items:center
+}
+.learningHubVersion span{font-size:7px;letter-spacing:.15em;color:#6da5d8;font-weight:900}
+.learningHubVersion strong{font-size:22px;color:#fff;grid-row:1/3;grid-column:2}
+.learningHubVersion small{font-size:8px;color:#839bb0}
+.learningWorkspaceNav{display:flex;gap:6px;margin:7px 0 12px;overflow-x:auto}
+.learningWorkspaceNav button{
+ white-space:nowrap;padding:7px 12px;background:#0f1e2c;border:1px solid #29445b;color:#9eb4c8;
+ font-size:9px;border-radius:8px
+}
+.learningWorkspaceNav button.active{background:#173c68;border-color:#3e78b3;color:#fff}
+.learningWorkspace{display:none}.learningWorkspace.active{display:block}
+.marketIntelHero{
+ display:flex;align-items:stretch;justify-content:space-between;gap:18px;padding:18px 20px;margin-bottom:12px;
+ border:1px solid #29465d;border-radius:13px;
+ background:
+  radial-gradient(circle at 88% 18%,rgba(39,111,206,.20),transparent 28%),
+  linear-gradient(135deg,#0d1d2b,#08131e 65%,#0b1724)
+}
+.marketIntelHero h3{font-size:22px;margin:5px 0 7px;color:#f3f8fc}
+.marketIntelHero p{margin:0;max-width:780px;color:#8da8be;font-size:10px;line-height:1.55}
+.marketIntelStats{display:grid;grid-template-columns:repeat(3,minmax(75px,1fr));gap:7px;align-self:center}
+.marketIntelStats>div{padding:10px;border:1px solid #29475e;border-radius:9px;background:#0a1824;text-align:center}
+.marketIntelStats strong{display:block;font-size:17px;color:#eaf4ff}
+.marketIntelStats span{display:block;margin-top:3px;font-size:7px;color:#718ca3;text-transform:uppercase}
+.marketIntelToolbar{display:grid;grid-template-columns:minmax(280px,1fr) 210px 190px;gap:8px;margin-bottom:8px}
+.marketIntelSearch{position:relative}
+.marketIntelSearch span{position:absolute;left:12px;top:8px;font-size:18px;color:#678aa7;pointer-events:none}
+.marketIntelSearch input,.marketIntelToolbar select{
+ width:100%;height:38px;box-sizing:border-box;border:1px solid #2c4459;border-radius:8px;background:#091621;
+ color:#eaf2f9;font-size:10px
+}
+.marketIntelSearch input{padding:8px 12px 8px 35px}
+.marketIntelToolbar select{padding:8px 10px}
+.marketIntelSearch input:focus,.marketIntelToolbar select:focus{outline:none;border-color:#4b82c9;box-shadow:0 0 0 2px rgba(75,130,201,.12)}
+.marketIntelLegend{
+ display:flex;flex-wrap:wrap;gap:7px 16px;padding:8px 10px;margin-bottom:10px;
+ border:1px solid #253a4d;border-radius:8px;background:#09141f;color:#6f899e;font-size:8px
+}
+.marketIntelLegend b{color:#b8d5ec}
+.marketIntelLayout{display:grid;grid-template-columns:minmax(330px,38%) minmax(0,62%);gap:11px;align-items:start}
+.marketIntelListShell,.marketIntelDetail{
+ border:1px solid #294258;border-radius:11px;background:#0b1722;min-width:0
+}
+.marketIntelListShell{overflow:hidden}
+.marketIntelListHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border-bottom:1px solid #253b4e;background:#0d1b28}
+.marketIntelListHead strong{display:block;color:#edf5fb;font-size:10px}
+.marketIntelListHead span{display:block;color:#69849a;font-size:8px;margin-top:2px}
+.marketIntelListHead button{padding:6px 9px;font-size:8px}
+.marketIntelList{max-height:calc(100vh - 255px);min-height:560px;overflow:auto;padding:5px}
+.marketIntelRow{
+ width:100%;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:8px;align-items:center;
+ padding:10px 9px;border:1px solid transparent;border-radius:8px;background:transparent;color:#c7d6e3;
+ text-align:left;cursor:pointer;margin-bottom:3px
+}
+.marketIntelRow:hover{background:#102131;border-color:#29475e}
+.marketIntelRow.active{background:#16304b;border-color:#3c70a2}
+.marketIntelRank{
+ width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+ border:1px solid #315573;background:#0b2030;color:#73adf1;font-size:10px;font-weight:900
+}
+.marketIntelRowMain{min-width:0}
+.marketIntelRowMain strong{display:block;font-size:10px;color:#eef5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.marketIntelRowMain span{display:block;font-size:7.5px;color:#718ca2;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.marketIntelImportance{display:inline-flex;padding:3px 6px;border-radius:999px;font-size:7px;font-weight:900;border:1px solid #31516b;color:#8eb7d7;background:#102334}
+.marketIntelImportance.Critical{border-color:#725637;background:#2b2115;color:#efc36f}
+.marketIntelDetail{
+ position:sticky;top:52px;max-height:calc(100vh - 96px);overflow:auto;padding:16px 17px;
+ scrollbar-width:thin;scrollbar-color:#31485d #09111b
+}
+.marketIntelDetail::-webkit-scrollbar{width:7px}
+.marketIntelDetail::-webkit-scrollbar-track{background:#09111b}
+.marketIntelDetail::-webkit-scrollbar-thumb{background:#31485d;border-radius:999px}
+.marketIntelEmptyDetail{min-height:400px;display:flex;align-items:center;justify-content:center;color:#67839b;font-size:11px}
+.marketIntelDetailTop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:12px;border-bottom:1px solid #263d51}
+.marketIntelDetailIdentity{display:flex;gap:10px;min-width:0}
+.marketIntelDetailRank{
+ flex:0 0 42px;width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+ border:1px solid #3a668a;background:#102a40;color:#7bb8ff;font-size:15px;font-weight:900
+}
+.marketIntelDetailTop h3{margin:1px 0 4px;font-size:19px;color:#f3f8fc}
+.marketIntelDetailMeta{display:flex;flex-wrap:wrap;gap:5px}
+.marketIntelTag{display:inline-flex;padding:3px 6px;border-radius:999px;background:#0d2232;border:1px solid #2d4a61;color:#8eb3cf;font-size:7px;font-weight:800}
+.marketIntelTag.critical{background:#2a2115;border-color:#705835;color:#efc46f}
+.marketIntelSource{padding:7px 9px;border-radius:8px;border:1px solid #29465b;background:#09151f;color:#7894aa;font-size:8px;max-width:240px;line-height:1.4}
+.marketIntelSection{padding:12px 0;border-bottom:1px solid #223749}
+.marketIntelSection:last-child{border-bottom:0}
+.marketIntelSection h4{margin:0 0 6px;color:#82b9ec;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.marketIntelSection p{margin:0;color:#c1d1dd;font-size:10px;line-height:1.62}
+.marketIntelDirectionGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.marketIntelDirection{
+ border:1px solid #29455a;border-radius:9px;padding:10px;background:#091722;min-width:0
+}
+.marketIntelDirection.up{border-color:#4d4930;background:#1a1910}
+.marketIntelDirection.down{border-color:#294e43;background:#0c1d1a}
+.marketIntelDirection h4{font-size:9px;margin-bottom:6px}
+.marketIntelDirection.up h4{color:#e5c366}.marketIntelDirection.down h4{color:#72d5ae}
+.marketIntelDirection p{font-size:9px;line-height:1.5;color:#b5c6d3}
+.marketIntelTradeGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.marketIntelTradeBox{padding:8px;border:1px solid #263e51;border-radius:8px;background:#0b1925}
+.marketIntelTradeBox span{display:block;font-size:7px;text-transform:uppercase;color:#69879f;margin-bottom:5px}
+.marketIntelTradeBox div{display:flex;flex-wrap:wrap;gap:4px}
+.marketIntelTradePill{display:inline-flex;padding:3px 6px;border-radius:999px;font-size:7px;border:1px solid #31516b;background:#102436;color:#b8d1e4}
+.marketIntelTradeBox.long .marketIntelTradePill{border-color:#2f6554;background:#0e2a22;color:#87dfbb}
+.marketIntelTradeBox.short .marketIntelTradePill{border-color:#70404a;background:#2b161c;color:#f29aaa}
+.marketIntelMarketTags{display:flex;flex-wrap:wrap;gap:5px}
+.marketIntelRelated{display:flex;flex-wrap:wrap;gap:5px}
+.marketIntelRelated span{padding:4px 7px;border-radius:6px;background:#10202e;border:1px solid #294258;color:#9db7ca;font-size:8px}
+.marketIntelCaveat{padding:10px;border-radius:8px;border:1px dashed #5a4c31;background:#19170f;color:#ccb87d!important}
+.learningHubSideGroup .sideSub.active{background:#162840;color:#74a9ff;font-weight:800}
+@media(max-width:1150px){
+ .marketIntelLayout{grid-template-columns:330px minmax(0,1fr)}
+ .marketIntelToolbar{grid-template-columns:minmax(240px,1fr) 180px 160px}
+}
+@media(max-width:850px){
+ .marketIntelHero{display:block}.marketIntelStats{margin-top:12px}
+ .marketIntelToolbar{grid-template-columns:1fr 1fr}.marketIntelSearch{grid-column:1/-1}
+ .marketIntelLayout{grid-template-columns:1fr}
+ .marketIntelList{min-height:0;max-height:430px}
+ .marketIntelDetail{position:static;max-height:none}
+}
+@media(max-width:520px){
+ .marketIntelToolbar{grid-template-columns:1fr}.marketIntelSearch{grid-column:auto}
+ .marketIntelDirectionGrid,.marketIntelTradeGrid{grid-template-columns:1fr}
+ .marketIntelStats{grid-template-columns:repeat(3,1fr)}
+ .marketIntelHero{padding:14px}
+}
+
 </style>
-<meta name="portfolio-build" content="v8.3.5-logo-header-cleanup">
+<meta name="portfolio-build" content="v8.3.6-learning-hub-core-market-intelligence">
 </head>
 <body class="authLocked">
 
@@ -2131,6 +2269,14 @@ body.modalOpen{overflow:hidden}
       </div>
     </div>
     <button class="sideMain" data-side-tab="pms"><span class="sideIcon">◈</span><span class="sideLabel">Portfolio Management System (PMS)</span></button>
+    <div class="sideGroup learningHubSideGroup">
+      <button class="sideMain sideExpandable expanded" data-side-tab="learningHub" id="learningHubSideButton">
+        <span class="sideIcon">◆</span><span class="sideLabel">Learning Hub</span><span class="sideChevron">⌄</span>
+      </button>
+      <div id="learningHubSubmenu" class="sideSubmenu open">
+        <button class="sideSub active" data-learning-target="marketIntelligence">Market Intelligence</button>
+      </div>
+    </div>
     <div class="sideGroup">
       <button class="sideMain sideExpandable expanded" data-side-tab="markets" id="marketsSideButton"><span class="sideIcon">▦</span><span class="sideLabel">Markets</span><span class="sideChevron">⌄</span></button>
       <div id="marketsSubmenu" class="sideSubmenu open">
@@ -3221,6 +3367,72 @@ body.modalOpen{overflow:hidden}
   </div>
 </section>
 
+
+<section id="learningHub" class="tab">
+  <div class="sectionHead learningHubHeader">
+    <div>
+      <div class="learningEyebrow">FINANCIAL ENCYCLOPEDIA</div>
+      <h2>Learning Hub</h2>
+      <div class="muted">Profesyonel piyasa okuması, makro göstergeler ve cross-asset ilişkiler için Invest Cockpit bilgi merkezi.</div>
+    </div>
+    <div class="learningHubVersion"><span>CORE</span><strong>50</strong><small>Market Intelligence</small></div>
+  </div>
+
+  <div class="learningWorkspaceNav">
+    <button type="button" class="active" data-learning-workspace="marketIntelligence">Market Intelligence</button>
+  </div>
+
+  <div id="marketIntelligence" class="learningWorkspace active">
+    <div class="marketIntelHero">
+      <div>
+        <div class="learningEyebrow">CORE MARKET INTELLIGENCE</div>
+        <h3>Dünyayı hareket ettiren 50 gösterge</h3>
+        <p>Önem sırasına göre Fed, faiz, enflasyon, büyüme, işgücü, kredi, likidite ve cross-asset göstergeleri. Her kart profesyonel portföy yöneticisi perspektifiyle açıklanır.</p>
+      </div>
+      <div class="marketIntelStats">
+        <div><strong>50</strong><span>Gösterge</span></div>
+        <div><strong>8</strong><span>Ana Tema</span></div>
+        <div><strong>1–50</strong><span>Önem Sırası</span></div>
+      </div>
+    </div>
+
+    <div class="marketIntelToolbar">
+      <div class="marketIntelSearch">
+        <span>⌕</span>
+        <input id="marketIntelSearch" type="search" autocomplete="off" placeholder="CPI, credit spread, HYG/IEI, real yield, Gold/Copper...">
+      </div>
+      <select id="marketIntelCategory" aria-label="Kategori filtresi">
+        <option value="all">Tüm Kategoriler</option>
+      </select>
+      <select id="marketIntelImportance" aria-label="Önem filtresi">
+        <option value="all">Tüm Önem Seviyeleri</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+      </select>
+    </div>
+
+    <div class="marketIntelLegend">
+      <span><b>Critical</b> global rejim belirleyici</span>
+      <span><b>High</b> güçlü teyit / rotasyon göstergesi</span>
+      <span>Yön ifadeleri eğitim amaçlı tipik piyasa reaksiyonlarıdır; tek başına işlem sinyali değildir.</span>
+    </div>
+
+    <div class="marketIntelLayout">
+      <div class="marketIntelListShell">
+        <div class="marketIntelListHead">
+          <div><strong id="marketIntelResultCount">50 gösterge</strong><span>Önem sırasına göre</span></div>
+          <button type="button" id="marketIntelReset" class="secondary">Filtreyi Temizle</button>
+        </div>
+        <div id="marketIntelList" class="marketIntelList"></div>
+      </div>
+
+      <article id="marketIntelDetail" class="marketIntelDetail">
+        <div class="marketIntelEmptyDetail">Bir gösterge seçin.</div>
+      </article>
+    </div>
+  </div>
+</section>
+
 <section id="markets" class="tab">
   <div class="sectionHead marketsHeader" style="margin-bottom:14px">
     <div><h2 style="margin-bottom:4px">Markets</h2></div>
@@ -3482,6 +3694,7 @@ function showMainTab(tabId){
  if(tabId==="reports")setTimeout(()=>renderReports(),0);
  if(tabId==="pms")setTimeout(()=>{renderPMS();refreshPmsLiveAnalytics(false)},0);
  if(tabId==="askai")setTimeout(()=>{renderAiWorkspace();refreshAiStatus()},0);
+ if(tabId==="learningHub")setTimeout(()=>window.renderMarketIntelligence?.(),0);
  if(window.innerWidth<=900)closeMobilePanels();
 }
 if(localStorage.getItem("sidebarClosed")==="1"){$("sidebar").classList.add("closed");document.body.classList.add("sidebarClosed")}
@@ -3496,6 +3709,10 @@ document.querySelectorAll("[data-side-tab]").forEach(button=>button.addEventList
  }
  if(tab==="markets"){
   const submenu=$("marketsSubmenu"),open=!submenu.classList.contains("open");
+  submenu.classList.toggle("open",open);button.classList.toggle("expanded",open);
+ }
+ if(tab==="learningHub"){
+  const submenu=$("learningHubSubmenu"),open=!submenu.classList.contains("open");
   submenu.classList.toggle("open",open);button.classList.toggle("expanded",open);
  }
  showMainTab(tab);
@@ -8098,6 +8315,8 @@ window.addEventListener("load",function(){
 </div>
 
 
+<script src="/learning-hub-core50.js"></script>
+<script src="/learning-hub.js"></script>
 <div id="investCockpitHelpPortal" role="tooltip" aria-hidden="true"></div>
 <script>
 (function(){
