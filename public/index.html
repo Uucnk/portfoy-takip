@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.4.1</title>
+<title>Invest Cockpit · v8.4.2</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2190,14 +2190,32 @@ body.modalOpen{overflow:hidden}
 .learningHubSideGroup .sideSub.active{background:#162840!important;color:#74a9ff!important;font-weight:800!important}
 
 
-/* v8.4.1 — bilingual Market Intelligence indicator titles */
+/* v8.4.2 — bilingual Market Intelligence indicator titles */
 .marketIntelNameTr{color:#91abc0;font-weight:600}
 .marketIntelRowMain strong{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.28}
 .marketIntelRow{min-height:52px;height:auto}
 .marketIntelDetailTop h3 .marketIntelNameTr{font-size:.78em;color:#9db6c9;font-weight:600}
 
+
+/* =========================================================
+   v8.4.2 — Learning Hub / Indexes
+   ========================================================= */
+.indexHubHero{display:flex;align-items:stretch;justify-content:space-between;gap:18px;padding:18px 20px;margin-bottom:10px;border:1px solid #29465d;border-radius:13px;background:radial-gradient(circle at 88% 18%,rgba(39,111,206,.18),transparent 28%),linear-gradient(135deg,#0d1d2b,#08131e 65%,#0b1724)}
+.indexHubHero h3{font-size:22px;margin:5px 0 7px;color:#f3f8fc}.indexHubHero p{margin:0;max-width:830px;color:#8da8be;font-size:10px;line-height:1.55}
+.indexHubStats{display:grid;grid-template-columns:repeat(3,minmax(82px,1fr));gap:7px;align-self:center}.indexHubStats>div{padding:10px;border:1px solid #29475e;border-radius:9px;background:#0a1824;text-align:center}.indexHubStats strong{display:block;font-size:17px;color:#eaf4ff}.indexHubStats span{display:block;margin-top:3px;font-size:7px;color:#718ca3;text-transform:uppercase}
+.indexHubNotice{padding:9px 11px;margin-bottom:9px;border:1px solid #29445b;border-radius:8px;background:#091621;color:#7894aa;font-size:8px;line-height:1.5}.indexHubNotice strong{color:#a9c6dc}
+.indexHubToolbar{display:grid;grid-template-columns:minmax(280px,1fr) 190px 190px auto;gap:8px;margin-bottom:9px}.indexHubSearch{position:relative}.indexHubSearch span{position:absolute;left:12px;top:8px;font-size:18px;color:#678aa7;pointer-events:none}.indexHubSearch input,.indexHubToolbar select{width:100%;height:38px;box-sizing:border-box;border:1px solid #2c4459;border-radius:8px;background:#091621;color:#eaf2f9;font-size:10px}.indexHubSearch input{padding:8px 12px 8px 35px}.indexHubToolbar select{padding:8px 10px}.indexHubToolbar button{height:38px;padding:0 12px;white-space:nowrap}
+.indexHubMeta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 2px;color:#6e889e;font-size:8px}.indexHubMeta strong{color:#d8e6f1;font-size:9px}
+.indexHubGroups{display:grid;gap:12px}.indexRegionBlock{border:1px solid #294258;border-radius:11px;overflow:hidden;background:#091520}.indexRegionHeader{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#0f2232;border-bottom:1px solid #294258}.indexRegionHeader h4{margin:0;color:#77b1ed;font-size:10px;text-transform:uppercase;letter-spacing:.08em}.indexRegionHeader span{font-size:8px;color:#71899d}
+.indexCountryBlock{border-bottom:1px solid #1f3344}.indexCountryBlock:last-child{border-bottom:0}.indexCountryTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:#0b1925}.indexCountryTitle strong{font-size:10px;color:#eef5fb}.indexCountryTitle span{font-size:7px;color:#6d899f}
+.indexTableWrap{overflow:auto}.indexTable{width:100%;border-collapse:collapse;min-width:830px}.indexTable th{position:sticky;top:0;background:#101f2d;color:#87a9c4;font-size:7px;text-transform:uppercase;letter-spacing:.05em;text-align:left;padding:7px 9px;border-bottom:1px solid #294258}.indexTable td{padding:8px 9px;border-bottom:1px solid #172b3b;color:#bfd0dd;font-size:9px;vertical-align:middle}.indexTable tr:last-child td{border-bottom:0}.indexTable tr:hover td{background:#0d1c29}.indexNameCell strong{display:block;color:#f0f6fb;font-size:9.5px}.indexNameCell span{display:block;margin-top:2px;color:#69849a;font-size:7px}.indexCodeWrap{display:flex;align-items:center;gap:5px;white-space:nowrap}.indexCode{font-family:Consolas,monospace;color:#7dc0ff;background:#0a1e2d;border:1px solid #2a4d68;padding:4px 6px;border-radius:6px;font-size:8px}.indexCodeBtn,.indexOpenBtn{border:1px solid #2d4b61;background:#0d1c29;color:#9db8cd;border-radius:6px;padding:4px 6px;font-size:7px;cursor:pointer}.indexCodeBtn:hover,.indexOpenBtn:hover{border-color:#4778a1;color:#fff;background:#15304a}.indexSegment{display:inline-flex;padding:3px 6px;border-radius:999px;background:#102334;border:1px solid #31516b;color:#8eb7d7;font-size:7px;font-weight:800;white-space:nowrap}.indexEmpty{padding:42px 15px;text-align:center;color:#67839b;font-size:10px}
+/* Side submenu should only be blue for the currently open Learning Hub workspace. */
+.learningHubSideGroup .sideSub{background:transparent!important;color:#9fb1c5!important}.learningHubSideGroup .sideSub:hover{background:#121e2b!important;color:#f4f7fb!important}.learningHubSideGroup .sideSub.active{background:#162840!important;color:#74a9ff!important;font-weight:800}
+@media(max-width:900px){.indexHubHero{display:block}.indexHubStats{margin-top:12px}.indexHubToolbar{grid-template-columns:1fr 1fr}.indexHubSearch{grid-column:1/-1}.indexHubToolbar button{width:100%}}
+@media(max-width:560px){.indexHubToolbar{grid-template-columns:1fr}.indexHubSearch{grid-column:auto}.indexHubStats{grid-template-columns:repeat(3,1fr)}}
+
 </style>
-<meta name="portfolio-build" content="v8.4.1-learning-hub-bilingual240">
+<meta name="portfolio-build" content="v8.4.2-learning-hub-bilingual240">
 </head>
 <body class="authLocked">
 
@@ -2288,6 +2306,7 @@ body.modalOpen{overflow:hidden}
       </button>
       <div id="learningHubSubmenu" class="sideSubmenu open">
         <button class="sideSub" data-learning-target="marketIntelligence">Market Intelligence</button>
+        <button class="sideSub" data-learning-target="indexes">Indexes</button>
       </div>
     </div>
     <div class="sideGroup">
@@ -3393,6 +3412,7 @@ body.modalOpen{overflow:hidden}
 
   <div class="learningWorkspaceNav">
     <button type="button" class="active" data-learning-workspace="marketIntelligence">Market Intelligence</button>
+    <button type="button" data-learning-workspace="indexes">Indexes</button>
   </div>
 
   <div id="marketIntelligence" class="learningWorkspace active">
@@ -3443,6 +3463,33 @@ body.modalOpen{overflow:hidden}
         <div class="marketIntelEmptyDetail">Bir gösterge seçin.</div>
       </article>
     </div>
+  </div>
+
+  <div id="indexes" class="learningWorkspace">
+    <div class="indexHubHero">
+      <div>
+        <div class="learningEyebrow">GLOBAL INDEX ENCYCLOPEDIA</div>
+        <h3>Dünya Borsa Endeksleri</h3>
+        <p>Ülke ve bölge bazında ana benchmark, large-cap, mid-cap, small-cap ve önemli sektör endeksleri. TradingView kodunu kopyalayabilir veya doğrudan TradingView grafiğinde açabilirsin.</p>
+      </div>
+      <div class="indexHubStats">
+        <div><strong id="indexHubCountryCount">0</strong><span>Ülke / Bölge</span></div>
+        <div><strong id="indexHubIndexCount">0</strong><span>Endeks</span></div>
+        <div><strong id="indexHubRegionCount">0</strong><span>Bölge</span></div>
+      </div>
+    </div>
+
+    <div class="indexHubNotice"><strong>TradingView kod formatı:</strong> EXCHANGE:TICKER. Bazı yerel endekslerde TradingView aynı endeksi birden fazla veri sağlayıcıyla gösterebilir; burada doğrudan aranabilir ana/yerel kod tercih edilmiştir.</div>
+
+    <div class="indexHubToolbar">
+      <div class="indexHubSearch"><span>⌕</span><input id="indexHubSearch" type="search" autocomplete="off" placeholder="Ülke, endeks veya TradingView kodu ara... örn. BIST 100, XJO, DAX, Nifty"></div>
+      <select id="indexHubRegion"><option value="all">Tüm Bölgeler</option></select>
+      <select id="indexHubCountry"><option value="all">Tüm Ülkeler</option></select>
+      <button id="indexHubReset" type="button" class="secondary">Filtreyi Temizle</button>
+    </div>
+
+    <div class="indexHubMeta"><strong id="indexHubResultCount">0 endeks</strong><span>Ülke ve bölge bazında gruplanmıştır.</span></div>
+    <div id="indexHubGroups" class="indexHubGroups"></div>
   </div>
 </section>
 
@@ -3698,7 +3745,7 @@ function showMainTab(tabId){
  if(tabId==="general")tabId="model";
  document.querySelectorAll(".tab").forEach(s=>{const on=s.id===tabId;s.classList.toggle("active",on);s.style.display=on?"block":"none"});
  document.querySelectorAll("[data-side-tab]").forEach(b=>b.classList.toggle("active",b.dataset.sideTab===tabId));
- document.querySelectorAll("[data-learning-target]").forEach(b=>b.classList.toggle("active",tabId==="learningHub"&&b.dataset.learningTarget==="marketIntelligence"));
+ window.syncLearningHubNav?.(tabId);
  $("modelSideButton")?.classList.remove("active");
  const showTerminal=tabId==="model";
  $("orderTerminal").style.display=showTerminal?"block":"none";
@@ -3708,7 +3755,7 @@ function showMainTab(tabId){
  if(tabId==="reports")setTimeout(()=>renderReports(),0);
  if(tabId==="pms")setTimeout(()=>{renderPMS();refreshPmsLiveAnalytics(false)},0);
  if(tabId==="askai")setTimeout(()=>{renderAiWorkspace();refreshAiStatus()},0);
- if(tabId==="learningHub")setTimeout(()=>window.renderMarketIntelligence?.(),0);
+ if(tabId==="learningHub")setTimeout(()=>window.renderLearningHubWorkspace?.(),0);
  if(window.innerWidth<=900)closeMobilePanels();
 }
 if(localStorage.getItem("sidebarClosed")==="1"){$("sidebar").classList.add("closed");document.body.classList.add("sidebarClosed")}
@@ -8334,6 +8381,8 @@ window.addEventListener("load",function(){
 <script src="/learning-hub-core101-150.js"></script>
 <script src="/learning-hub-core151-200.js"></script>
 <script src="/learning-hub-core201-240.js"></script>
+<script src="/learning-hub-indexes-data.js"></script>
+<script src="/learning-hub-indexes.js"></script>
 <script src="/learning-hub.js"></script>
 <div id="investCockpitHelpPortal" role="tooltip" aria-hidden="true"></div>
 <script>
