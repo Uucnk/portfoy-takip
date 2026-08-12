@@ -1,15 +1,11 @@
 {
-  "version": "8.4.0",
-  "base": "8.3.9",
+  "version": "8.4.1",
+  "base": "8.4.0",
   "validated": true,
+  "feature": "Bilingual English/Turkish titles for all 240 Market Intelligence indicators",
   "indicator_count": 240,
-  "new_rank_range": [
-    201,
-    240
-  ],
-  "new_data_file": "public/learning-hub-core201-240.js",
-  "sidebar_fix": "Market Intelligence blue only when learningHub is active",
-  "app_sha256": "58c69eb966c8018cced2e11fbfd985c11655092d983a94d6ab0f740341aea179",
-  "data_sha256": "35b2dcb84de10c98f256b439dfcd325bf3147ed938e976e5d1a2050ebf0f025b",
-  "renderer_sha256": "c485fa34b519bd09e952bff1d8b4e9c8a4868f8b7891efc8235f0fb619b7d9f1"
+  "turkish_title_count": 240,
+  "turkish_search_enabled": true,
+  "app_sha256": "1f71e5a419555878e64aea6a01414ecf6ad18e172e2cdf9b8951128e16f9e126",
+  "renderer_sha256": "71d3018b227785c7ee3c7df2b38e0dfa42cd9254b71c607197e780ea80d35171"
 }
