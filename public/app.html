@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.3.9</title>
+<title>Invest Cockpit · v8.4.0</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2183,8 +2183,14 @@ body.modalOpen{overflow:hidden}
  .marketIntelHero{padding:14px}
 }
 
+
+/* v8.4.0 Learning Hub submenu selection behavior */
+.learningHubSideGroup .sideSub{background:transparent!important;color:#9fb1c5!important;font-weight:400!important}
+.learningHubSideGroup .sideSub:hover{background:#121e2b!important;color:#f4f7fb!important}
+.learningHubSideGroup .sideSub.active{background:#162840!important;color:#74a9ff!important;font-weight:800!important}
+
 </style>
-<meta name="portfolio-build" content="v8.3.9-learning-hub-core200">
+<meta name="portfolio-build" content="v8.4.0-learning-hub-core240">
 </head>
 <body class="authLocked">
 
@@ -2274,7 +2280,7 @@ body.modalOpen{overflow:hidden}
         <span class="sideIcon">◆</span><span class="sideLabel">Learning Hub</span><span class="sideChevron">⌄</span>
       </button>
       <div id="learningHubSubmenu" class="sideSubmenu open">
-        <button class="sideSub active" data-learning-target="marketIntelligence">Market Intelligence</button>
+        <button class="sideSub" data-learning-target="marketIntelligence">Market Intelligence</button>
       </div>
     </div>
     <div class="sideGroup">
@@ -3375,7 +3381,7 @@ body.modalOpen{overflow:hidden}
       <h2>Learning Hub</h2>
       <div class="muted">Profesyonel piyasa okuması, makro göstergeler ve cross-asset ilişkiler için Invest Cockpit bilgi merkezi.</div>
     </div>
-    <div class="learningHubVersion"><span>CORE</span><strong>200</strong><small>Market Intelligence</small></div>
+    <div class="learningHubVersion"><span>CORE</span><strong>240</strong><small>Market Intelligence</small></div>
   </div>
 
   <div class="learningWorkspaceNav">
@@ -3386,13 +3392,13 @@ body.modalOpen{overflow:hidden}
     <div class="marketIntelHero">
       <div>
         <div class="learningEyebrow">CORE MARKET INTELLIGENCE</div>
-        <h3>Dünyayı hareket ettiren 200 gösterge</h3>
+        <h3>Dünyayı hareket ettiren 240 gösterge</h3>
         <p>Önem sırasına göre Fed, faiz, enflasyon, büyüme, işgücü, kredi, likidite ve cross-asset göstergeleri. Her kart profesyonel portföy yöneticisi perspektifiyle açıklanır.</p>
       </div>
       <div class="marketIntelStats">
-        <div><strong>200</strong><span>Gösterge</span></div>
-        <div><strong>20</strong><span>Ana Tema</span></div>
-        <div><strong>1–200</strong><span>Önem Sırası</span></div>
+        <div><strong>240</strong><span>Gösterge</span></div>
+        <div><strong>24</strong><span>Ana Tema</span></div>
+        <div><strong>1–240</strong><span>Önem Sırası</span></div>
       </div>
     </div>
 
@@ -3420,7 +3426,7 @@ body.modalOpen{overflow:hidden}
     <div class="marketIntelLayout">
       <div class="marketIntelListShell">
         <div class="marketIntelListHead">
-          <div><strong id="marketIntelResultCount">200 gösterge</strong><span>Önem sırasına göre</span></div>
+          <div><strong id="marketIntelResultCount">240 gösterge</strong><span>Önem sırasına göre</span></div>
           <button type="button" id="marketIntelReset" class="secondary">Filtreyi Temizle</button>
         </div>
         <div id="marketIntelList" class="marketIntelList"></div>
@@ -3685,6 +3691,7 @@ function showMainTab(tabId){
  if(tabId==="general")tabId="model";
  document.querySelectorAll(".tab").forEach(s=>{const on=s.id===tabId;s.classList.toggle("active",on);s.style.display=on?"block":"none"});
  document.querySelectorAll("[data-side-tab]").forEach(b=>b.classList.toggle("active",b.dataset.sideTab===tabId));
+ document.querySelectorAll("[data-learning-target]").forEach(b=>b.classList.toggle("active",tabId==="learningHub"&&b.dataset.learningTarget==="marketIntelligence"));
  $("modelSideButton")?.classList.remove("active");
  const showTerminal=tabId==="model";
  $("orderTerminal").style.display=showTerminal?"block":"none";
@@ -8319,6 +8326,7 @@ window.addEventListener("load",function(){
 <script src="/learning-hub-core51-100.js"></script>
 <script src="/learning-hub-core101-150.js"></script>
 <script src="/learning-hub-core151-200.js"></script>
+<script src="/learning-hub-core201-240.js"></script>
 <script src="/learning-hub.js"></script>
 <div id="investCockpitHelpPortal" role="tooltip" aria-hidden="true"></div>
 <script>
