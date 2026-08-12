@@ -4,7 +4,8 @@
     ...(Array.isArray(window.CORE_MARKET_INTELLIGENCE_50)?window.CORE_MARKET_INTELLIGENCE_50:[]),
     ...(Array.isArray(window.CORE_MARKET_INTELLIGENCE_51_100)?window.CORE_MARKET_INTELLIGENCE_51_100:[]),
     ...(Array.isArray(window.CORE_MARKET_INTELLIGENCE_101_150)?window.CORE_MARKET_INTELLIGENCE_101_150:[]),
-    ...(Array.isArray(window.CORE_MARKET_INTELLIGENCE_151_200)?window.CORE_MARKET_INTELLIGENCE_151_200:[])
+    ...(Array.isArray(window.CORE_MARKET_INTELLIGENCE_151_200)?window.CORE_MARKET_INTELLIGENCE_151_200:[]),
+    ...(Array.isArray(window.CORE_MARKET_INTELLIGENCE_201_240)?window.CORE_MARKET_INTELLIGENCE_201_240:[])
   ].sort((a,b)=>a.rank-b.rank);
   let selectedRank=1;
 
