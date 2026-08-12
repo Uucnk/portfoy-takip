@@ -166,12 +166,30 @@
     renderDetail(current);
   };
 
+  let currentWorkspace="marketIntelligence";
+
+  function setWorkspace(target,render=true){
+    if(!["marketIntelligence","indexes"].includes(target))target="marketIntelligence";
+    currentWorkspace=target;
+    document.querySelectorAll("[data-learning-target]").forEach(x=>x.classList.toggle("active",x.dataset.learningTarget===target&&document.getElementById("learningHub")?.classList.contains("active")));
+    document.querySelectorAll("[data-learning-workspace]").forEach(x=>x.classList.toggle("active",x.dataset.learningWorkspace===target));
+    document.querySelectorAll(".learningWorkspace").forEach(x=>x.classList.toggle("active",x.id===target));
+    if(render){
+      if(target==="marketIntelligence")window.renderMarketIntelligence?.();
+      if(target==="indexes")window.renderLearningHubIndexes?.();
+    }
+  }
+
+  window.syncLearningHubNav=function(tabId){
+    document.querySelectorAll("[data-learning-target]").forEach(x=>x.classList.toggle("active",tabId==="learningHub"&&x.dataset.learningTarget===currentWorkspace));
+  };
+  window.renderLearningHubWorkspace=function(){setWorkspace(currentWorkspace,true)};
+  window.setLearningHubWorkspace=function(target){setWorkspace(target,true)};
+
   const main=document.getElementById("learningHubSideButton");
   if(main&&!main.dataset.learningBound){
     main.dataset.learningBound="1";
-    main.addEventListener("click",()=>{
-      setTimeout(()=>window.renderMarketIntelligence(),0);
-    });
+    main.addEventListener("click",()=>setTimeout(()=>window.renderLearningHubWorkspace?.(),0));
   }
 
   document.querySelectorAll("[data-learning-target]").forEach(button=>{
@@ -179,17 +197,17 @@
     button.dataset.learningBound="1";
     button.addEventListener("click",event=>{
       event.preventDefault();event.stopPropagation();
-      document.querySelectorAll("[data-learning-target]").forEach(x=>x.classList.toggle("active",x===button));
+      currentWorkspace=button.dataset.learningTarget||"marketIntelligence";
       if(typeof showMainTab==="function")showMainTab("learningHub");
-      setTimeout(()=>window.renderMarketIntelligence(),0);
+      setTimeout(()=>setWorkspace(currentWorkspace,true),0);
     });
   });
 
   document.querySelectorAll("[data-learning-workspace]").forEach(button=>{
-    button.addEventListener("click",()=>{
-      document.querySelectorAll("[data-learning-workspace]").forEach(x=>x.classList.toggle("active",x===button));
-      document.querySelectorAll(".learningWorkspace").forEach(x=>x.classList.toggle("active",x.id===button.dataset.learningWorkspace));
-      if(button.dataset.learningWorkspace==="marketIntelligence")window.renderMarketIntelligence();
-    });
+    if(button.dataset.learningBound==="1")return;
+    button.dataset.learningBound="1";
+    button.addEventListener("click",()=>setWorkspace(button.dataset.learningWorkspace||"marketIntelligence",true));
   });
+
+  setWorkspace("marketIntelligence",false);
 })();
