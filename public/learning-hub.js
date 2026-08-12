@@ -25,7 +25,7 @@
         <div class="marketIntelDetailIdentity">
           <div class="marketIntelDetailRank">#${item.rank}</div>
           <div>
-            <h3>${esc(item.name)}</h3>
+            <h3>${esc(item.name)} <span class="marketIntelNameTr">(${esc(item.nameTr||"")})</span></h3>
             <div class="marketIntelDetailMeta">
               <span class="marketIntelTag ${item.importance==="Critical"?"critical":""}">${esc(item.importance)}</span>
               <span class="marketIntelTag">${esc(item.category)}</span>
@@ -90,7 +90,7 @@
       if(importance!=="all"&&item.importance!==importance)return false;
       if(!query)return true;
       const hay=[
-        item.name,item.short,item.category,item.what,item.use,item.source,
+        item.name,item.nameTr,item.short,item.category,item.what,item.use,item.source,
         ...(item.markets||[]),...(item.related||[])
       ].join(" ").toLocaleLowerCase("tr-TR");
       return hay.includes(query);
@@ -113,7 +113,7 @@
       <button type="button" class="marketIntelRow ${item.rank===selectedRank?"active":""}" data-rank="${item.rank}">
         <span class="marketIntelRank">${item.rank}</span>
         <span class="marketIntelRowMain">
-          <strong>${esc(item.name)}</strong>
+          <strong>${esc(item.name)} <span class="marketIntelNameTr">(${esc(item.nameTr||"")})</span></strong>
           <span>${esc(item.category)} · ${esc(item.timing)}</span>
         </span>
         <span class="marketIntelImportance ${esc(item.importance)}">${esc(item.importance)}</span>
