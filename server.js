@@ -183,6 +183,23 @@ app.post("/api/auth/login",async(req,res)=>{
   if(!result.rowCount||!(await verifyPassword(password,result.rows[0].password_hash))){recordLoginFailure(req,username);return res.status(401).json({error:"Kullanıcı adı veya şifre hatalı."})}
   loginAttempts.delete(loginRateKey(req,username));await createSession(res,req,result.rows[0].id,Boolean(req.body?.remember));res.json({user:publicUser(result.rows[0])});
 });
+app.post("/api/account/verify-password",authRequired,async(req,res)=>{
+  try{
+    const password=String(req.body?.password||"");
+    const username=normalizeUsername(req.user?.username||"");
+    if(!password)return res.status(400).json({error:"Hesaba giriş şifrenizi girin."});
+    try{checkLoginRate(req,username)}catch(error){return res.status(429).json({error:error.message})}
+    const result=await dbPool.query("SELECT password_hash FROM app_users WHERE id=$1",[req.user.id]);
+    if(!result.rowCount)return res.status(404).json({error:"Kullanıcı hesabı bulunamadı."});
+    if(!(await verifyPassword(password,result.rows[0].password_hash))){recordLoginFailure(req,username);return res.status(401).json({error:"Hesaba giriş şifresi hatalı."})}
+    loginAttempts.delete(loginRateKey(req,username));
+    res.set("Cache-Control","no-store");
+    res.json({ok:true});
+  }catch(error){
+    console.error("Password verification error:",error);
+    res.status(500).json({error:"Şifre doğrulanırken sunucu hatası oluştu."});
+  }
+});
 app.post("/api/account/change-password",authRequired,async(req,res)=>{
   try{
     const currentPassword=String(req.body?.currentPassword||"");
