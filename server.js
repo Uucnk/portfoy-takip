@@ -105,6 +105,16 @@ async function initializeDatabase() {
         state JSONB NOT NULL DEFAULT '{}'::jsonb,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      CREATE TABLE IF NOT EXISTS index_constituents_cache (
+        index_code VARCHAR(80) PRIMARY KEY,
+        index_name TEXT,
+        country TEXT,
+        source TEXT,
+        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+        fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS index_constituents_cache_fetched_idx ON index_constituents_cache(fetched_at);
     `);
     await dbPool.query("DELETE FROM app_sessions WHERE expires_at < NOW()");
     const adminPassword=process.env.ADMIN_PASSWORD;
@@ -3201,11 +3211,23 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
 
 
 // ================================================================
-// v8.4.5 — Learning Hub / Index constituent lookup
-// On-demand + cached so broad indices do not slow initial page load.
+// v8.4.6 — Learning Hub / Daily persistent index constituents
+//
+// Design:
+// - TradingView's stock screener index membership uses symbols.symbolset.
+// - Requests are paginated so 500+ member indices (e.g. KOSPI) are complete.
+// - Last successful FULL snapshot is persisted in PostgreSQL.
+// - Snapshot TTL = 24 hours.
+// - If stale data exists, it is returned immediately and refreshed in background.
+// - BIST additionally keeps the official Borsa İstanbul CSV as a fallback.
 // ================================================================
-const indexConstituentCache=new Map();
-const INDEX_CONSTITUENT_TTL=6*60*60*1000;
+const indexConstituentMemoryCache=new Map();
+const indexRefreshInFlight=new Map();
+const INDEX_CONSTITUENT_TTL=24*60*60*1000;
+const INDEX_PAGE_SIZE=500;
+const INDEX_MAX_ROWS=5000;
+const INDEX_REFRESH_BATCH_DELAY=2200;
+let indexCatalogCache=null;
 
 function decodeHtmlEntitiesBasic(value=""){
  return String(value)
@@ -3227,6 +3249,21 @@ function normalizeIndexConstituentRows(rows=[]){
  }
  return out;
 }
+function loadLearningHubIndexCatalog(){
+ if(indexCatalogCache)return indexCatalogCache;
+ try{
+  const file=fs.readFileSync(path.join(publicDir,"learning-hub-indexes-data.js"),"utf8");
+  const eq=file.indexOf("=");
+  if(eq<0)return[];
+  const jsonText=file.slice(eq+1).trim().replace(/;\s*$/,"");
+  const parsed=JSON.parse(jsonText);
+  indexCatalogCache=Array.isArray(parsed)?parsed:[];
+ }catch(error){
+  console.warn("Index catalog load error:",error.message);
+  indexCatalogCache=[];
+ }
+ return indexCatalogCache;
+}
 function tradingViewMarketForCountry(country=""){
  const map={
   "ABD":"america","Kanada":"canada","Birleşik Krallık":"uk","Avustralya":"australia","Hindistan":"india",
@@ -3237,44 +3274,84 @@ function tradingViewMarketForCountry(country=""){
   "Güney Afrika":"southafrica","Meksika":"mexico","Arjantin":"argentina","Şili":"chile","Kolombiya":"colombia",
   "Peru":"peru","Polonya":"poland","İsveç":"sweden","İsviçre":"switzerland","Norveç":"norway","Danimarka":"denmark",
   "Finlandiya":"finland","Belçika":"belgium","Portekiz":"portugal","Yunanistan":"greece","Avusturya":"austria",
-  "İrlanda":"ireland","Yeni Zelanda":"newzealand","Suudi Arabistan":"ksa","Birleşik Arap Emirlikleri":"uae"
+  "İrlanda":"ireland","Yeni Zelanda":"newzealand","Suudi Arabistan":"ksa","Birleşik Arap Emirlikleri":"uae",
+  "Katar":"qatar","Kuveyt":"kuwait","Mısır":"egypt","Fas":"morocco","Romanya":"romania","Macaristan":"hungary",
+  "Çekya":"czech","İzlanda":"iceland"
  };
  return map[String(country||"").trim()]||null;
 }
+function marketCandidatesForIndex(indexCode,country=""){
+ const code=String(indexCode||"").toUpperCase();
+ const byExchange=[
+  [/^(NASDAQ|NYSE|AMEX|SP|DJ):/,"america"],
+  [/^TSX:/,"canada"],[/^(BMFBOVESPA|B3):/,"brazil"],[/^BIST:/,"turkey"],
+  [/^KRX:/,"korea"],[/^TVC:/,"global"],[/^ASX:/,"australia"],[/^NSE:/,"india"],
+  [/^(SSE|SZSE):/,"china"],[/^HKEX:/,"hongkong"],[/^TWSE:/,"taiwan"],
+  [/^(XETR|FWB):/,"germany"],[/^(EURONEXT|EURONEXT_PAR):/,"france"],[/^LSE:/,"uk"],
+  [/^TSE:/,"japan"],[/^SGX:/,"singapore"]
+ ];
+ const exchangeMarket=byExchange.find(([rx])=>rx.test(code))?.[1];
+ return [exchangeMarket,tradingViewMarketForCountry(country),"america","global"].filter((x,i,a)=>x&&a.indexOf(x)===i);
+}
+async function tradingViewScannerPost(market,payload){
+ const response=await fetch(`https://scanner.tradingview.com/${market}/scan`,{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json",
+   "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+   "Origin":"https://www.tradingview.com",
+   "Referer":"https://www.tradingview.com/",
+   "Accept":"application/json,text/plain,*/*"
+  },
+  body:JSON.stringify(payload),
+  signal:AbortSignal.timeout(30000)
+ });
+ const text=await response.text();
+ let json={};
+ try{json=JSON.parse(text)}catch{}
+ if(!response.ok)throw new Error(`TradingView ${market} HTTP ${response.status}${json?.message?`: ${json.message}`:""}`);
+ return json;
+}
 async function fetchTradingViewIndexConstituents(indexCode,country=""){
- const payload={
-  filter:[],
-  options:{lang:"en"},
-  symbols:{symbolset:[indexCode]},
-  sort:{sortBy:"market_cap_basic",sortOrder:"desc"},
-  range:[0,5000],
-  columns:["name","description","exchange","type","market_cap_basic"]
- };
- const markets=["global",tradingViewMarketForCountry(country),"america"].filter((x,i,a)=>x&&a.indexOf(x)===i);
+ const candidates=marketCandidatesForIndex(indexCode,country);
  const errors=[];
- for(const market of markets){
+ for(const market of candidates){
   try{
-   const response=await fetch(`https://scanner.tradingview.com/${market}/scan`,{
-    method:"POST",
-    headers:{
-     "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
-     "Accept":"application/json,text/plain,*/*",
-     "Content-Type":"application/json",
-     "Origin":"https://www.tradingview.com",
-     "Referer":"https://www.tradingview.com/"
-    },
-    body:JSON.stringify(payload),
-    signal:AbortSignal.timeout(18000)
-   });
-   if(!response.ok){errors.push(`${market}: HTTP ${response.status}`);continue}
-   const json=await response.json();
-   const items=normalizeIndexConstituentRows((json?.data||[]).map(row=>({
-    symbol:row?.s,
-    ticker:row?.d?.[0]||String(row?.s||"").split(":").pop(),
-    name:row?.d?.[1]||row?.d?.[0]||String(row?.s||"").split(":").pop()
-   })));
-   if(items.length)return{items,totalCount:Number(json?.totalCount)||items.length,source:`TradingView Index Screener (${market})`};
-  }catch(error){errors.push(`${market}: ${error?.message||String(error)}`)}
+   const all=[];
+   let totalCount=null;
+   for(let from=0;from<INDEX_MAX_ROWS;from+=INDEX_PAGE_SIZE){
+    const to=Math.min(from+INDEX_PAGE_SIZE,INDEX_MAX_ROWS);
+    const payload={
+     filter:[],
+     options:{lang:"en"},
+     symbols:{symbolset:[indexCode]},
+     sort:{sortBy:"market_cap_basic",sortOrder:"desc"},
+     range:[from,to],
+     columns:["name","description","exchange","type","market_cap_basic"]
+    };
+    const json=await tradingViewScannerPost(market,payload);
+    const page=normalizeIndexConstituentRows((json?.data||[]).map(row=>({
+     symbol:row?.s,
+     ticker:row?.d?.[0]||String(row?.s||"").split(":").pop(),
+     name:row?.d?.[1]||row?.d?.[0]||String(row?.s||"").split(":").pop()
+    })));
+    if(totalCount===null)totalCount=Number(json?.totalCount)||0;
+    all.push(...page);
+    const uniqueCount=normalizeIndexConstituentRows(all).length;
+    if(!page.length||uniqueCount>=totalCount||page.length<INDEX_PAGE_SIZE)break;
+   }
+   const items=normalizeIndexConstituentRows(all);
+   if(items.length){
+    return{
+     items,
+     totalCount:Math.max(Number(totalCount)||0,items.length),
+     source:`TradingView Index Screener (${market})`
+    };
+   }
+   errors.push(`${market}: 0 bileşen`);
+  }catch(error){
+   errors.push(`${market}: ${error?.message||String(error)}`);
+  }
  }
  throw new Error(errors.join(" | ")||"TradingView scanner bileşen döndürmedi.");
 }
@@ -3295,16 +3372,16 @@ function parseBistIndexCsv(text,indexCode){
 async function fetchBistOfficialIndexConstituents(indexCode){
  const response=await fetch("https://www.borsaistanbul.com/datum/hisse_endeks_ds.csv",{
   headers:{
-   "User-Agent":"Mozilla/5.0 Chrome/124 Safari/537.36",
+   "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
    "Accept":"text/csv,text/plain,*/*",
    "Referer":"https://www.borsaistanbul.com/"
   },
-  signal:AbortSignal.timeout(18000)
+  signal:AbortSignal.timeout(30000)
  });
  if(!response.ok)throw new Error(`Borsa İstanbul HTTP ${response.status}`);
  const text=await response.text();
  const items=parseBistIndexCsv(text,indexCode);
- if(!items.length)throw new Error("Borsa İstanbul bileşen CSV'sinde endeks bulunamadı.");
+ if(!items.length)throw new Error("Borsa İstanbul resmi bileşen dosyasında endeks bulunamadı.");
  return{items,totalCount:items.length,source:"Borsa İstanbul resmi endeks bileşenleri"};
 }
 async function fetchPublicTradingViewComponentPreview(indexCode){
@@ -3315,68 +3392,143 @@ async function fetchPublicTradingViewComponentPreview(indexCode){
    "Accept":"text/html,application/xhtml+xml",
    "Accept-Language":"en-US,en;q=0.9"
   },
-  signal:AbortSignal.timeout(18000)
+  signal:AbortSignal.timeout(30000)
  });
  if(!response.ok)throw new Error(`TradingView components HTTP ${response.status}`);
- const html=await response.text();
- // Embedded TradingView pages commonly repeat ticker + description in JSON.
- const candidates=[];
- const patterns=[
-  /"symbol"\s*:\s*"([A-Z0-9_.-]+:[A-Z0-9_.-]+)"[\s\S]{0,900}?"description"\s*:\s*"([^"]{2,180})"/g,
-  /"pro_name"\s*:\s*"([A-Z0-9_.-]+:[A-Z0-9_.-]+)"[\s\S]{0,900}?"description"\s*:\s*"([^"]{2,180})"/g
- ];
- for(const pattern of patterns){
-  let m;
-  while((m=pattern.exec(html))!==null){
-   candidates.push({symbol:m[1],ticker:m[1].split(":").pop(),name:m[2]});
-   if(candidates.length>200)break;
-  }
-  if(candidates.length)break;
+ const page=await response.text();
+ const rows=[];
+ // Public page exposes a preview table even when full scanner data is temporarily unavailable.
+ // Match the symbol href + visible company name pair.
+ const rx=/\/symbols\/([A-Z0-9_.-]+)-([A-Z0-9_.-]+)\/"[^>]*>[\s\S]{0,180}?<[^>]*>([^<]{2,180})<\/[^>]+>/g;
+ let m;
+ while((m=rx.exec(page))!==null){
+  const symbol=`${m[1]}:${m[2]}`,ticker=m[2],name=decodeHtmlEntitiesBasic(m[3]).trim();
+  if(name&&name!==ticker)rows.push({symbol,ticker,name});
+  if(rows.length>=50)break;
  }
- return{items:normalizeIndexConstituentRows(candidates),totalCount:candidates.length,source:"TradingView public components preview"};
+ const items=normalizeIndexConstituentRows(rows);
+ return{items,totalCount:items.length,source:"TradingView public components preview",partial:true};
+}
+async function getPersistentIndexSnapshot(code){
+ const mem=indexConstituentMemoryCache.get(code);
+ if(mem)return mem;
+ if(!dbPool||!databaseReady)return null;
+ try{
+  const result=await dbPool.query("SELECT index_code,index_name,country,source,payload,fetched_at FROM index_constituents_cache WHERE index_code=$1",[code]);
+  if(!result.rowCount)return null;
+  const row=result.rows[0];
+  const payload=typeof row.payload==="string"?JSON.parse(row.payload):row.payload;
+  const snapshot={...payload,source:row.source||payload?.source,fetchedAt:new Date(row.fetched_at).toISOString()};
+  indexConstituentMemoryCache.set(code,snapshot);
+  return snapshot;
+ }catch(error){
+  console.warn("Index cache read error:",code,error.message);
+  return null;
+ }
+}
+async function savePersistentIndexSnapshot(code,indexName,country,payload){
+ const snapshot={...payload,code,index:indexName||"",country:country||"",fetchedAt:new Date().toISOString(),stale:false};
+ indexConstituentMemoryCache.set(code,snapshot);
+ if(dbPool&&databaseReady){
+  try{
+   await dbPool.query(`
+    INSERT INTO index_constituents_cache(index_code,index_name,country,source,payload,fetched_at,updated_at)
+    VALUES($1,$2,$3,$4,$5::jsonb,NOW(),NOW())
+    ON CONFLICT(index_code) DO UPDATE SET
+      index_name=EXCLUDED.index_name,
+      country=EXCLUDED.country,
+      source=EXCLUDED.source,
+      payload=EXCLUDED.payload,
+      fetched_at=NOW(),
+      updated_at=NOW()
+   `,[code,indexName||"",country||"",payload.source||"",JSON.stringify({...payload,code,index:indexName||"",country:country||""})]);
+  }catch(error){
+   console.warn("Index cache write error:",code,error.message);
+  }
+ }
+ return snapshot;
+}
+function snapshotAgeMs(snapshot){
+ const t=Date.parse(snapshot?.fetchedAt||"");
+ return Number.isFinite(t)?Date.now()-t:Infinity;
+}
+async function refreshIndexSnapshot(code,indexName="",country=""){
+ const key=String(code||"").toUpperCase();
+ if(indexRefreshInFlight.has(key))return indexRefreshInFlight.get(key);
+ const promise=(async()=>{
+  const errors=[];
+  let result=null;
+  // Official BIST source first; TradingView is primary for the global catalog.
+  if(key.startsWith("BIST:")){
+   try{result=await fetchBistOfficialIndexConstituents(key)}catch(error){errors.push(error?.message||String(error))}
+  }
+  if(!result?.items?.length){
+   try{result=await fetchTradingViewIndexConstituents(key,country)}catch(error){errors.push(error?.message||String(error))}
+  }
+  // If BIST official CSV was unavailable, TradingView has already been attempted above.
+  if(!result?.items?.length){
+   try{
+    const preview=await fetchPublicTradingViewComponentPreview(key);
+    // Preview is only accepted as a bootstrap snapshot when there is no prior full snapshot.
+    if(preview.items.length)result=preview;
+   }catch(error){errors.push(error?.message||String(error))}
+  }
+  if(!result?.items?.length)throw new Error(errors.join(" | ")||"Bileşen verisi alınamadı.");
+  return savePersistentIndexSnapshot(key,indexName,country,result);
+ })().finally(()=>indexRefreshInFlight.delete(key));
+ indexRefreshInFlight.set(key,promise);
+ return promise;
+}
+async function refreshStaleIndexCatalogBatch(){
+ if(!databaseReady)return;
+ const catalog=loadLearningHubIndexCatalog();
+ for(const row of catalog){
+  const code=String(row?.code||"").toUpperCase();
+  if(!code)continue;
+  const cached=await getPersistentIndexSnapshot(code);
+  if(cached&&snapshotAgeMs(cached)<INDEX_CONSTITUENT_TTL)continue;
+  try{await refreshIndexSnapshot(code,row.index||"",row.country||"")}
+  catch(error){console.warn("Daily index refresh failed:",code,error.message)}
+  await new Promise(resolve=>setTimeout(resolve,INDEX_REFRESH_BATCH_DELAY));
+ }
+}
+let dailyIndexRefreshTimer=null;
+function startDailyIndexRefreshScheduler(){
+ if(dailyIndexRefreshTimer)return;
+ // Warm stale/missing snapshots shortly after boot without blocking server startup.
+ setTimeout(()=>refreshStaleIndexCatalogBatch().catch(error=>console.warn("Index warmup error:",error.message)),15000);
+ dailyIndexRefreshTimer=setInterval(
+  ()=>refreshStaleIndexCatalogBatch().catch(error=>console.warn("Daily index refresh error:",error.message)),
+  INDEX_CONSTITUENT_TTL
+ );
+ dailyIndexRefreshTimer.unref?.();
 }
 
 app.get("/api/index-constituents",async(req,res)=>{
  const code=String(req.query.code||"").trim().toUpperCase();
+ const indexName=String(req.query.index||"").trim();
+ const country=String(req.query.country||"").trim();
  if(!/^[A-Z0-9_.-]+:[A-Z0-9_.!&-]+$/i.test(code))return res.status(400).json({error:"Geçerli TradingView endeks kodu gereklidir."});
- const cached=indexConstituentCache.get(code);
- if(cached&&Date.now()-cached.at<INDEX_CONSTITUENT_TTL){
-  res.set("Cache-Control","public, max-age=1800, s-maxage=1800");
-  return res.json(cached.payload);
- }
- let result=null,errors=[];
- // BIST: prefer official exchange constituent file because it is authoritative for local indices.
- if(code.startsWith("BIST:")){
-  try{result=await fetchBistOfficialIndexConstituents(code)}catch(error){errors.push(error?.message||String(error))}
- }
- if(!result?.items?.length){
-  try{result=await fetchTradingViewIndexConstituents(code,String(req.query.country||""))}catch(error){errors.push(error?.message||String(error))}
- }
- if(!result?.items?.length){
-  try{
-   const preview=await fetchPublicTradingViewComponentPreview(code);
-   if(preview.items.length)result=preview;
-  }catch(error){errors.push(error?.message||String(error))}
- }
- if(!result?.items?.length){
-  return res.status(404).json({
-   error:"Bu endeks için bileşen listesi veri kaynağından alınamadı.",
+ try{
+  const cached=await getPersistentIndexSnapshot(code);
+  if(cached?.items?.length){
+   const stale=snapshotAgeMs(cached)>=INDEX_CONSTITUENT_TTL;
+   res.set("Cache-Control","public, max-age=900, stale-while-revalidate=86400");
+   // Return immediately. Daily refresh runs in the background.
+   res.json({...cached,stale});
+   if(stale)refreshIndexSnapshot(code,indexName||cached.index,country||cached.country).catch(error=>console.warn("Background index refresh failed:",code,error.message));
+   return;
+  }
+  const fresh=await refreshIndexSnapshot(code,indexName,country);
+  res.set("Cache-Control","public, max-age=900, stale-while-revalidate=86400");
+  return res.json(fresh);
+ }catch(error){
+  return res.status(502).json({
+   error:"Endeks bileşenleri ilk kez yüklenemedi. Sunucu günlük veri kaynağını tekrar deneyecek.",
    code,
-   details:errors.slice(0,3)
+   details:String(error?.message||error)
   });
  }
- const payload={
-  code,
-  index:String(req.query.index||""),
-  country:String(req.query.country||""),
-  source:result.source,
-  items:result.items,
-  totalCount:result.totalCount||result.items.length,
-  fetchedAt:new Date().toISOString()
- };
- indexConstituentCache.set(code,{at:Date.now(),payload});
- res.set("Cache-Control","public, max-age=1800, s-maxage=1800");
- res.json(payload);
 });
 
 app.get("/api/health", (_req, res) => {
@@ -3478,7 +3630,7 @@ app.get("*", (_req, res) => {
   res.sendFile(uiEntryFile);
 });
 
-await initializeDatabase();
+await initializeDatabase().finally(()=>startDailyIndexRefreshScheduler());
 
 app.listen(PORT, () => {
   let uiStatus = "missing";
