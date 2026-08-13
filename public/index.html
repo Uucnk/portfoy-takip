@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.5.1</title>
+<title>Invest Cockpit · v8.5.2</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2327,8 +2327,29 @@ body.modalOpen{overflow:hidden}
 @media(max-width:850px){.breadthIntro{grid-template-columns:1fr}.breadthPrinciples{grid-template-columns:1fr}.breadthComposite{min-height:140px}.breadthSectionHead{display:block}.breadthSectionHead p{margin-top:6px;text-align:left}.breadthInternalGrid,.breadthMistakeGrid{grid-template-columns:1fr}.breadthScoreGrid{grid-template-columns:1fr}.breadthScoreBox:last-child{grid-column:auto}}
 @media(max-width:560px){.breadthReadingGrid,.breadthRatioGrid{grid-template-columns:1fr}}
 
+
+/* =========================================================
+   v8.5.2 — Learning Hub / Intermarket Ratios
+   ========================================================= */
+.imHero{display:flex;justify-content:space-between;gap:18px;padding:18px 19px;margin-bottom:9px;border:1px solid #29475e;border-radius:13px;background:radial-gradient(circle at 87% 16%,rgba(55,126,211,.19),transparent 30%),linear-gradient(135deg,#0e2030,#08131e 64%,#0a1724)}
+.imHero h3{margin:5px 0 7px;color:#f5f9fc;font-size:22px}.imHero p{max-width:930px;margin:0;color:#8fa9bc;font-size:9px;line-height:1.6}.imHeroStats{display:grid;grid-template-columns:repeat(3,minmax(82px,1fr));gap:7px;align-self:center;min-width:290px}.imHeroStats>div{padding:10px;border:1px solid #29475e;border-radius:9px;background:#091824;text-align:center}.imHeroStats strong{display:block;color:#eef7fd;font-size:17px}.imHeroStats span{display:block;margin-top:3px;color:#6f8ba2;font-size:6.5px;text-transform:uppercase}
+.imMathNotice{padding:9px 11px;margin-bottom:9px;border:1px solid #66542f;border-radius:8px;background:#201a0d;color:#c4b68f;font-size:7.5px;line-height:1.55}.imMathNotice strong{color:#f1cf7d}
+.imCoreTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:9px 0 7px}.imCoreTitle span{display:block;color:#5d96c4;font-size:6px;font-weight:900;letter-spacing:.12em}.imCoreTitle h4{margin:2px 0 0;color:#dcebf5;font-size:9px}.imCoreTitle button{border:1px solid #385a72;border-radius:7px;background:#0d2130;color:#87badf;padding:6px 9px;font-size:6.5px;cursor:pointer}
+.imCoreGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:10px}.imCoreGrid button{min-width:0;padding:8px;border:1px solid #284459;border-radius:8px;background:#0a1925;text-align:left;cursor:pointer}.imCoreGrid button:hover{border-color:#4b7da4;background:#10283a}.imCoreGrid span{display:block;color:#6089a8;font-size:5.8px}.imCoreGrid strong{display:block;margin-top:2px;color:#e6f1f8;font-size:8px}.imCoreGrid small{display:block;margin-top:3px;color:#657e91;font-size:5.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imToolbar{display:grid;grid-template-columns:minmax(300px,1fr) 250px 150px auto;gap:7px;margin-bottom:8px}.imSearch{position:relative}.imSearch span{position:absolute;left:11px;top:8px;color:#6a8ba5;font-size:18px}.imSearch input,.imToolbar select{width:100%;height:37px;box-sizing:border-box;border:1px solid #2b455a;border-radius:8px;background:#091621;color:#eaf2f8;font-size:8px}.imSearch input{padding:8px 10px 8px 34px}.imToolbar select{padding:7px 8px}.imToolbar button{height:37px;white-space:nowrap}
+.imMeta{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 9px;margin-bottom:8px;border:1px solid #243b4d;border-radius:8px;background:#09141e}.imMeta strong{color:#e8f3f9;font-size:8px}.imMeta span{color:#6c879b;font-size:6.5px}
+.imLayout{display:grid;grid-template-columns:minmax(330px,36%) minmax(0,1fr);gap:9px;align-items:start}.imList{max-height:calc(100vh - 220px);overflow:auto;border:1px solid #294258;border-radius:10px;background:#08141f;scrollbar-width:thin;scrollbar-color:#31485d #08111a}.imCategory+.imCategory{border-top:1px solid #243b4c}.imCategoryHead{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:8px 9px;border-bottom:1px solid #29465c;background:#102333}.imCategoryHead strong{color:#7fb7e8;font-size:6.7px;letter-spacing:.06em}.imCategoryHead span{display:flex;align-items:center;justify-content:center;min-width:22px;height:17px;border-radius:999px;background:#142b3d;color:#8faec6;font-size:6px}
+.imRow{display:grid;grid-template-columns:28px minmax(0,1fr) 45px;gap:7px;align-items:center;width:100%;padding:7px 8px;border:0;border-bottom:1px solid #172b3a;background:transparent;color:#d9e6ef;text-align:left;cursor:pointer}.imRow:hover{background:#0d1e2b}.imRow.active{background:#153452;box-shadow:inset 3px 0 0 #56a4ff}.imRowNo{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid #31536d;border-radius:7px;background:#0a2030;color:#75b8f2;font-size:6.5px;font-weight:900}.imRowMain{min-width:0}.imRowMain strong{display:block;color:#edf5fa;font-size:8px}.imRowMain small{display:block;margin-top:2px;color:#638095;font-family:Consolas,monospace;font-size:5.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.imRow>b{justify-self:end;padding:3px 5px;border-radius:999px;border:1px solid #324b5e;color:#7895aa;font-size:5.4px}.imRow>b.critical{border-color:#6c5830;color:#edc970;background:#251d0c}.imRow>b.high{border-color:#355b76;color:#82bde9}
+.imDetail{min-height:560px;border:1px solid #294258;border-radius:10px;background:#091520;overflow:hidden}.imDetailHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 13px;border-bottom:1px solid #29465d;background:linear-gradient(180deg,#102536,#0c1d2a)}.imDetailIdentity{display:flex;gap:9px}.imNo{display:flex;align-items:center;justify-content:center;flex:0 0 34px;height:34px;border:1px solid #3b6686;border-radius:9px;background:#0a2638;color:#7fc4ff;font-size:8px;font-weight:900}.imEyebrow{display:block;color:#669fd2;font-size:6.2px;font-weight:900;text-transform:uppercase;letter-spacing:.07em}.imDetail h3{margin:3px 0 0;color:#fff;font-size:15px}.imDetailHead small{color:#718da2;font-size:6px}.imDetailActions{display:flex;gap:5px}.imDetailActions button{border:1px solid #315069;border-radius:6px;background:#0d1d2a;color:#9bb7cb;padding:5px 7px;font-size:6px;cursor:pointer}.imDetailActions button.tv{color:#80c3f5}
+.imRuleBox{margin:10px 11px 0;padding:8px 9px;border:1px solid #68552d;border-radius:7px;background:#201a0d}.imRuleBox strong{display:block;color:#f0ca76;font-size:6.8px}.imRuleBox p{margin:4px 0 0;color:#bfae88;font-size:6.7px;line-height:1.45}.imDetailSection{padding:10px 11px;border-bottom:1px solid #172c3b}.imDetailSection h4{margin:0 0 5px;color:#7fb4df;font-size:7.2px;text-transform:uppercase;letter-spacing:.05em}.imDetailSection p{margin:0;color:#acbfcb;font-size:7.5px;line-height:1.55}.imCode{display:inline-flex;margin-top:7px;padding:4px 7px;border:1px solid #31516a;border-radius:6px;background:#071925;color:#78c5ff;font-family:Consolas,monospace;font-size:6.5px}
+.imScenarioGrid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #172c3b}.imScenario{padding:11px}.imScenario+.imScenario{border-left:1px solid #172c3b}.imScenarioTitle{display:flex;align-items:center;gap:8px;margin-bottom:7px}.imScenarioTitle>span{display:flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:7px;font-size:14px;font-weight:900}.imScenario.up .imScenarioTitle>span{border:1px solid #356557;background:#0d241f;color:#6bd9b4}.imScenario.down .imScenarioTitle>span{border:1px solid #69444e;background:#241318;color:#ef93a3}.imScenarioTitle b{display:block;color:#e9f3f9;font-size:7px}.imScenarioTitle small{display:block;margin-top:2px;color:#6e889c;font-size:5.8px}.imScenario p{margin:0 0 8px;color:#a8bac6;font-size:7.2px;line-height:1.5}.imScenario h5{margin:7px 0 4px;color:#718da0;font-size:6px;text-transform:uppercase}.imTags{display:flex;flex-wrap:wrap;gap:4px}.imTags span{display:inline-flex;padding:4px 6px;border:1px solid #2d4a5e;border-radius:5px;background:#0b1e2b;color:#9fb6c6;font-size:6px;line-height:1.3}.imTags.up span{border-color:#31594f;background:#0b211d;color:#8dd8bb}.imTags.down span{border-color:#5b3e48;background:#201419;color:#efadb9}.imTags.confirm span{color:#8ec2ea}.imDetailSection.caution p{color:#d7ac93}
+.imEmpty{padding:35px 10px;text-align:center;color:#6d899e;font-size:8px}
+@media(max-width:1300px){.imCoreGrid{grid-template-columns:repeat(4,1fr)}.imToolbar{grid-template-columns:1fr 1fr}.imSearch{grid-column:1/-1}}
+@media(max-width:900px){.imHero{display:block}.imHeroStats{min-width:0;margin-top:11px}.imCoreGrid{grid-template-columns:repeat(2,1fr)}.imLayout{grid-template-columns:1fr}.imList{max-height:380px}.imScenarioGrid{grid-template-columns:1fr}.imScenario+.imScenario{border-left:0;border-top:1px solid #172c3b}}
+@media(max-width:560px){.imHeroStats{grid-template-columns:1fr 1fr 1fr}.imToolbar{grid-template-columns:1fr}.imSearch{grid-column:auto}.imCoreGrid{grid-template-columns:1fr}}
+
 </style>
-<meta name="portfolio-build" content="v8.5.1-breadth-analysis">
+<meta name="portfolio-build" content="v8.5.2-intermarket-ratios">
 </head>
 <body class="authLocked">
 
@@ -2423,6 +2444,7 @@ body.modalOpen{overflow:hidden}
         <button class="sideSub" data-learning-target="extremIndexes">Extrem Indexes</button>
         <button class="sideSub" data-learning-target="fundamentalAnalysis">Fundamental Analysis</button>
         <button class="sideSub" data-learning-target="breadthAnalysis">Breadth Analysis</button>
+        <button class="sideSub" data-learning-target="intermarketRatios">Intermarket Ratios</button>
       </div>
     </div>
     <div class="sideGroup">
@@ -3533,6 +3555,7 @@ body.modalOpen{overflow:hidden}
     <button type="button" data-learning-workspace="extremIndexes">Extrem Indexes</button>
     <button type="button" data-learning-workspace="fundamentalAnalysis">Fundamental Analysis</button>
     <button type="button" data-learning-workspace="breadthAnalysis">Breadth Analysis</button>
+    <button type="button" data-learning-workspace="intermarketRatios">Intermarket Ratios</button>
   </div>
 
   <div id="marketIntelligence" class="learningWorkspace active">
@@ -3648,6 +3671,24 @@ body.modalOpen{overflow:hidden}
 
   <div id="breadthAnalysis" class="learningWorkspace">
     <div id="breadthAnalysisContent"></div>
+  </div>
+
+  <div id="intermarketRatios" class="learningWorkspace">
+    <div class="imHero">
+      <div><span class="learningEyebrow">RELATIVE STRENGTH · CROSS-ASSET · REGIME CONFIRMATION</span><h3>Cross-Asset Relative Strength & Intermarket Ratios</h3><p>180 oran ve market internal üzerinden piyasa sağlığı, sektör/faktör liderliği, kredi, duration, emtia, FX, global equity ve volatilite rejimini oku. Her oran için yükseliş/düşüş senaryosu, göreli kazanan-kaybeden temalar ve teyit seti bulunur.</p></div>
+      <div class="imHeroStats"><div><strong>180</strong><span>Gösterge</span></div><div><strong>14</strong><span>Kategori</span></div><div><strong>30</strong><span>Core Watchlist</span></div></div>
+    </div>
+    <div class="imMathNotice"><strong>Önemli:</strong> A/B oranı yükseliyorsa A, B'ye göre daha iyi performans gösterir. Bu, A'nın mutlaka yükseldiği anlamına gelmez; A daha az düşerken B daha çok düşerse oran yine yükselebilir. Bu nedenle her zaman mutlak fiyat trendi + göreli oran birlikte okunmalıdır.</div>
+    <div class="imCoreTitle"><div><span>INSTITUTIONAL CORE</span><h4>Önce Bakılacak Kritik Oranlar</h4></div><button id="intermarketCriticalOnly" type="button">Sadece Critical Göster</button></div>
+    <div id="intermarketCore" class="imCoreGrid"></div>
+    <div id="intermarketWorkspace" class="imToolbar">
+      <div class="imSearch"><span>⌕</span><input id="intermarketSearch" type="search" autocomplete="off" placeholder="Oran, ticker veya tema ara... HYG/IEF, Copper/Gold, small-cap, risk-off"></div>
+      <select id="intermarketCategory"><option value="all">Tüm Kategoriler</option></select>
+      <select id="intermarketImportance"><option value="all">Tüm Öncelikler</option><option value="Critical">Critical</option><option value="High">High</option><option value="Medium">Medium</option></select>
+      <button id="intermarketReset" type="button" class="secondary">Filtreyi Temizle</button>
+    </div>
+    <div class="imMeta"><strong id="intermarketResultCount">180 / 180 gösterge</strong><span>Soldan oranı seç; sağda profesyonel yorumlama açılır.</span></div>
+    <div class="imLayout"><aside id="intermarketList" class="imList"></aside><main id="intermarketDetail" class="imDetail"></main></div>
   </div>
 </section>
 
@@ -8887,6 +8928,8 @@ window.addEventListener("load",function(){
 <script src="/learning-hub-fundamental.js"></script>
 <script src="/learning-hub-breadth-data.js"></script>
 <script src="/learning-hub-breadth.js"></script>
+<script src="/learning-hub-intermarket-ratios-data.js"></script>
+<script src="/learning-hub-intermarket-ratios.js"></script>
 <script src="/learning-hub.js"></script>
 <div id="investCockpitHelpPortal" role="tooltip" aria-hidden="true"></div>
 <script>
