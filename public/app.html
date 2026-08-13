@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.5.0</title>
+<title>Invest Cockpit · v8.5.1</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2300,8 +2300,35 @@ body.modalOpen{overflow:hidden}
 .activityUndoCell{white-space:nowrap;text-align:center}
 .activityUndoHint{display:block;margin-top:3px;color:#668398;font-size:6.5px;line-height:1.25}
 
+
+/* =========================================================
+   v8.5.1 — Learning Hub / Breadth Analysis
+   ========================================================= */
+#breadthAnalysis{scroll-behavior:smooth}
+.breadthAnchor{scroll-margin-top:12px}
+.breadthIntro{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:14px;padding:18px 19px;margin-bottom:10px;border:1px solid #29475e;border-radius:13px;background:radial-gradient(circle at 86% 16%,rgba(48,121,205,.18),transparent 31%),linear-gradient(135deg,#0e2030,#08131e 64%,#0a1724)}
+.breadthIntro h3{margin:5px 0 7px;color:#f5f9fc;font-size:24px}.breadthIntro>div>p{max-width:970px;margin:0;color:#91aabd;font-size:10px;line-height:1.62}
+.breadthPrinciples{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:12px}.breadthPrinciples>div{display:flex;align-items:flex-start;gap:7px;padding:7px 8px;border:1px solid #203b4f;border-radius:7px;background:#091824}.breadthPrinciples span{color:#65cfad;font-size:9px;font-weight:900}.breadthPrinciples p{margin:0!important;color:#a2b7c6!important;font-size:7.5px!important;line-height:1.45!important}
+.breadthComposite{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;border:1px solid #33546c;border-radius:11px;background:#091925;text-align:center}.breadthComposite>span{color:#6e9ec5;font-size:6.5px;font-weight:900;letter-spacing:.13em}.breadthComposite strong{margin-top:6px;color:#8ac7ff;font-size:46px;line-height:1}.breadthComposite small{color:#758da0;font-size:9px}.breadthComposite b{margin-top:8px;padding:5px 9px;border-radius:999px;border:1px solid #345976;background:#10283a;color:#c7e5ff;font-size:8px}.breadthComposite p{margin-top:7px!important;color:#607e96!important;font-size:6.5px!important}
+.breadthLocalNav{position:sticky;top:0;z-index:12;display:flex;gap:5px;overflow:auto;padding:6px;margin-bottom:10px;border:1px solid #294258;border-radius:9px;background:rgba(6,16,25,.95);backdrop-filter:blur(8px);scrollbar-width:none}.breadthLocalNav button{flex:0 0 auto;border:1px solid #29475e;border-radius:7px;background:#0b1b28;color:#8eacc2;padding:6px 9px;font-size:7px;font-weight:800;cursor:pointer}.breadthLocalNav button:hover{background:#153450;color:#fff;border-color:#497eaa}
+.breadthSection{margin-bottom:12px;border:1px solid #294258;border-radius:12px;background:#091520;overflow:hidden}.breadthSectionHead{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:12px 14px;border-bottom:1px solid #29465d;background:linear-gradient(180deg,#102536,#0c1d2a)}.breadthSectionHead span{display:block;color:#5e9dd7;font-size:6.5px;font-weight:900;letter-spacing:.13em}.breadthSectionHead h3{margin:3px 0 0;color:#f4f9fc;font-size:14px}.breadthSectionHead p{max-width:610px;margin:0;color:#7792a7;font-size:7.5px;line-height:1.55;text-align:right}
+.breadthReadingGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:11px}.breadthReadingGrid article{display:flex;gap:8px;padding:9px;border:1px solid #254154;border-radius:8px;background:#0b1a26}.breadthReadingGrid article>strong{display:flex;align-items:center;justify-content:center;flex:0 0 25px;height:25px;border-radius:7px;border:1px solid #376381;background:#0b2638;color:#78bdff;font-size:8px}.breadthReadingGrid h4{margin:1px 0 4px;color:#e9f3f9;font-size:8.5px}.breadthReadingGrid p{margin:0;color:#829cac;font-size:7px;line-height:1.45}
+.breadthSubTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px 7px;border-top:1px solid #1d3446}.breadthSubTitle h4{margin:0;color:#b9d6ea;font-size:9px}.breadthSubTitle span{color:#617f96;font-size:6.5px}
+.breadthTableWrap{overflow:auto;padding:0 10px 11px}.breadthTable{width:100%;border-collapse:collapse;min-width:760px}.breadthTable th{padding:7px 8px;border:1px solid #29465c;background:#0e2231;color:#7ea7c5;text-align:left;font-size:6.5px;text-transform:uppercase;letter-spacing:.07em}.breadthTable td{padding:8px;border:1px solid #1d3547;background:#091722;color:#aebfca;font-size:7.5px;line-height:1.45;vertical-align:middle}.breadthTable tr:hover td{background:#0d1e2b}.breadthTable code{display:inline-flex;padding:3px 6px;border:1px solid #31516a;border-radius:5px;background:#071925;color:#79c5ff;font-family:Consolas,monospace;font-size:7px}.breadthTable td strong{color:#e8f2f8}.breadthTable.quick td:first-child{width:29%}.breadthStatus{display:inline-flex;padding:3px 7px;border-radius:999px;border:1px solid #385269;font-size:6.5px;font-weight:900}.breadthStatus.strong{color:#7be0b9;border-color:#37665a;background:#0c241f}.breadthStatus.warn{color:#e9c57d;border-color:#675b38;background:#251f0e}.breadthStatus.risk{color:#f09cad;border-color:#68424c;background:#241318}
+.breadthArrow{text-align:center!important;font-size:10px!important;font-weight:900}.breadthArrow.up{color:#67dbb4}.breadthArrow.down{color:#ff8ca1}.breadthArrow.flat{color:#afbdc8}
+.breadthRatioGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:11px}.breadthRatioCard{padding:10px;border:1px solid #274359;border-radius:9px;background:#0a1925}.breadthRatioTop{display:flex;justify-content:space-between;align-items:center}.breadthRatioTop>span{color:#6995b8;font-size:6.5px}.breadthRatioTop b{padding:3px 6px;border-radius:999px;border:1px solid #365169;color:#8eacc3;font-size:6px}.breadthRatioTop b.critical{border-color:#6f5d31;color:#efca79;background:#271f0c}.breadthRatioCard h4{margin:7px 0 3px;color:#eef6fb;font-size:10px}.breadthRatioCard>p{min-height:24px;margin:0 0 8px;color:#7893a7;font-size:7px}.breadthRatioDirection{display:grid;grid-template-columns:75px 1fr;gap:7px;padding:6px 0;border-top:1px solid #1e3445}.breadthRatioDirection strong{font-size:6.5px}.breadthRatioDirection span{color:#9db1bf;font-size:6.7px;line-height:1.4}.breadthRatioDirection.up strong{color:#6bd7b2}.breadthRatioDirection.down strong{color:#f18fa2}
+.breadthInternalGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:11px}.breadthInternalCard{padding:10px;border:1px solid #254154;border-radius:9px;background:#0a1925}.breadthInternalTop{display:flex;justify-content:space-between;align-items:center}.breadthInternalTop span{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;border:1px solid #365d7a;background:#0b2638;color:#75b9f2;font-size:7px}.breadthInternalTop b{color:#638aa5;font-size:6px;text-transform:uppercase}.breadthInternalCard h4{margin:7px 0 4px;color:#ecf5fa;font-size:9px}.breadthInternalCard h4 code{margin-left:4px;color:#76bffc;font-size:6.5px}.breadthInternalCard>p{margin:0 0 7px;color:#7f9aab;font-size:7px;line-height:1.45}.breadthInternalCard>div:not(.breadthInternalTop){display:grid;grid-template-columns:65px 1fr;gap:6px;padding:5px 0;border-top:1px solid #1c3242}.breadthInternalCard>div strong{font-size:6.5px}.breadthInternalCard>div span{color:#9fb3c0;font-size:6.7px;line-height:1.4}.green{color:#69d7b1}.red{color:#ef91a1}
+.breadthDivergenceBox{margin:0 11px 11px;padding:10px;border:1px solid #34516a;border-radius:8px;background:#0b1d2a}.breadthDivergenceBox h4{margin:0 0 7px;color:#a9d2ef;font-size:8px}.breadthDivergenceBox>div{display:flex;gap:7px;padding:4px 0}.breadthDivergenceBox>div strong{color:#67aef1;font-size:7px}.breadthDivergenceBox>div span{color:#9db1bf;font-size:7px;line-height:1.4}
+.breadthRegimeTag{display:inline-flex;padding:4px 7px;border:1px solid #345977;border-radius:999px;background:#102638;color:#8bc4ee;font-size:6.5px;font-weight:900}
+.breadthScoreGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:11px}.breadthScoreBox{border:1px solid #29465c;border-radius:9px;background:#0a1925;overflow:hidden}.breadthScoreHead{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-bottom:1px solid #243e52;background:#0d2030}.breadthMiniEyebrow{color:#588db6;font-size:5.8px;font-weight:900;letter-spacing:.11em}.breadthScoreHead h4{margin:2px 0 0;color:#ecf5fb;font-size:9px}.breadthScoreValue strong{color:#79c4ff;font-size:19px}.breadthScoreValue span{color:#67869c;font-size:7px}.breadthSignalChecks{padding:7px}.breadthSignalChecks label{display:grid;grid-template-columns:16px 1fr 22px;gap:5px;align-items:center;padding:6px 5px;border-bottom:1px solid #1b3040;cursor:pointer}.breadthSignalChecks label:last-child{border-bottom:0}.breadthSignalChecks input{accent-color:#4e9ee8}.breadthSignalChecks span{color:#aabcc8;font-size:6.8px}.breadthSignalChecks b{color:#67caa9;font-size:6.5px;text-align:right}.breadthScoreRegime{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-top:1px solid #244055;background:#0b1e2b}.breadthScoreRegime span{color:#67889f;font-size:6.5px}.breadthScoreRegime strong{color:#d6eafd;font-size:7.5px}.breadthScoreBands{display:flex;flex-wrap:wrap;gap:4px;padding:7px}.breadthScoreBands span{padding:3px 5px;border:1px solid #2c4558;border-radius:5px;color:#69879c;font-size:5.8px}
+.breadthScoreMethod{margin:0 11px 11px;padding:9px 10px;border:1px dashed #35536b;border-radius:8px;background:#081722}.breadthScoreMethod strong{color:#a7cae3;font-size:7.5px}.breadthScoreMethod p{margin:4px 0 0;color:#7894a8;font-size:6.8px;line-height:1.45}
+.breadthMistakeGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:0 11px 11px}.breadthMistakeGrid article{display:flex;gap:8px;padding:9px;border:1px solid #3c3d48;border-radius:8px;background:#16151c}.breadthMistakeGrid article>span{display:flex;align-items:center;justify-content:center;flex:0 0 22px;height:22px;border-radius:6px;border:1px solid #654651;color:#ef98a7;font-size:7px}.breadthMistakeGrid h4{margin:1px 0 3px;color:#e8dce0;font-size:8px}.breadthMistakeGrid p{margin:0;color:#a38f96;font-size:6.8px;line-height:1.45}
+@media(max-width:1250px){.breadthReadingGrid{grid-template-columns:repeat(2,1fr)}.breadthRatioGrid{grid-template-columns:repeat(2,1fr)}.breadthScoreGrid{grid-template-columns:1fr 1fr}.breadthScoreBox:last-child{grid-column:1/-1}}
+@media(max-width:850px){.breadthIntro{grid-template-columns:1fr}.breadthPrinciples{grid-template-columns:1fr}.breadthComposite{min-height:140px}.breadthSectionHead{display:block}.breadthSectionHead p{margin-top:6px;text-align:left}.breadthInternalGrid,.breadthMistakeGrid{grid-template-columns:1fr}.breadthScoreGrid{grid-template-columns:1fr}.breadthScoreBox:last-child{grid-column:auto}}
+@media(max-width:560px){.breadthReadingGrid,.breadthRatioGrid{grid-template-columns:1fr}}
+
 </style>
-<meta name="portfolio-build" content="v8.5.0-position-close-undo">
+<meta name="portfolio-build" content="v8.5.1-breadth-analysis">
 </head>
 <body class="authLocked">
 
@@ -2395,6 +2422,7 @@ body.modalOpen{overflow:hidden}
         <button class="sideSub" data-learning-target="indexes">Indexes</button>
         <button class="sideSub" data-learning-target="extremIndexes">Extrem Indexes</button>
         <button class="sideSub" data-learning-target="fundamentalAnalysis">Fundamental Analysis</button>
+        <button class="sideSub" data-learning-target="breadthAnalysis">Breadth Analysis</button>
       </div>
     </div>
     <div class="sideGroup">
@@ -3504,6 +3532,7 @@ body.modalOpen{overflow:hidden}
     <button type="button" data-learning-workspace="indexes">Indexes</button>
     <button type="button" data-learning-workspace="extremIndexes">Extrem Indexes</button>
     <button type="button" data-learning-workspace="fundamentalAnalysis">Fundamental Analysis</button>
+    <button type="button" data-learning-workspace="breadthAnalysis">Breadth Analysis</button>
   </div>
 
   <div id="marketIntelligence" class="learningWorkspace active">
@@ -3615,6 +3644,10 @@ body.modalOpen{overflow:hidden}
     <div class="fundToolbar"><div class="fundSearch"><span>⌕</span><input id="fundamentalSearch" type="search" autocomplete="off" placeholder="Ara... P/E, PD/DD, ROIC, DCF, Sharpe, banka, cash flow"></div><select id="fundCategory"><option value="all">Tüm Kategoriler</option></select><select id="fundKind"><option value="all">Tüm Türler</option></select><button id="fundReset" type="button" class="secondary">Filtreyi Temizle</button></div>
     <div class="fundMeta"><strong id="fundResultCount">0 başlık</strong><span>Bir metriğe tıklayarak formül, referans aralıkları, avantaj/dezavantaj ve kullanım alanını aç.</span></div>
     <div class="fundLayout"><aside id="fundMetricList" class="fundMetricList"></aside><main id="fundDetail" class="fundDetail"></main></div>
+  </div>
+
+  <div id="breadthAnalysis" class="learningWorkspace">
+    <div id="breadthAnalysisContent"></div>
   </div>
 </section>
 
@@ -8852,6 +8885,8 @@ window.addEventListener("load",function(){
 <script src="/learning-hub-extrem-indexes.js"></script>
 <script src="/learning-hub-fundamental-data.js"></script>
 <script src="/learning-hub-fundamental.js"></script>
+<script src="/learning-hub-breadth-data.js"></script>
+<script src="/learning-hub-breadth.js"></script>
 <script src="/learning-hub.js"></script>
 <div id="investCockpitHelpPortal" role="tooltip" aria-hidden="true"></div>
 <script>
