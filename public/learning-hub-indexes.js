@@ -34,10 +34,35 @@
     host.innerHTML=regions.map(region=>{
       const rr=rows.filter(x=>x.region===region);
       const countries=[...new Set(rr.map(x=>x.country))];
-      return `<section class="indexRegionBlock"><div class="indexRegionHeader"><h4>${esc(region)}</h4><span>${rr.length} endeks · ${countries.length} ülke/bölge</span></div>${countries.map(country=>{
-        const cr=rr.filter(x=>x.country===country);
-        return `<div class="indexCountryBlock"><div class="indexCountryTitle"><strong>${esc(String(country).toLocaleUpperCase("tr-TR"))}</strong><span>${cr.length} endeks</span></div><div class="indexTableWrap"><table class="indexTable"><colgroup><col><col><col><col></colgroup><thead><tr><th>Endeks</th><th>TradingView Kodu</th><th>Açıklama</th><th>Segment</th></tr></thead><tbody>${cr.map(x=>`<tr><td class="indexNameCell"><strong>${esc(x.index)}</strong><span>${esc(x.country)}</span></td><td><div class="indexCodeWrap"><span class="indexCode">${esc(x.code)}</span><button class="indexCodeBtn" type="button" data-copy-code="${esc(x.code)}">Kopyala</button><button class="indexOpenBtn" type="button" data-open-code="${esc(x.code)}">TV'de Aç</button></div></td><td class="indexDescCell">${esc(x.description)}</td><td><span class="indexSegment">${esc(x.segment)}</span></td></tr>`).join("")}</tbody></table></div></div>`;
-      }).join("")}</section>`;
+      return `<section class="indexRegionBlock">
+        <div class="indexRegionHeader"><h4>${esc(String(region).toLocaleUpperCase("tr-TR"))}</h4><span>${rr.length} endeks · ${countries.length} ülke/bölge</span></div>
+        <div class="indexRegionGrid">${countries.map(country=>{
+          const cr=rr.filter(x=>x.country===country);
+          const initials=String(country).split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toLocaleUpperCase("tr-TR");
+          return `<article class="indexCountryCard">
+            <div class="indexCountryCardHead">
+              <div class="indexCountryIdentity">
+                <h5 class="indexCountryTitle"><span class="indexCountryMark">${esc(initials||"•")}</span>${esc(String(country).toLocaleUpperCase("tr-TR"))}</h5>
+                <span class="indexCountryRegion">${esc(region)}</span>
+              </div>
+              <span class="indexCountryCount">${cr.length} endeks</span>
+            </div>
+            <div class="indexCountryIndexes">${cr.map(x=>`
+              <section class="indexCardItem">
+                <div class="indexCardTop">
+                  <div class="indexCardName"><strong>${esc(x.index)}</strong><small>${esc(x.country)}</small></div>
+                  <span class="indexSegment">${esc(x.segment)}</span>
+                </div>
+                <p class="indexCardDescription">${esc(x.description)}</p>
+                <div class="indexCardActions">
+                  <span class="indexCode">${esc(x.code)}</span>
+                  <button class="indexCodeBtn" type="button" data-copy-code="${esc(x.code)}">Kopyala</button>
+                  <button class="indexOpenBtn" type="button" data-open-code="${esc(x.code)}">TV'de Aç</button>
+                </div>
+              </section>`).join("")}</div>
+          </article>`;
+        }).join("")}</div>
+      </section>`;
     }).join("");
 
     host.querySelectorAll("[data-copy-code]").forEach(btn=>btn.addEventListener("click",async()=>{
