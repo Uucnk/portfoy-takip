@@ -87,7 +87,7 @@
           <tbody>${items.map(item=>`<tr data-search="${esc(norm([item.ticker,item.symbol,item.name].join(" ")))}"><td><span class="indexConstituentTicker" data-stock-symbol="${esc(item.symbol||item.ticker)}">${esc(item.ticker||item.symbol)}</span></td><td>${esc(item.name||item.ticker||"-")}</td></tr>`).join("")}</tbody>
         </table>
       </div>
-      <div class="indexConstituentSourceNote">Endeks bileşenleri zaman içinde değişebilir. Liste kart açıldığında güncel kaynaktan alınır ve sunucuda geçici olarak önbelleğe alınır.</div>
+      <div class="indexConstituentSourceNote">${payload.stale?"Son başarılı günlük liste gösteriliyor; arka planda yenileniyor.":"Günlük bileşen listesi güncel."} Endeks bileşenleri sunucuda ve veritabanında saklanır; 24 saatte bir otomatik yenilenir.</div>
     `;
     const search=panel.querySelector("input");
     search?.addEventListener("input",()=>{
