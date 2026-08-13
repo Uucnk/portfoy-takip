@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.4.9</title>
+<title>Invest Cockpit · v8.5.0</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2276,8 +2276,32 @@ body.modalOpen{overflow:hidden}
 /* v8.4.9 Fundamental Analysis */
 .fundHero{display:flex;justify-content:space-between;gap:18px;padding:19px 20px;margin-bottom:11px;border:1px solid #29475d;border-radius:13px;background:radial-gradient(circle at 86% 15%,rgba(58,126,211,.19),transparent 30%),linear-gradient(135deg,#0e2030,#08131e 63%,#0b1724)}.fundHero h3{margin:5px 0 7px;color:#f5f9fc;font-size:23px}.fundHero p{max-width:920px;margin:0;color:#8fa9bc;font-size:10px;line-height:1.6}.fundHeroStats{display:grid;grid-template-columns:repeat(3,minmax(92px,1fr));gap:7px;align-self:center;min-width:305px}.fundHeroStats>div{padding:10px;border:1px solid #29475e;border-radius:9px;background:#091824;text-align:center}.fundHeroStats strong{display:block;color:#f0f7fc;font-size:18px}.fundHeroStats span{display:block;margin-top:3px;color:#708da4;font-size:6.8px;text-transform:uppercase}.fundFramework{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:9px}.fundFramework>div{position:relative;padding:10px 10px 9px 39px;border:1px solid #263f53;border-radius:9px;background:#0a1925}.fundFramework strong{position:absolute;left:9px;top:10px;display:flex;align-items:center;justify-content:center;width:23px;height:23px;border:1px solid #3d6787;border-radius:7px;background:#0b2638;color:#7ac1ff;font-size:9px}.fundFramework span{display:block;color:#e9f3f9;font-size:8.5px;font-weight:900}.fundFramework small{display:block;margin-top:3px;color:#708ba1;font-size:6.8px}.fundNotice{padding:9px 11px;margin-bottom:9px;border:1px solid #31485a;border-radius:8px;background:#0b1721;color:#8ca4b6;font-size:8px;line-height:1.55}.fundNotice strong{color:#b9d8ed}.fundToolbar{display:grid;grid-template-columns:minmax(300px,1fr) 260px 170px auto;gap:7px;margin-bottom:9px}.fundSearch{position:relative}.fundSearch span{position:absolute;left:11px;top:8px;color:#6a8ba5;font-size:18px}.fundSearch input,.fundToolbar select{box-sizing:border-box;width:100%;height:38px;border:1px solid #2b455a;border-radius:8px;background:#091621;color:#eaf2f8;font-size:9px}.fundSearch input{padding:8px 11px 8px 34px}.fundToolbar select{padding:7px 9px}.fundToolbar button{height:38px;white-space:nowrap}.fundMeta{display:flex;justify-content:space-between;padding:8px 10px;margin-bottom:9px;border:1px solid #253a4c;border-radius:8px;background:#09141e}.fundMeta strong{color:#edf5fb;font-size:9px}.fundMeta span{color:#718b9f;font-size:7.5px}.fundLayout{display:grid;grid-template-columns:minmax(310px,34%) minmax(0,1fr);gap:10px;align-items:start}.fundMetricList{max-height:calc(100vh - 255px);overflow:auto;border:1px solid #294258;border-radius:11px;background:#08141f;scrollbar-width:thin;scrollbar-color:#31485d #08111a}.fundListCategory+.fundListCategory{border-top:1px solid #253d50}.fundListCategoryHead{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;padding:8px 9px;background:#102333;border-bottom:1px solid #29465c}.fundListCategoryHead strong{color:#82baf1;font-size:7.2px}.fundListCategoryHead span{color:#8faec6;font-size:6.5px}.fundMetricRow{width:100%;display:grid;grid-template-columns:27px minmax(0,1fr);gap:8px;align-items:center;padding:8px 9px;border:0;border-bottom:1px solid #172b3a;background:transparent;color:#d9e6ef;text-align:left;cursor:pointer}.fundMetricRow:hover{background:#0d1e2b}.fundMetricRow.active{background:#153452;box-shadow:inset 3px 0 0 #56a4ff}.fundMetricRank{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid #31536d;border-radius:7px;background:#0a2030;color:#75b8f2;font-size:7px;font-weight:900}.fundMetricMain strong{display:block;color:#edf5fa;font-size:8.5px}.fundMetricMain small{display:block;margin-top:3px;color:#6f899d;font-size:6.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fundDetail{min-height:520px;border:1px solid #294258;border-radius:11px;background:#091520;overflow:hidden}.fundDetailHead{display:flex;justify-content:space-between;gap:15px;padding:14px 15px;border-bottom:1px solid #29465d;background:linear-gradient(180deg,#102536,#0c1d2a)}.fundDetailIdentity{display:flex;gap:10px}.fundRank{display:flex;align-items:center;justify-content:center;flex:0 0 34px;height:34px;border:1px solid #3b6686;border-radius:9px;background:#0a2638;color:#7fc4ff;font-size:9px;font-weight:900}.fundEyebrow{color:#659fd3;font-size:6.7px;font-weight:900;text-transform:uppercase}.fundDetail h3{margin:4px 0 0;color:#fff;font-size:16px}.fundShort{margin-top:3px;color:#809aaf;font-size:7px}.fundSource{height:max-content;padding:4px 7px;border:1px solid #35536a;border-radius:999px;background:#0d2232;color:#8db7d6;font-size:6.5px}.fundSection{padding:11px 13px;border-bottom:1px solid #172c3b}.fundSection h4{margin:0 0 6px;color:#82b9ea;font-size:8px;text-transform:uppercase}.fundSection p{margin:0;color:#b5c6d2;font-size:8.5px;line-height:1.62}.fundFormula{padding:9px 10px;border:1px solid #31516a;border-radius:7px;background:#071925;color:#d9f0ff;font-family:Consolas,monospace;font-size:8px;line-height:1.5}.fundBands{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:6px}.fundBand{padding:8px;border:1px solid #315069;border-radius:7px;background:#0b1d2a}.fundBand strong{display:block;color:#8fc7f5;font-size:7.5px}.fundBand span{display:block;margin-top:4px;color:#a9bdca;font-size:7.3px;line-height:1.45}.fundBand.band0{border-color:#315e56;background:#0b211e}.fundBand.band0 strong{color:#7bd8b7}.fundBand.band3,.fundBand.band4{border-color:#63424d;background:#211419}.fundBand.band3 strong,.fundBand.band4 strong{color:#ff9eaf}.fundRangeWarning{margin-top:7px;color:#617f95;font-size:6.7px}.fundNoBands{padding:8px;border:1px dashed #315069;border-radius:7px;color:#819db1;font-size:7.5px}.fundTwoCol{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #172c3b}.fundTwoCol .fundSection{border-bottom:0}.fundTwoCol .fundSection+.fundSection{border-left:1px solid #172c3b}.fundPills{display:flex;gap:5px;flex-wrap:wrap}.fundPills span{display:inline-flex;padding:5px 7px;border:1px solid #315069;border-radius:6px;background:#0b1e2b;color:#a9c0d0;font-size:7px}.fundPills.positive span{border-color:#31594f;background:#0b211d;color:#8dd8bb}.fundPills.negative span{border-color:#5b3e48;background:#201419;color:#efadb9}.fundPills.related span{color:#83bbe6}.fundSection.caution p{color:#d7ac93}.fundEmpty{padding:35px 12px;text-align:center;color:#6d899e;font-size:9px}@media(max-width:1180px){.fundFramework{grid-template-columns:repeat(3,1fr)}.fundToolbar{grid-template-columns:1fr 1fr}.fundSearch{grid-column:1/-1}.fundLayout{grid-template-columns:330px minmax(0,1fr)}}@media(max-width:850px){.fundHero{display:block}.fundHeroStats{min-width:0;margin-top:12px}.fundFramework{grid-template-columns:1fr 1fr}.fundLayout{grid-template-columns:1fr}.fundMetricList{max-height:390px}.fundTwoCol{grid-template-columns:1fr}.fundTwoCol .fundSection+.fundSection{border-left:0;border-top:1px solid #172c3b}}@media(max-width:520px){.fundFramework,.fundToolbar{grid-template-columns:1fr}.fundSearch{grid-column:auto}}
 
+
+/* =========================================================
+   v8.5.0 — Position close undo
+   ========================================================= */
+.undoCloseBtn{
+  border:1px solid #537da2!important;
+  background:#112b40!important;
+  color:#a8d5ff!important;
+  border-radius:7px!important;
+  padding:5px 8px!important;
+  font-size:8px!important;
+  font-weight:900!important;
+  line-height:1.05!important;
+  cursor:pointer!important;
+  white-space:nowrap!important;
+}
+.undoCloseBtn:hover{
+  background:#1b4567!important;
+  border-color:#72a9d9!important;
+  color:#fff!important;
+}
+.activityUndoCell{white-space:nowrap;text-align:center}
+.activityUndoHint{display:block;margin-top:3px;color:#668398;font-size:6.5px;line-height:1.25}
+
 </style>
-<meta name="portfolio-build" content="v8.4.9-fundamental-analysis">
+<meta name="portfolio-build" content="v8.5.0-position-close-undo">
 </head>
 <body class="authLocked">
 
@@ -3588,7 +3612,7 @@ body.modalOpen{overflow:hidden}
     <div class="fundHero"><div class="fundHeroText"><div class="learningEyebrow">COMPANY ANALYSIS · VALUATION · RISK & PERFORMANCE</div><h3>Fundamental Analysis</h3><p>Finansal tabloları okumaktan ROIC ve nakit kalitesine; P/E, P/B ve EV/EBITDA'dan DCF, DDM, NAV, SOTP ve EVA'ya; banka/REIT/SaaS özel metriklerinden Sharpe, Sortino, Calmar ve drawdown analizine kadar profesyonel temel analiz kütüphanesi.</p></div><div class="fundHeroStats"><div><strong id="fundTotalCount">0</strong><span>Başlık</span></div><div><strong id="fundCategoryCount">0</strong><span>Kategori</span></div><div><strong id="fundModelCount">0</strong><span>Değerleme Modeli</span></div></div></div>
     <div class="fundFramework"><div><strong>1</strong><span>İşi Anla</span><small>Moat · sektör · büyüme</small></div><div><strong>2</strong><span>Kâr Kalitesini Test Et</span><small>Marj · CFO · FCF</small></div><div><strong>3</strong><span>Bilançoyu Stresle</span><small>Borç · likidite · vade</small></div><div><strong>4</strong><span>Değerle</span><small>Çarpan · DCF · DDM · NAV</small></div><div><strong>5</strong><span>Riski Ölç</span><small>Sharpe · Sortino · Drawdown</small></div></div>
     <div class="fundNotice"><strong>Referans aralıkları:</strong> “İyi P/E = 15” gibi evrensel bir kural yoktur. Buradaki bantlar hızlı ön eleme için başlangıç referanslarıdır. Nihai yorum sektör, şirket kalitesi, büyüme, ROIC, faiz/enflasyon rejimi ve tarihsel/peer karşılaştırmasıyla yapılmalıdır.</div>
-    <div class="fundToolbar"><div class="fundSearch"><span>⌕</span><input id="fundSearch" type="search" autocomplete="off" placeholder="Ara... P/E, PD/DD, ROIC, DCF, Sharpe, banka, cash flow"></div><select id="fundCategory"><option value="all">Tüm Kategoriler</option></select><select id="fundKind"><option value="all">Tüm Türler</option></select><button id="fundReset" type="button" class="secondary">Filtreyi Temizle</button></div>
+    <div class="fundToolbar"><div class="fundSearch"><span>⌕</span><input id="fundamentalSearch" type="search" autocomplete="off" placeholder="Ara... P/E, PD/DD, ROIC, DCF, Sharpe, banka, cash flow"></div><select id="fundCategory"><option value="all">Tüm Kategoriler</option></select><select id="fundKind"><option value="all">Tüm Türler</option></select><button id="fundReset" type="button" class="secondary">Filtreyi Temizle</button></div>
     <div class="fundMeta"><strong id="fundResultCount">0 başlık</strong><span>Bir metriğe tıklayarak formül, referans aralıkları, avantaj/dezavantaj ve kullanım alanını aç.</span></div>
     <div class="fundLayout"><aside id="fundMetricList" class="fundMetricList"></aside><main id="fundDetail" class="fundDetail"></main></div>
   </div>
@@ -5215,7 +5239,8 @@ function activityRows(list){
       total:tradeNotional(p,p.entry),commission:openCommissionValue(p),
       creditCost:financingCostValue(p),
       margin:isViopPosition(p)?viopInitialMargin(p):isGlobalFuturesPosition(p)?globalFuturesInitialMargin(p):0,
-      marginCurrency:isGlobalFuturesPosition(p)?(p.marginCurrency||p.currency||"USD"):"TRY"
+      marginCurrency:isGlobalFuturesPosition(p)?(p.marginCurrency||p.currency||"USD"):"TRY",
+      positionId:p.id,leg:"open",closeReason:""
     });
     if(p.status==="Kapalı"){
       rows.push({
@@ -5224,7 +5249,8 @@ function activityRows(list){
         symbol:positionDisplayName(p),name:positionProductLabel(p),
         qty:p.qty||0,price:p.closePrice||0,priceCurrency:priceCurrency(p),currency:nativeCurrency(p),note:p.riskNote||p.note||"",
         total:tradeNotional(p,p.closePrice),commission:estimatedCloseCommission(p,p.closePrice),
-        creditCost:0,margin:0,marginCurrency:isGlobalFuturesPosition(p)?(p.marginCurrency||p.currency||"USD"):"TRY"
+        creditCost:0,margin:0,marginCurrency:isGlobalFuturesPosition(p)?(p.marginCurrency||p.currency||"USD"):"TRY",
+        positionId:p.id,leg:"close",closeReason:p.closeReason||"manual"
       });
     }
   });
@@ -5253,7 +5279,7 @@ function activityHTML(list,filter,isModel=false){
   const rows=activityRows(list);
   if(!rows.length)return'<div class="muted" style="padding:24px;text-align:center">Henüz hareket bulunmuyor.</div>';
   return`<div class="tableWrap activityTable"><table>
-    <thead><tr><th>Sembol</th><th>Pozisyon</th><th>Tarih / Saat</th><th>Miktar</th><th>Fiyat</th><th>Komisyon</th><th>Pozisyon Büyüklüğü</th><th>Notlar</th></tr></thead>
+    <thead><tr><th>Sembol</th><th>Pozisyon</th><th>Tarih / Saat</th><th>Miktar</th><th>Fiyat</th><th>Komisyon</th><th>Pozisyon Büyüklüğü</th><th>Notlar</th>${isModel?"<th>İşlem</th>":""}</tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td><strong>${esc(r.symbol)}</strong><div class="activitySummary">${esc(r.name)}</div></td>
       <td class="activityType ${r.type}">${r.type==="buy"?"⌃ Al":"⌄ Sat"}</td>
@@ -5263,6 +5289,9 @@ function activityHTML(list,filter,isModel=false){
       <td>${f(r.commission,2)} ${esc(r.currency)}<div class="activityCostBreakdown">${r.creditCost?`Kredi: ${f(r.creditCost,2)} ${esc(r.currency)}`:""}${r.margin?` Teminat: ${f(r.margin,2)} ${esc(r.marginCurrency||"TRY")}`:""}</div></td>
       <td>${f(r.total,2)} ${esc(r.currency)}</td>
       <td>${esc(r.note||"-")}</td>
+      ${isModel?`<td class="activityUndoCell">${r.leg==="close"&&r.closeReason!=="netting"
+        ?`<button type="button" class="undoCloseBtn" onclick="undoModelClose('${r.positionId}')">Geri Al</button><span class="activityUndoHint">Kapanışı iptal et</span>`
+        :"-"}</td>`:""}
     </tr>`).join("")}</tbody></table></div>`;
 }
 function renderActivities(){
@@ -6276,7 +6305,9 @@ function modelTable(arr,closed){
  ${closed?`<td>${f(p.closePrice,4)}</td><td class="dateTimeCell">${formatDateTime(p.closeDateTime||p.closeDate)}</td><td class="${net>=0?"positive":"negative"}">${nativeCurrency(p)!=="TRY"
  ?`<strong>${nativeNetClosedPnl(p)>=0?"+":""}${f(nativeNetClosedPnl(p),2)} ${esc(nativeCurrency(p))}</strong><div class="nativePnlLine">${net>=0?"+":""}${f(net,2)} TRY</div>`
  :`<strong>${net>=0?"+":""}${f(net,2)} TRY</strong>`}</td><td>${f(netPct,2)}%</td><td>${f(p.benchmark,2)}%</td>`:""}
- <td><div class="actionGroup">${!closed?`<button class="positionCloseBtn" onclick="openModelCloseTerminal('${p.id}')">Pozisyonu Kapat</button><button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`;
+ <td><div class="actionGroup">${!closed
+ ?`<button class="positionCloseBtn" onclick="openModelCloseTerminal('${p.id}')">Pozisyonu Kapat</button><button class="editBtn" onclick="openEditPosition('model','${p.id}')">Düzenle</button>`
+ :p.closeReason!=="netting"?`<button type="button" class="undoCloseBtn" onclick="undoModelClose('${p.id}')">Geri Al</button>`:""}<button class="danger" onclick="deleteModel('${p.id}')">Sil</button></div></td></tr>`;
  }).join("")}</tbody></table></div>`}
 
 window.renderModel=function renderModel(){
@@ -6752,7 +6783,7 @@ function consolidateLegacyActiveModelPositions(){
  const active=model.filter(p=>p.status==="Aktif").sort((a,b)=>String(a.openDateTime||"").localeCompare(String(b.openDateTime||"")));
  let changed=false;
  for(const p of active){
-  if(p.status!=="Aktif")continue;
+  if(p.status!=="Aktif"||!model.includes(p))continue;
   const same=model.filter(x=>x!==p&&x.status==="Aktif"&&modelInstrumentKey(x)===modelInstrumentKey(p));
   const sameDir=same.find(x=>modelPositionDirectionSide(x)===modelPositionDirectionSide(p));
   if(sameDir){
@@ -6958,6 +6989,156 @@ function closeModelPositionAt(p,price,reason="manual",benchmark=0){
  save();
  return true;
 }
+
+function canUndoModelClose(p){
+ return Boolean(p&&p.status==="Kapalı"&&String(p.closeReason||"manual")!=="netting");
+}
+function clearModelCloseFields(p){
+ [
+  "closePrice","closeDateTime","closeDate","fxRateAtClose","benchmark",
+  "closeCommissionUnit","closeCommissionRate","closeCommission",
+  "closeReason","autoClosed"
+ ].forEach(key=>delete p[key]);
+}
+function mergeActiveSameDirectionForInstrument(instrumentKey,side){
+ const same=model
+  .filter(p=>p.status==="Aktif"&&modelInstrumentKey(p)===instrumentKey&&modelPositionDirectionSide(p)===side)
+  .sort((a,b)=>String(a.openDateTime||a.openDate||"").localeCompare(String(b.openDateTime||b.openDate||"")));
+ if(!same.length)return null;
+ const target=same[0];
+ for(const source of same.slice(1)){
+  if(!model.includes(source))continue;
+  mergeSameDirectionModelPosition(target,source);
+  model=model.filter(row=>row!==source);
+ }
+ return target;
+}
+function reconcileOppositePositionsAfterUndo(instrumentKey){
+ let guard=0;
+ while(guard++<20){
+  const actives=model
+   .filter(p=>p.status==="Aktif"&&modelInstrumentKey(p)===instrumentKey)
+   .sort((a,b)=>String(a.openDateTime||a.openDate||"").localeCompare(String(b.openDateTime||b.openDate||"")));
+  if(actives.length<=1)break;
+
+  const sides=[...new Set(actives.map(modelPositionDirectionSide))];
+  for(const side of sides)mergeActiveSameDirectionForInstrument(instrumentKey,side);
+
+  const current=model
+   .filter(p=>p.status==="Aktif"&&modelInstrumentKey(p)===instrumentKey)
+   .sort((a,b)=>String(a.openDateTime||a.openDate||"").localeCompare(String(b.openDateTime||b.openDate||"")));
+  if(current.length<=1)break;
+
+  const a=current[0];
+  const b=current.find(row=>modelPositionDirectionSide(row)!==modelPositionDirectionSide(a));
+  if(!b)break;
+
+  const earlier=String(a.openDateTime||a.openDate||"")<=String(b.openDateTime||b.openDate||"")?a:b;
+  const later=earlier===a?b:a;
+  const earlierQty=Math.abs(Number(earlier.qty)||0);
+  const laterQty=Math.abs(Number(later.qty)||0);
+  const qty=Math.min(earlierQty,laterQty);
+  if(!qty)break;
+
+  closePositionSliceForNetting(
+   earlier,
+   qty,
+   Number(later.entry)||Number(earlier.currentPrice)||Number(earlier.entry),
+   later.openDateTime||later.openDate||nowLocal()
+  );
+
+  if(laterQty<=earlierQty+1e-9){
+   model=model.filter(row=>row!==later);
+  }else{
+   const remaining=laterQty-earlierQty;
+   const ratio=remaining/laterQty;
+   later.qty=remaining;
+   later.openCommission=openCommissionValue(later)*ratio;
+   later.creditPrincipal=(Number(later.creditPrincipal)||0)*ratio;
+   later.creditCost=(Number(later.creditCost)||0)*ratio;
+   recomputePositionMarginCache(later);
+  }
+ }
+}
+function rebuildAfterModelCloseUndo(closeDate,wasViop){
+ const date=String(closeDate||"").slice(0,10);
+
+ if(wasViop&&date){
+  settings.nemaAccruals=Array.isArray(settings.nemaAccruals)?settings.nemaAccruals:[];
+  settings.nemaAccruals=settings.nemaAccruals.filter(row=>String(row.date||"")<date);
+  ensureDailyNemaAccruals();
+ }
+
+ settings.pmsEquityHistory=[];
+ settings.pmsEquityHistoryMeta={};
+ pmsRebuildEquityHistory();
+ pmsLiveData=null;
+ pmsLiveSignature="";
+ pmsLiveFetchedAt=0;
+}
+window.undoModelClose=function undoModelClose(positionId){
+ const closed=model.find(row=>row.id===positionId);
+ if(!closed||closed.status!=="Kapalı"){
+  alert("Bu kapanış artık geri alınabilir durumda değil.");
+  return;
+ }
+ if(!canUndoModelClose(closed)){
+  alert("Bu kayıt ters yönlü işlem nedeniyle otomatik netting ile kapanmış. Netting kapanışları tek başına geri alınamaz.");
+  return;
+ }
+
+ const label=positionDisplayName(closed);
+ const oldClosePrice=Number(closed.closePrice)||0;
+ const oldCloseDate=closed.closeDateTime||closed.closeDate||"";
+ const restoredQty=Math.abs(Number(closed.qty)||0);
+ const wasViop=isViopPosition(closed);
+ const key=modelInstrumentKey(closed);
+ const side=modelPositionDirectionSide(closed);
+ const oldReason=closed.closeReason||"manual";
+
+ const confirmed=confirm(
+  `${label} kapanışı geri alınsın mı?\n\n`+
+  `Miktar: ${f(restoredQty,2)}\n`+
+  `Kapanış fiyatı: ${f(oldClosePrice,4)}\n\n`+
+  `Gerçekleşmiş K/Z ve kapanış komisyonu iptal edilecek. `+
+  `Raporlar, nakit hareketleri ve PMS kapanış hiç yapılmamış gibi yeniden hesaplanacak.`
+ );
+ if(!confirmed)return;
+
+ closed.status="Aktif";
+ if(oldClosePrice>0)closed.currentPrice=oldClosePrice;
+ clearModelCloseFields(closed);
+
+ let restored=mergeActiveSameDirectionForInstrument(key,side)||closed;
+ reconcileOppositePositionsAfterUndo(key);
+ restored=model.find(row=>row.status==="Aktif"&&modelInstrumentKey(row)===key&&modelPositionDirectionSide(row)===side)||null;
+
+ rebuildAfterModelCloseUndo(oldCloseDate,wasViop);
+ save();
+
+ renderModel();
+ renderActivities();
+ renderCashStatement();
+ if(typeof renderReports==="function")renderReports();
+ renderPMS();
+
+ queueTradeNotification({
+  eyebrow:"MODEL PORTFÖY · İŞLEM DÜZELTME",
+  title:"Kapanış Geri Alındı",
+  summary:restored
+   ?`${label} yeniden aktif pozisyona taşındı. Yanlış kapanışın realize K/Z ve komisyon etkisi kaldırıldı.`
+   :`${label} yanlış kapanışı kaldırıldı; daha sonraki ters yönlü işlemler tarihsel sıraya göre yeniden netleştirildi.`,
+  details:[
+   {label:"Pozisyon",value:label},
+   {label:"Geri Alınan Miktar",value:f(restoredQty,2)},
+   {label:"Eski Kapanış Fiyatı",value:oldClosePrice?f(oldClosePrice,4):"-"},
+   {label:"Eski Kapanış Zamanı",value:formatDateTime(oldCloseDate)},
+   {label:"Kapanış Türü",value:oldReason==="stop"?"Stop":oldReason==="target"?"Kâr Al":"Manuel"},
+   {label:"Yeni Durum",value:restored?"Aktif":"Sonraki işlemlerle netleşti"}
+  ]
+ });
+};
+
 function populateModelCloseTerminal(p){
  if(!p)return;
  $("mCloseSelect").value=p.id;
