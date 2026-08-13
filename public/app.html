@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.4.6</title>
+<title>Invest Cockpit · v8.4.7</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2250,8 +2250,26 @@ body.modalOpen{overflow:hidden}
 .indexConstituentFallbackBtn:hover{background:#17324a;color:#fff}
 @media(max-width:560px){.indexCountryRegion{margin-left:0}.indexCountryTitle{align-items:flex-start}.indexConstituentTable col:first-child{width:38%}.indexConstituentTable col:last-child{width:62%}}
 
+
+/* =========================================================
+   v8.4.7 — Learning Hub / Extrem Indexes
+   ========================================================= */
+.extremHero{display:flex;align-items:stretch;justify-content:space-between;gap:18px;padding:18px 20px;margin-bottom:12px;border:1px solid #29465d;border-radius:13px;background:radial-gradient(circle at 88% 18%,rgba(65,116,198,.18),transparent 28%),linear-gradient(135deg,#0d1d2b,#08131e 65%,#0b1724)}
+.extremHero h3{font-size:22px;margin:5px 0 7px;color:#f3f8fc}.extremHero p{margin:0;max-width:850px;color:#8da8be;font-size:10px;line-height:1.55}
+.extremStats{display:grid;grid-template-columns:repeat(3,minmax(82px,1fr));gap:7px;align-self:center}.extremStats>div{padding:10px;border:1px solid #29475e;border-radius:9px;background:#0a1824;text-align:center}.extremStats strong{display:block;font-size:17px;color:#eaf4ff}.extremStats span{display:block;margin-top:3px;font-size:7px;color:#718ca3;text-transform:uppercase}
+.extremNotice{padding:9px 11px;margin-bottom:9px;border:1px solid #2a4358;border-radius:8px;background:#0a1722;color:#809aae;font-size:8px;line-height:1.5}.extremNotice strong{color:#b8d6ec}
+.extremToolbar{display:grid;grid-template-columns:minmax(300px,1fr) 250px auto;gap:8px;margin-bottom:9px}.extremSearch{position:relative}.extremSearch span{position:absolute;left:12px;top:8px;color:#678aa7;font-size:18px;pointer-events:none}.extremSearch input,.extremToolbar select{width:100%;height:38px;box-sizing:border-box;border:1px solid #2c4459;border-radius:8px;background:#091621;color:#eaf2f9;font-size:10px}.extremSearch input{padding:8px 12px 8px 35px}.extremToolbar select{padding:8px 10px}.extremToolbar button{height:38px;white-space:nowrap}
+.extremMeta{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;margin-bottom:10px;border:1px solid #253a4d;border-radius:8px;background:#09141f}.extremMeta strong{font-size:9px;color:#edf5fb}.extremMeta span{font-size:8px;color:#6f899e}
+.extremGroups{display:grid;gap:13px}.extremCategory{overflow:hidden;border:1px solid #294258;border-radius:12px;background:#091520}.extremCategoryHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid #2b465c;background:linear-gradient(180deg,#102536,#0c1d2a)}.extremCategoryEyebrow{display:block;color:#5f9fde;font-size:6.5px;font-weight:900;letter-spacing:.16em}.extremCategoryHead h4{margin:3px 0 0;color:#f1f7fc;font-size:13px;font-weight:900;letter-spacing:.08em}.extremCategoryCount{display:inline-flex;padding:4px 8px;border:1px solid #31516b;border-radius:999px;background:#102334;color:#8eb7d7;font-size:7px;font-weight:900}
+.extremCategoryBody{padding:11px}.extremSubgroup+.extremSubgroup{margin-top:14px}.extremSubgroupTitle{margin:1px 1px 8px;padding-left:8px;border-left:2px solid #4f8bd2;color:#89bdf1;font-size:9px;font-weight:900;letter-spacing:.08em}
+.extremCardGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.extremItemCard{min-width:0;padding:10px 11px;border:1px solid #253f53;border-radius:9px;background:#0b1a26;transition:transform .12s ease,border-color .12s ease,background .12s ease}.extremItemCard:hover{transform:translateY(-1px);border-color:#3c6686;background:#0e2130}.extremItemTop{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:8px}.extremPriority{display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:22px;padding:0 6px;border-radius:6px;border:1px solid #345b78;background:#0b2535;color:#78bcfa;font-size:8px;font-weight:900}.extremSource{max-width:68%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-flex;padding:3px 6px;border-radius:999px;border:1px solid #31516b;background:#102334;color:#8eb7d7;font-size:6.5px;font-weight:800}.extremSource.fred{border-color:#4b5c76;color:#a9bdd7}.extremSource.bloomberg{border-color:#664f83;color:#c6a9ea}.extremSource.cboe{border-color:#5a6133;color:#c7cf7a}.extremSource.etf{border-color:#386255;color:#89cdb3}.extremSource.framework{border-color:#6b5335;color:#dec18e}
+.extremItemCard h5{margin:0;color:#eef6fb;font-size:10px;line-height:1.4}.extremItemCard p{min-height:38px;margin:6px 0 9px;color:#9eb4c4;font-size:8px;line-height:1.55}.extremItemActions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.extremCode{display:inline-flex;align-items:center;min-height:24px;padding:3px 7px;border:1px solid #2d526d;border-radius:6px;background:#071925;color:#79c5ff;font-family:Consolas,monospace;font-size:7.5px}.extremCopyBtn,.extremTvBtn{border:1px solid #2d4b61;background:#0d1c29;color:#9db8cd;border-radius:6px;padding:4px 7px;font-size:7px;cursor:pointer}.extremTvBtn{color:#81c2f3}.extremCopyBtn:hover,.extremTvBtn:hover{background:#15304a;border-color:#4c82ae;color:#fff}.extremEmpty{padding:42px 15px;text-align:center;color:#67839b;font-size:10px;border:1px solid #294258;border-radius:11px;background:#091520}
+@media(max-width:1250px){.extremCardGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:850px){.extremHero{display:block}.extremStats{margin-top:12px}.extremToolbar{grid-template-columns:1fr 1fr}.extremSearch{grid-column:1/-1}.extremCardGrid{grid-template-columns:1fr}}
+@media(max-width:520px){.extremToolbar{grid-template-columns:1fr}.extremSearch{grid-column:auto}.extremStats{grid-template-columns:repeat(3,1fr)}}
+
 </style>
-<meta name="portfolio-build" content="v8.4.6-daily-index-constituents">
+<meta name="portfolio-build" content="v8.4.7-extrem-indexes">
 </head>
 <body class="authLocked">
 
@@ -2343,6 +2361,7 @@ body.modalOpen{overflow:hidden}
       <div id="learningHubSubmenu" class="sideSubmenu open">
         <button class="sideSub" data-learning-target="marketIntelligence">Market Intelligence</button>
         <button class="sideSub" data-learning-target="indexes">Indexes</button>
+        <button class="sideSub" data-learning-target="extremIndexes">Extrem Indexes</button>
       </div>
     </div>
     <div class="sideGroup">
@@ -3449,6 +3468,7 @@ body.modalOpen{overflow:hidden}
   <div class="learningWorkspaceNav">
     <button type="button" class="active" data-learning-workspace="marketIntelligence">Market Intelligence</button>
     <button type="button" data-learning-workspace="indexes">Indexes</button>
+    <button type="button" data-learning-workspace="extremIndexes">Extrem Indexes</button>
   </div>
 
   <div id="marketIntelligence" class="learningWorkspace active">
@@ -3526,6 +3546,32 @@ body.modalOpen{overflow:hidden}
 
     <div class="indexHubMeta"><strong id="indexHubResultCount">0 endeks</strong><span>Ülke ve bölge bazında gruplanmıştır.</span></div>
     <div id="indexHubGroups" class="indexHubGroups"></div>
+  </div>
+
+  <div id="extremIndexes" class="learningWorkspace">
+    <div class="extremHero">
+      <div>
+        <div class="learningEyebrow">CROSS-ASSET & MACRO INDEX ENCYCLOPEDIA</div>
+        <h3>Extrem Indexes</h3>
+        <p>Dolar, emtia, navlun, gayrimenkul, tahvil, volatilite, kredi stresi, finansal koşullar, market breadth, ekonomik öncü ve enflasyon beklentisi göstergeleri. Gönderdiğin çekirdek liste genişletilmiş profesyonel bir evrene dönüştürüldü.</p>
+      </div>
+      <div class="extremStats">
+        <div><strong id="extremIndexTotalCount">0</strong><span>Gösterge</span></div>
+        <div><strong id="extremIndexCategoryCount">0</strong><span>Ana Başlık</span></div>
+        <div><strong id="extremIndexSourceCount">0</strong><span>Kaynak Türü</span></div>
+      </div>
+    </div>
+
+    <div class="extremNotice"><strong>Kod notu:</strong> Bu bölümdeki “Kod” her zaman TradingView sembolü değildir. FRED, Bloomberg, ICE, Cboe, CDS endeksi veya ETF proxy kodları da kullanılır. TradingView'de güvenilir eşlemesi bulunan satırlarda ayrıca <b>TV'de Aç</b> düğmesi görünür.</div>
+
+    <div class="extremToolbar">
+      <div class="extremSearch"><span>⌕</span><input id="extremIndexSearch" type="search" autocomplete="off" placeholder="Endeks, kod, rol veya kaynak ara... örn. VIX, BCOM, credit, breadth"></div>
+      <select id="extremIndexCategory"><option value="all">Tüm Başlıklar</option></select>
+      <button id="extremIndexReset" type="button" class="secondary">Filtreyi Temizle</button>
+    </div>
+
+    <div class="extremMeta"><strong id="extremIndexResultCount">0 gösterge</strong><span>Her başlıkta önem sırasına göre listelenmiştir.</span></div>
+    <div id="extremIndexGroups" class="extremGroups"></div>
   </div>
 </section>
 
@@ -8419,6 +8465,8 @@ window.addEventListener("load",function(){
 <script src="/learning-hub-core201-240.js"></script>
 <script src="/learning-hub-indexes-data.js"></script>
 <script src="/learning-hub-indexes.js"></script>
+<script src="/learning-hub-extrem-indexes-data.js"></script>
+<script src="/learning-hub-extrem-indexes.js"></script>
 <script src="/learning-hub.js"></script>
 <div id="investCockpitHelpPortal" role="tooltip" aria-hidden="true"></div>
 <script>
