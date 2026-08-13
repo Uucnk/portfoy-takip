@@ -1,11 +1,15 @@
 {
-  "version": "8.4.1",
-  "base": "8.4.0",
+  "version": "8.4.2",
+  "base": "8.4.1",
   "validated": true,
-  "feature": "Bilingual English/Turkish titles for all 240 Market Intelligence indicators",
-  "indicator_count": 240,
-  "turkish_title_count": 240,
-  "turkish_search_enabled": true,
-  "app_sha256": "1f71e5a419555878e64aea6a01414ecf6ad18e172e2cdf9b8951128e16f9e126",
-  "renderer_sha256": "71d3018b227785c7ee3c7df2b38e0dfa42cd9254b71c607197e780ea80d35171"
+  "feature": "Learning Hub / Indexes",
+  "index_count": 131,
+  "country_count": 71,
+  "region_count": 5,
+  "new_files": [
+    "public/learning-hub-indexes-data.js",
+    "public/learning-hub-indexes.js"
+  ],
+  "app_sha256": "21b2499bc4edd173d96fb8d627f05b250e212b5bccd9cd34a39037e0d65e3f6d",
+  "index_data_sha256": "35e88fd06a22f346cbc606903e0bb569ad2cf135f8ac060a8f0459e3c0cf87eb"
 }
