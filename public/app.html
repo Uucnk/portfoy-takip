@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.4.2</title>
+<title>Invest Cockpit · v8.4.5</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2208,7 +2208,7 @@ body.modalOpen{overflow:hidden}
 .indexHubMeta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 2px;color:#6e889e;font-size:8px}.indexHubMeta strong{color:#d8e6f1;font-size:9px}
 .indexHubGroups{display:grid;gap:18px}.indexRegionBlock{min-width:0}.indexRegionHeader{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 3px 11px;border-bottom:1px solid #244157;margin-bottom:10px}.indexRegionHeader h4{margin:0;color:#a7d1ff;font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.14em}.indexRegionHeader span{font-size:8px;color:#7895ac;text-transform:uppercase;letter-spacing:.06em}.indexRegionGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(365px,1fr));gap:11px;align-items:start}
 .indexCountryCard{position:relative;overflow:hidden;border:1px solid #29475e;border-radius:12px;background:linear-gradient(145deg,#0d1d2a 0%,#091620 62%,#0b1824 100%);box-shadow:0 8px 24px rgba(0,0,0,.13);transition:border-color .14s ease,transform .14s ease,box-shadow .14s ease}.indexCountryCard:before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,rgba(73,142,232,.75),rgba(73,142,232,.08) 58%,transparent);pointer-events:none}.indexCountryCard:hover{border-color:#3e6685;transform:translateY(-1px);box-shadow:0 12px 30px rgba(0,0,0,.2)}
-.indexCountryCardHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px 14px 11px;border-bottom:1px solid #233d51;background:linear-gradient(180deg,rgba(21,46,68,.72),rgba(12,28,41,.42))}.indexCountryIdentity{min-width:0}.indexCountryTitle{display:flex;align-items:center;gap:8px;margin:0;color:#f4f8fc;font-size:12px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.indexCountryMark{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;border-radius:7px;border:1px solid #356081;background:#10283a;color:#75b7ff;font-size:10px;font-weight:900;letter-spacing:0}.indexCountryRegion{display:block;margin-top:4px;color:#6f8ba1;font-size:7px;text-transform:uppercase;letter-spacing:.1em}.indexCountryCount{flex:0 0 auto;display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;border:1px solid #31516b;background:#102334;color:#8eb7d7;font-size:7px;font-weight:800;white-space:nowrap}
+.indexCountryCardHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:13px 14px 11px;border-bottom:1px solid #233d51;background:linear-gradient(180deg,rgba(21,46,68,.72),rgba(12,28,41,.42))}.indexCountryIdentity{min-width:0}.indexCountryTitle{display:flex;align-items:center;gap:9px;margin:0;color:#f4f8fc;font-size:12px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.indexCountryFlag{position:relative;display:inline-flex;align-items:center;justify-content:center;width:31px;height:22px;flex:0 0 31px;border-radius:4px;overflow:hidden;border:1px solid #426681;background:#10283a;box-shadow:0 2px 7px rgba(0,0,0,.28)}.indexCountryFlag img{display:block;width:100%;height:100%;object-fit:cover}.indexCountryFlagFallback{display:none;color:#d9ebfb;font-size:7px;font-weight:900;letter-spacing:.04em}.indexCountryFlag.noImage img{display:none}.indexCountryFlag.noImage .indexCountryFlagFallback{display:inline}.indexCountryRegion{display:block;margin-top:4px;margin-left:40px;color:#6f8ba1;font-size:7px;text-transform:uppercase;letter-spacing:.1em}.indexCountryCount{flex:0 0 auto;display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;border:1px solid #31516b;background:#102334;color:#8eb7d7;font-size:7px;font-weight:800;white-space:nowrap}
 .indexCountryIndexes{display:grid}.indexCardItem{padding:11px 13px;border-bottom:1px solid #1d3446;transition:background .12s ease}.indexCardItem:last-child{border-bottom:0}.indexCardItem:hover{background:#0d2130}.indexCardTop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.indexCardName{min-width:0}.indexCardName strong{display:block;color:#edf5fb;font-size:10px;line-height:1.35}.indexCardName small{display:block;margin-top:3px;color:#6f8da4;font-size:7px;text-transform:uppercase;letter-spacing:.06em}.indexSegment{flex:0 0 auto;display:inline-flex;justify-content:center;align-items:center;padding:4px 7px;border-radius:999px;background:#102334;border:1px solid #31516b;color:#8eb7d7;font-size:7px;font-weight:800;white-space:nowrap}.indexCardDescription{margin:7px 0 8px;color:#a9bdcc;font-size:8.5px;line-height:1.5}.indexCardActions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.indexCode{display:inline-flex;align-items:center;min-height:25px;font-family:Consolas,monospace;color:#79c5ff;background:#071925;border:1px solid #2a526f;padding:4px 7px;border-radius:6px;font-size:7.5px;letter-spacing:.02em}.indexCodeBtn,.indexOpenBtn{border:1px solid #2d4b61;background:#0d1c29;color:#9db8cd;border-radius:6px;padding:4px 7px;font-size:7px;cursor:pointer}.indexCodeBtn:hover,.indexOpenBtn:hover{border-color:#4c82ae;color:#fff;background:#15304a}.indexOpenBtn{color:#81c2f3}.indexEmpty{padding:42px 15px;text-align:center;color:#67839b;font-size:10px;border:1px solid #294258;border-radius:11px;background:#091520}
 @media(min-width:1500px){.indexRegionGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:1180px){.indexRegionGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.indexRegionGrid{grid-template-columns:1fr}.indexCountryCardHead{padding:12px}.indexCardItem{padding:10px 11px}}
 /* Side submenu should only be blue for the currently open Learning Hub workspace. */
@@ -2216,8 +2216,42 @@ body.modalOpen{overflow:hidden}
 @media(max-width:900px){.indexHubHero{display:block}.indexHubStats{margin-top:12px}.indexHubToolbar{grid-template-columns:1fr 1fr}.indexHubSearch{grid-column:1/-1}.indexHubToolbar button{width:100%}}
 @media(max-width:560px){.indexHubToolbar{grid-template-columns:1fr}.indexHubSearch{grid-column:auto}.indexHubStats{grid-template-columns:repeat(3,1fr)}}
 
+
+/* v8.4.5 — Index constituents accordion */
+.indexCardItem{cursor:default}
+.indexCardTopClickable{cursor:pointer;border-radius:7px;padding:2px;margin:-2px;transition:background .12s ease}
+.indexCardTopClickable:hover{background:rgba(54,111,159,.10)}
+.indexCardExpandHint{display:inline-flex;align-items:center;gap:5px;margin-top:5px;color:#76a9d2;font-size:7px;font-weight:800}
+.indexCardChevron{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:5px;border:1px solid #31516b;background:#0d2232;color:#88bce7;transition:transform .14s ease}
+.indexCardItem.constituentsOpen .indexCardChevron{transform:rotate(180deg)}
+.indexConstituentPanel{display:none;margin:10px -2px 0;padding:10px;border:1px solid #29465d;border-radius:9px;background:#07131e;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+.indexCardItem.constituentsOpen .indexConstituentPanel{display:block}
+.indexConstituentLoading,.indexConstituentError{padding:14px 8px;text-align:center;color:#7e9ab1;font-size:8px;line-height:1.55}
+.indexConstituentError strong{display:block;color:#d6e7f4;font-size:9px;margin-bottom:4px}
+.indexConstituentHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.indexConstituentHead strong{display:block;color:#eaf4fb;font-size:9px}
+.indexConstituentHead small{display:block;margin-top:3px;color:#708da4;font-size:7px;line-height:1.4}
+.indexConstituentCount{flex:0 0 auto;display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;border:1px solid #31516b;background:#102334;color:#9ac5e4;font-size:7px;font-weight:900}
+.indexConstituentSearch{position:relative;margin-bottom:7px}
+.indexConstituentSearch input{width:100%;height:30px;box-sizing:border-box;padding:6px 9px;border:1px solid #29465d;border-radius:7px;background:#091925;color:#e7f1f8;font-size:8px;outline:none}
+.indexConstituentSearch input:focus{border-color:#4b82c9;box-shadow:0 0 0 2px rgba(75,130,201,.10)}
+.indexConstituentTableWrap{max-height:315px;overflow:auto;border:1px solid #20394c;border-radius:7px;scrollbar-width:thin;scrollbar-color:#31485d #09111b}
+.indexConstituentTable{width:100%;border-collapse:collapse;table-layout:fixed}
+.indexConstituentTable col:first-child{width:32%}.indexConstituentTable col:last-child{width:68%}
+.indexConstituentTable th{position:sticky;top:0;z-index:1;padding:7px 8px;background:#0d2130;border-bottom:1px solid #29465d;color:#6f94b2;text-align:left;font-size:7px;text-transform:uppercase;letter-spacing:.07em}
+.indexConstituentTable td{padding:7px 8px;border-bottom:1px solid #172e3f;color:#bcd0dd;font-size:8px;line-height:1.35}
+.indexConstituentTable tr:last-child td{border-bottom:0}
+.indexConstituentTable tbody tr:hover td{background:#0c1d2a}
+.indexConstituentTicker{font-family:Consolas,monospace;color:#79c5ff;font-weight:800;cursor:pointer}
+.indexConstituentTicker:hover{text-decoration:underline;color:#a8dcff}
+.indexConstituentSourceNote{margin-top:7px;color:#607f97;font-size:6.8px;line-height:1.45}
+.indexConstituentEmpty{padding:14px;text-align:center;color:#6d899f;font-size:8px}
+.indexConstituentFallbackBtn{margin-top:8px;border:1px solid #31516b;background:#102334;color:#91bddf;border-radius:6px;padding:5px 8px;font-size:7px;cursor:pointer}
+.indexConstituentFallbackBtn:hover{background:#17324a;color:#fff}
+@media(max-width:560px){.indexCountryRegion{margin-left:0}.indexCountryTitle{align-items:flex-start}.indexConstituentTable col:first-child{width:38%}.indexConstituentTable col:last-child{width:62%}}
+
 </style>
-<meta name="portfolio-build" content="v8.4.4-learning-hub-index-cards">
+<meta name="portfolio-build" content="v8.4.5-index-flags-constituents">
 </head>
 <body class="authLocked">
 
