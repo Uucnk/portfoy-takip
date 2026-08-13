@@ -1,15 +1,14 @@
 {
-  "version": "8.4.8",
-  "base": "8.4.7",
+  "version": "8.4.9",
+  "base": "8.4.8",
   "validated": true,
-  "feature": "Model position weighted-average consolidation, opposite-side netting, password-protected full reset",
-  "rules": {
-    "same_instrument_same_direction": "weighted-average merge",
-    "same_instrument_opposite_direction": "net/close; no simultaneous long-short",
-    "reset_requires_password": true
-  },
-  "server_endpoint": "POST /api/account/verify-password",
-  "app_sha256": "0e8c509a7d497b9fb433ba56226dd92cf2516a5f67f7ff31511b1de4cc24b453",
-  "server_sha256": "114c5f5848225f26285b849e058214ec21cd1dcdb922a96da80c6b06027616c5",
-  "password_verification_rate_limited": true
+  "feature": "Learning Hub / Fundamental Analysis",
+  "topic_count": 115,
+  "category_count": 13,
+  "new_files": [
+    "public/learning-hub-fundamental-data.js",
+    "public/learning-hub-fundamental.js"
+  ],
+  "app_sha256": "85124f0f5be304801cf6004da80ed18c24005c43ddb5c7b723a8c9be06217c64",
+  "data_sha256": "9c4043e699659bad316e2609056cbb7827873f398bb1fc5e4ac084a4ee744678"
 }
