@@ -169,7 +169,7 @@
   let currentWorkspace="marketIntelligence";
 
   function setWorkspace(target,render=true){
-    if(!["marketIntelligence","indexes","extremIndexes","fundamentalAnalysis","breadthAnalysis"].includes(target))target="marketIntelligence";
+    if(!["marketIntelligence","indexes","extremIndexes","fundamentalAnalysis","breadthAnalysis","intermarketRatios"].includes(target))target="marketIntelligence";
     currentWorkspace=target;
     document.querySelectorAll("[data-learning-target]").forEach(x=>x.classList.toggle("active",x.dataset.learningTarget===target&&document.getElementById("learningHub")?.classList.contains("active")));
     document.querySelectorAll("[data-learning-workspace]").forEach(x=>x.classList.toggle("active",x.dataset.learningWorkspace===target));
@@ -180,6 +180,7 @@
       if(target==="extremIndexes")window.renderLearningHubExtremIndexes?.();
       if(target==="fundamentalAnalysis")window.renderLearningHubFundamentalAnalysis?.();
       if(target==="breadthAnalysis")window.renderLearningHubBreadthAnalysis?.();
+      if(target==="intermarketRatios")window.renderLearningHubIntermarketRatios?.();
     }
   }
 
