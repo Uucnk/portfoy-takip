@@ -1,16 +1,15 @@
 {
-  "version": "8.4.7",
-  "base": "8.4.6",
+  "version": "8.4.8",
+  "base": "8.4.7",
   "validated": true,
-  "feature": "Learning Hub / Extrem Indexes",
-  "extrem_indicator_count": 121,
-  "extrem_category_count": 11,
-  "new_files": [
-    "public/learning-hub-extrem-indexes-data.js",
-    "public/learning-hub-extrem-indexes.js"
-  ],
-  "app_sha256": "aa282dea5fb3f5e1761ee20fe31d6d5cdef7b2337e3a683aad9232302e11ffa2",
-  "learning_hub_sha256": "d2cddd897d70e0ca7c95a27b3f56b76b6bffd373338a0148393257c497e074ee",
-  "extrem_data_sha256": "6c141f0442caf2772e7200ba712a0f7284894c9d2b32ecdad8756c0f3463002d",
-  "extrem_renderer_sha256": "081352e4aba37c25dd121e4a9bbeb59c20b7b2754dc3496232c4d266fa8c2555"
+  "feature": "Model position weighted-average consolidation, opposite-side netting, password-protected full reset",
+  "rules": {
+    "same_instrument_same_direction": "weighted-average merge",
+    "same_instrument_opposite_direction": "net/close; no simultaneous long-short",
+    "reset_requires_password": true
+  },
+  "server_endpoint": "POST /api/account/verify-password",
+  "app_sha256": "0e8c509a7d497b9fb433ba56226dd92cf2516a5f67f7ff31511b1de4cc24b453",
+  "server_sha256": "114c5f5848225f26285b849e058214ec21cd1dcdb922a96da80c6b06027616c5",
+  "password_verification_rate_limited": true
 }
