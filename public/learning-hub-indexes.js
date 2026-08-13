@@ -3,6 +3,40 @@
   const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
   const norm=v=>String(v??"").toLocaleLowerCase("tr-TR").trim();
   let bound=false;
+  const constituentCache=new Map();
+
+  const countryCodes={
+    "ABD":"us","Almanya":"de","Arjantin":"ar","Avustralya":"au","Avusturya":"at","Bahreyn":"bh",
+    "Bangladeş":"bd","Belçika":"be","Birleşik Arap Emirlikleri":"ae","Birleşik Krallık":"gb",
+    "Brezilya":"br","Bulgaristan":"bg","Danimarka":"dk","Endonezya":"id","Fas":"ma","Filipinler":"ph",
+    "Finlandiya":"fi","Fransa":"fr","Güney Afrika":"za","Güney Kore":"kr","Hindistan":"in","Hollanda":"nl",
+    "Hong Kong":"hk","Hırvatistan":"hr","Japonya":"jp","Kanada":"ca","Katar":"qa","Kazakistan":"kz",
+    "Kenya":"ke","Kolombiya":"co","Kuveyt":"kw","Macaristan":"hu","Malezya":"my","Mauritius":"mu",
+    "Meksika":"mx","Mısır":"eg","Nijerya":"ng","Norveç":"no","Pakistan":"pk","Peru":"pe","Polonya":"pl",
+    "Portekiz":"pt","Romanya":"ro","Rusya":"ru","Singapur":"sg","Slovenya":"si","Sri Lanka":"lk",
+    "Suudi Arabistan":"sa","Sırbistan":"rs","Tayland":"th","Tayvan":"tw","Tunus":"tn","Türkiye":"tr",
+    "Umman":"om","Vietnam":"vn","Yeni Zelanda":"nz","Yunanistan":"gr","Çekya":"cz","Çin":"cn",
+    "İrlanda":"ie","İspanya":"es","İsrail":"il","İsveç":"se","İsviçre":"ch","İtalya":"it",
+    "İzlanda":"is","Şili":"cl"
+  };
+  const specialMarks={
+    "Global":{symbol:"🌐",label:"GL"},
+    "Avrupa":{symbol:"🇪🇺",label:"EU"},
+    "Asya Pasifik":{symbol:"🌏",label:"AP"},
+    "Latin Amerika":{symbol:"🌎",label:"LA"}
+  };
+
+  function flagMarkup(country){
+    const special=specialMarks[country];
+    if(special){
+      return `<span class="indexCountryFlag noImage" aria-label="${esc(country)}"><span class="indexCountryFlagFallback" style="display:inline;font-size:13px">${special.symbol}</span></span>`;
+    }
+    const cc=countryCodes[country];
+    if(!cc){
+      return `<span class="indexCountryFlag noImage"><span class="indexCountryFlagFallback">--</span></span>`;
+    }
+    return `<span class="indexCountryFlag"><img loading="lazy" src="https://flagcdn.com/w80/${cc}.png" alt="${esc(country)} bayrağı" onerror="this.parentElement.classList.add('noImage')"><span class="indexCountryFlagFallback">${cc.toUpperCase()}</span></span>`;
+  }
 
   function currentRows(){
     const q=norm(document.getElementById("indexHubSearch")?.value||"");
@@ -25,6 +59,96 @@
     if(countries.includes(old))select.value=old;
   }
 
+  function constituentsUrl(code){
+    const slug=String(code||"").replace(":","-");
+    return `https://www.tradingview.com/symbols/${encodeURIComponent(slug)}/components/`;
+  }
+
+  function renderConstituents(panel,payload,indexRow){
+    const items=Array.isArray(payload?.items)?payload.items:[];
+    if(!items.length){
+      panel.innerHTML=`<div class="indexConstituentError"><strong>Bileşen listesi alınamadı.</strong>Bu endeks için veri kaynağı şu anda tam bileşen listesi döndürmedi.<br><button type="button" class="indexConstituentFallbackBtn">TradingView bileşenlerini aç</button></div>`;
+      panel.querySelector(".indexConstituentFallbackBtn")?.addEventListener("click",e=>{
+        e.stopPropagation();window.open(constituentsUrl(indexRow.code),"_blank","noopener,noreferrer");
+      });
+      return;
+    }
+    const fetched=payload.fetchedAt?new Date(payload.fetchedAt).toLocaleString("tr-TR"):"";
+    panel.innerHTML=`
+      <div class="indexConstituentHead">
+        <div><strong>Endeks Bileşenleri</strong><small>${esc(payload.source||"Piyasa veri kaynağı")} · ${esc(fetched)}</small></div>
+        <span class="indexConstituentCount">${items.length}${payload.totalCount&&payload.totalCount>items.length?` / ${payload.totalCount}`:""} kıymet</span>
+      </div>
+      <div class="indexConstituentSearch"><input type="search" placeholder="Hisse kodu veya şirket adı ara"></div>
+      <div class="indexConstituentTableWrap">
+        <table class="indexConstituentTable">
+          <colgroup><col><col></colgroup>
+          <thead><tr><th>Hisse Kodu</th><th>Hisse Adı</th></tr></thead>
+          <tbody>${items.map(item=>`<tr data-search="${esc(norm([item.ticker,item.symbol,item.name].join(" ")))}"><td><span class="indexConstituentTicker" data-stock-symbol="${esc(item.symbol||item.ticker)}">${esc(item.ticker||item.symbol)}</span></td><td>${esc(item.name||item.ticker||"-")}</td></tr>`).join("")}</tbody>
+        </table>
+      </div>
+      <div class="indexConstituentSourceNote">Endeks bileşenleri zaman içinde değişebilir. Liste kart açıldığında güncel kaynaktan alınır ve sunucuda geçici olarak önbelleğe alınır.</div>
+    `;
+    const search=panel.querySelector("input");
+    search?.addEventListener("input",()=>{
+      const q=norm(search.value);
+      panel.querySelectorAll("tbody tr").forEach(tr=>tr.style.display=!q||String(tr.dataset.search||"").includes(q)?"":"none");
+    });
+    panel.querySelectorAll("[data-stock-symbol]").forEach(el=>el.addEventListener("click",e=>{
+      e.stopPropagation();
+      const symbol=el.dataset.stockSymbol||"";
+      if(symbol.includes(":"))window.open(`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(symbol)}`,"_blank","noopener,noreferrer");
+    }));
+  }
+
+  async function loadConstituents(item,panel){
+    const key=String(item.code||"").toUpperCase();
+    if(constituentCache.has(key)){
+      renderConstituents(panel,constituentCache.get(key),item);return;
+    }
+    panel.innerHTML='<div class="indexConstituentLoading">Bileşenler yükleniyor…</div>';
+    try{
+      const params=new URLSearchParams({code:item.code,index:item.index,country:item.country});
+      const response=await fetch(`/api/index-constituents?${params.toString()}`,{headers:{"Accept":"application/json"}});
+      const payload=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(payload.error||`HTTP ${response.status}`);
+      constituentCache.set(key,payload);
+      renderConstituents(panel,payload,item);
+    }catch(error){
+      panel.innerHTML=`<div class="indexConstituentError"><strong>Bileşen listesi alınamadı.</strong>${esc(error?.message||"Veri kaynağı geçici olarak erişilemiyor.")}<br><button type="button" class="indexConstituentFallbackBtn">TradingView bileşenlerini aç</button></div>`;
+      panel.querySelector(".indexConstituentFallbackBtn")?.addEventListener("click",e=>{
+        e.stopPropagation();window.open(constituentsUrl(item.code),"_blank","noopener,noreferrer");
+      });
+    }
+  }
+
+  function bindCardEvents(host){
+    host.querySelectorAll("[data-copy-code]").forEach(btn=>btn.addEventListener("click",async e=>{
+      e.stopPropagation();
+      const code=btn.dataset.copyCode||"";
+      try{await navigator.clipboard.writeText(code);const old=btn.textContent;btn.textContent="Kopyalandı";setTimeout(()=>btn.textContent=old,900)}
+      catch{btn.textContent="Seç"}
+    }));
+    host.querySelectorAll("[data-open-code]").forEach(btn=>btn.addEventListener("click",e=>{
+      e.stopPropagation();
+      const code=btn.dataset.openCode||"";
+      window.open(`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(code)}`,"_blank","noopener,noreferrer");
+    }));
+    host.querySelectorAll("[data-index-expand]").forEach(trigger=>trigger.addEventListener("click",()=>{
+      const card=trigger.closest(".indexCardItem");
+      const panel=card?.querySelector(".indexConstituentPanel");
+      if(!card||!panel)return;
+      const opening=!card.classList.contains("constituentsOpen");
+      card.classList.toggle("constituentsOpen",opening);
+      if(opening&&!panel.dataset.loaded){
+        panel.dataset.loaded="1";
+        const id=Number(trigger.dataset.indexExpand);
+        const item=data.find(x=>Number(x.id)===id);
+        if(item)loadConstituents(item,panel);
+      }
+    }));
+  }
+
   function render(){
     const rows=currentRows();
     const host=document.getElementById("indexHubGroups");if(!host)return;
@@ -38,19 +162,22 @@
         <div class="indexRegionHeader"><h4>${esc(String(region).toLocaleUpperCase("tr-TR"))}</h4><span>${rr.length} endeks · ${countries.length} ülke/bölge</span></div>
         <div class="indexRegionGrid">${countries.map(country=>{
           const cr=rr.filter(x=>x.country===country);
-          const initials=String(country).split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toLocaleUpperCase("tr-TR");
           return `<article class="indexCountryCard">
             <div class="indexCountryCardHead">
               <div class="indexCountryIdentity">
-                <h5 class="indexCountryTitle"><span class="indexCountryMark">${esc(initials||"•")}</span>${esc(String(country).toLocaleUpperCase("tr-TR"))}</h5>
+                <h5 class="indexCountryTitle">${flagMarkup(country)}${esc(String(country).toLocaleUpperCase("tr-TR"))}</h5>
                 <span class="indexCountryRegion">${esc(region)}</span>
               </div>
               <span class="indexCountryCount">${cr.length} endeks</span>
             </div>
             <div class="indexCountryIndexes">${cr.map(x=>`
               <section class="indexCardItem">
-                <div class="indexCardTop">
-                  <div class="indexCardName"><strong>${esc(x.index)}</strong><small>${esc(x.country)}</small></div>
+                <div class="indexCardTop indexCardTopClickable" data-index-expand="${x.id}">
+                  <div class="indexCardName">
+                    <strong>${esc(x.index)}</strong>
+                    <small>${esc(x.country)}</small>
+                    <span class="indexCardExpandHint"><span class="indexCardChevron">⌄</span> İçindeki kıymetleri göster</span>
+                  </div>
                   <span class="indexSegment">${esc(x.segment)}</span>
                 </div>
                 <p class="indexCardDescription">${esc(x.description)}</p>
@@ -59,18 +186,13 @@
                   <button class="indexCodeBtn" type="button" data-copy-code="${esc(x.code)}">Kopyala</button>
                   <button class="indexOpenBtn" type="button" data-open-code="${esc(x.code)}">TV'de Aç</button>
                 </div>
+                <div class="indexConstituentPanel"></div>
               </section>`).join("")}</div>
           </article>`;
         }).join("")}</div>
       </section>`;
     }).join("");
-
-    host.querySelectorAll("[data-copy-code]").forEach(btn=>btn.addEventListener("click",async()=>{
-      const code=btn.dataset.copyCode||"";try{await navigator.clipboard.writeText(code);const old=btn.textContent;btn.textContent="Kopyalandı";setTimeout(()=>btn.textContent=old,900)}catch{btn.textContent="Seç"}
-    }));
-    host.querySelectorAll("[data-open-code]").forEach(btn=>btn.addEventListener("click",()=>{
-      const code=btn.dataset.openCode||"";window.open(`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(code)}`,"_blank","noopener,noreferrer");
-    }));
+    bindCardEvents(host);
   }
 
   function init(){
