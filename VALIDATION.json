@@ -1,24 +1,22 @@
 {
-  "version": "8.4.4",
-  "base": "8.4.3",
+  "version": "8.4.5",
+  "base": "8.4.4",
   "validated": true,
-  "feature": "Learning Hub Indexes responsive country card layout",
+  "feature": "Learning Hub Indexes — country flags + on-demand constituents",
   "index_count": 131,
-  "country_count": 71,
-  "region_count": 5,
-  "new_files": [
-    "public/learning-hub-indexes-data.js",
-    "public/learning-hub-indexes.js"
+  "constituent_endpoint": "/api/index-constituents",
+  "constituent_fields": [
+    "ticker",
+    "name"
   ],
-  "app_sha256": "a8913f0dd8603e6a74f52993a6718ec446f8ba9a0b91e1f42836c2e2e813a776",
-  "index_data_sha256": "35e88fd06a22f346cbc606903e0bb569ad2cf135f8ac060a8f0459e3c0cf87eb",
-  "indexes_layout": "country_cards",
-  "preserved": [
-    "index data",
-    "search",
-    "region filter",
-    "country filter",
-    "TradingView copy/open actions"
+  "sources_priority": [
+    "Borsa Istanbul official constituent CSV for BIST",
+    "TradingView global scanner index symbolset",
+    "TradingView public components preview fallback"
   ],
-  "index_renderer_sha256": "0571b0bbde01b50d71873bb5a44f5dcaef588e95fa3564881445ad8395bdb050"
+  "cache_ttl_hours": 6,
+  "app_sha256": "474524f2dd76d3ee93871019ef84ffc062cf5b354dd676fbb285db616a06ad87",
+  "renderer_sha256": "0eafac52d928dfca0d7a9a51a4b088080a1e8947c0e2f6b291ed83ecc8723e24",
+  "server_sha256": "9dbaeeb9465d96d90d57baab18e11d497e88ba6213c2c8db63524b3c0c35a578",
+  "server_fallback": "TradingView global -> country market -> america"
 }
