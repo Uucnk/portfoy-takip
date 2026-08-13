@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Invest Cockpit · v8.4.7</title>
+<title>Invest Cockpit · v8.4.8</title>
 <style>
 :root{--bg:#0a1019;--panel:#111923;--panel2:#16202c;--line:#253243;--text:#eef5ff;--muted:#91a4bc;--blue:#4f86ff;--green:#2fca83;--red:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Segoe UI,sans-serif}.app{max-width:1500px;margin:auto;padding:22px}
@@ -2268,8 +2268,12 @@ body.modalOpen{overflow:hidden}
 @media(max-width:850px){.extremHero{display:block}.extremStats{margin-top:12px}.extremToolbar{grid-template-columns:1fr 1fr}.extremSearch{grid-column:1/-1}.extremCardGrid{grid-template-columns:1fr}}
 @media(max-width:520px){.extremToolbar{grid-template-columns:1fr}.extremSearch{grid-column:auto}.extremStats{grid-template-columns:repeat(3,1fr)}}
 
+
+/* v8.4.8 — Model portfolio netting + secure reset */
+.modelHeaderActions{display:flex;align-items:center;gap:8px;margin-left:auto}.portfolioResetBtn{border:1px solid #6a3542!important;background:#24131a!important;color:#ff9daf!important;font-weight:900!important;padding:8px 12px!important;border-radius:8px!important}.portfolioResetBtn:hover{background:#351823!important;border-color:#a64d61!important;color:#ffd0d8!important}.resetPortfolioOverlay{position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,8,14,.78);backdrop-filter:blur(5px)}.resetPortfolioOverlay.open{display:flex}.resetPortfolioModal{width:min(470px,100%);overflow:hidden;border:1px solid #633747;border-radius:13px;background:#09141f;box-shadow:0 28px 90px rgba(0,0,0,.58)}.resetPortfolioHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:17px 18px;border-bottom:1px solid #432b35;background:linear-gradient(180deg,#24131b,#10121a)}.resetPortfolioEyebrow{font-size:8px;letter-spacing:.14em;font-weight:900;color:#ff8298}.resetPortfolioHead h3{margin:4px 0 0;font-size:18px;color:#fff}.resetPortfolioClose{border:1px solid #49343d;background:#17141a;color:#c6abb4;width:31px;height:31px;border-radius:7px;cursor:pointer}.resetPortfolioBody{padding:17px 18px}.resetPortfolioWarning{padding:10px 11px;margin-bottom:13px;border:1px solid #613747;border-radius:8px;background:#211219;color:#e7b7c1;font-size:9px;line-height:1.55}.resetPortfolioWarning strong{color:#ff92a7}.resetPortfolioBody label{display:block;margin-bottom:6px;color:#a9bccb;font-size:8px;font-weight:800}.resetPortfolioBody input{width:100%;height:38px;box-sizing:border-box;border:1px solid #364b5c;border-radius:8px;background:#07131d;color:#eef5fa;padding:8px 10px;outline:none}.resetPortfolioBody input:focus{border-color:#a94f65;box-shadow:0 0 0 2px rgba(169,79,101,.12)}.resetPortfolioMessage{min-height:18px;margin-top:9px;color:#8199ac;font-size:8px}.resetPortfolioMessage.error{color:#ff8da1}.resetPortfolioMessage.success{color:#79dbb4}.resetPortfolioActions{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}.resetPortfolioConfirm{border:1px solid #9b4055!important;background:#6e2638!important;color:#fff!important;font-weight:900!important}.resetPortfolioConfirm:hover{background:#8c3047!important}.resetPortfolioConfirm:disabled{opacity:.5;cursor:not-allowed}@media(max-width:760px){.modelHeaderActions{width:100%;justify-content:flex-end;margin-top:8px}.resetPortfolioActions{display:grid;grid-template-columns:1fr 1fr}.resetPortfolioActions button{width:100%}}
+
 </style>
-<meta name="portfolio-build" content="v8.4.7-extrem-indexes">
+<meta name="portfolio-build" content="v8.4.8-position-netting-reset">
 </head>
 <body class="authLocked">
 
@@ -2683,6 +2687,7 @@ body.modalOpen{overflow:hidden}
 <section id="model" class="tab active">
   <div class="sectionHead" style="margin-bottom:6px">
     <div><h2 style="margin-bottom:4px">Model Portföy</h2><div class="muted">Profesyonel track record, nakit, kredi, komisyon ve VİOP teminat yönetimi</div></div>
+    <div class="modelHeaderActions"><button type="button" id="resetModelPortfolioBtn" class="portfolioResetBtn">Portföyü Sıfırla</button></div>
   </div>
 
   <div class="modelWorkspaceNav">
@@ -3668,6 +3673,22 @@ body.modalOpen{overflow:hidden}
 </div>
 <div id="bottomTicker" class="fixedTicker bottom"><div id="bottomTickerTrack" class="tickerTrack"><span class="tickerItem">Emtia ve döviz verileri yükleniyor…</span></div></div>
 
+
+<div id="resetModelPortfolioPanel" class="resetPortfolioOverlay" role="dialog" aria-modal="true" aria-labelledby="resetModelPortfolioTitle">
+ <div class="resetPortfolioModal">
+  <div class="resetPortfolioHead">
+   <div><div class="resetPortfolioEyebrow">MODEL PORTFÖY GÜVENLİ SIFIRLAMA</div><h3 id="resetModelPortfolioTitle">Portföyü Sıfırla</h3></div>
+   <button type="button" id="closeResetModelPortfolio" class="resetPortfolioClose" aria-label="Kapat">×</button>
+  </div>
+  <div class="resetPortfolioBody">
+   <div class="resetPortfolioWarning"><strong>Bu işlem geri alınamaz.</strong> Tüm Model Portföy pozisyonları, kapalı işlemler, VİOP teminat/nema kayıtları, döviz işlemleri, nakit hareketleri, raporlar, komisyon geçmişi, Composite Benchmark ayarları ve PMS/Track Record verileri sıfırlanır. Market favorileri, Learning Hub ve sohbet geçmişi silinmez.</div>
+   <label for="resetModelPortfolioPassword">Hesaba giriş şifren</label>
+   <input id="resetModelPortfolioPassword" type="password" autocomplete="current-password" placeholder="Şifreni gir">
+   <div id="resetModelPortfolioMessage" class="resetPortfolioMessage">Şifren sunucuda doğrulanmadan sıfırlama yapılmaz.</div>
+   <div class="resetPortfolioActions"><button type="button" id="cancelResetModelPortfolio" class="secondary">Vazgeç</button><button type="button" id="confirmResetModelPortfolio" class="resetPortfolioConfirm">Tüm Model Portföyü Sıfırla</button></div>
+  </div>
+ </div>
+</div>
 
 <div id="editPositionPanel" class="modalOverlay" role="dialog" aria-modal="true">
   <div class="modalBox editModalBox">
@@ -6246,6 +6267,8 @@ function modelTable(arr,closed){
 
 window.renderModel=function renderModel(){
  repairLegacyModelPositions();
+ const legacyConsolidated=consolidateLegacyActiveModelPositions();
+ if(legacyConsolidated){localStorage.setItem(MK,JSON.stringify(model));settings.pmsEquityHistory=[];settings.pmsEquityHistoryMeta={};pmsLiveData=null;pmsLiveSignature="";pmsRebuildEquityHistory();scheduleCloudSave(250)}
  ensureDailyNemaAccruals();
  recordPmsEquitySnapshot(false);
  const metricsData=metrics(),active=model.filter(p=>p.status==="Aktif"),closed=model.filter(p=>p.status==="Kapalı");
@@ -6625,6 +6648,121 @@ function renderViopTransferHistory(){
  ${rows.map(x=>`<tr><td>${formatDateTime(x.dateTime)}</td><td>${x.direction==="toViop"?"Ana Nakit → VİOP":"VİOP → Ana Nakit"}</td><td>${f(x.amount,2)} TRY</td><td>${f(x.balanceAfter,2)} TRY</td></tr>`).join("")}</tbody></table></div>`;
 }
 
+
+function modelPositionDirectionSide(p){return String(p?.direction||"").startsWith("Uzun")?"long":"short"}
+function modelInstrumentKey(p){
+ if(isViopPosition(p)){
+  const contract=String(p.viopContract||p.symbol||"").trim().toUpperCase();
+  const expiry=String(p.contractExpiry||"").slice(0,10);
+  return`VIOP|${contract}|${expiry}`;
+ }
+ if(isGlobalFuturesPosition(p)){
+  const contract=String(p.futuresContract||p.globalFutureId||p.symbol||"").trim().toUpperCase();
+  return`GLOBAL_FUT|${contract}`;
+ }
+ return`${String(p.assetClass||"").toUpperCase()}|${String(p.symbol||"").trim().toUpperCase()}|${String(p.optionType||"").toUpperCase()}|${nativeCurrency(p)}`;
+}
+function modelActiveSameInstrument(p){
+ const key=modelInstrumentKey(p);
+ return model.filter(x=>x.status==="Aktif"&&modelInstrumentKey(x)===key);
+}
+function weightedAverage(a,aw,b,bw){const den=(Number(aw)||0)+(Number(bw)||0);return den?((Number(a)||0)*(Number(aw)||0)+(Number(b)||0)*(Number(bw)||0))/den:(Number(b)||Number(a)||0)}
+function recomputePositionMarginCache(p){
+ if(isViopPosition(p))p.initialMarginRequired=Math.abs(Number(p.qty)||0)*(Number(p.initialMargin)||0);
+ else if(isGlobalFuturesPosition(p))p.initialMarginRequired=Math.abs(Number(p.qty)||0)*(Number(p.initialMargin)||0);
+ else delete p.initialMarginRequired;
+}
+function mergeSameDirectionModelPosition(target,incoming){
+ const tq=Math.abs(Number(target.qty)||0),iq=Math.abs(Number(incoming.qty)||0),sum=tq+iq;
+ if(!sum)return target;
+ const targetOpenCommission=openCommissionValue(target),incomingCommission=Number(incoming.openCommission)||openCommissionValue(incoming);
+ const oldEntry=Number(target.entry)||0,newEntry=Number(incoming.entry)||0;
+ const oldFx=positionOpenFx(target),newFx=positionOpenFx(incoming);
+ target.entry=weightedAverage(oldEntry,tq,newEntry,iq);
+ target.fxRateAtOpen=weightedAverage(oldFx,oldEntry*tq,newFx,newEntry*iq);
+ target.qty=sum;
+ target.openCommission=targetOpenCommission+incomingCommission;
+ target.creditPrincipal=(Number(target.creditPrincipal)||0)+(Number(incoming.creditPrincipal)||0);
+ target.creditCost=(Number(target.creditCost)||0)+(Number(incoming.creditCost)||0);
+ target.currentPrice=Number(incoming.currentPrice)||Number(target.currentPrice)||target.entry;
+ target.dailyChange=Number(incoming.dailyChange)||Number(target.dailyChange)||0;
+ target.lastAddDateTime=incoming.openDateTime||nowLocal();
+ target.stop=incoming.stop||target.stop||0;target.target=incoming.target||target.target||0;
+ target.note=incoming.note||target.note||"";
+ target.commissionUnit=incoming.commissionUnit||target.commissionUnit;target.commissionRate=Number(incoming.commissionRate??target.commissionRate)||0;
+ target.closeCommissionUnit=target.commissionUnit;target.closeCommissionRate=target.commissionRate;
+ if(Number(incoming.contractSize)>0)target.contractSize=Number(incoming.contractSize);
+ if(Number(incoming.initialMargin)>0)target.initialMargin=Number(incoming.initialMargin);
+ if(Number(incoming.maintenanceMargin)>0)target.maintenanceMargin=Number(incoming.maintenanceMargin);
+ recomputePositionMarginCache(target);
+ target.mergeCount=(Number(target.mergeCount)||1)+1;
+ return target;
+}
+function prorateOpenEconomics(p,ratio){
+ const r=Math.max(0,Math.min(1,Number(ratio)||0));
+ return{
+  openCommission:openCommissionValue(p)*r,
+  creditPrincipal:(Number(p.creditPrincipal)||0)*r,
+  creditCost:(Number(p.creditCost)||0)*r
+ };
+}
+function closePositionSliceForNetting(active,closeQty,closePrice,closeDateTime){
+ const originalQty=Math.abs(Number(active.qty)||0),qty=Math.min(originalQty,Math.abs(Number(closeQty)||0));
+ if(!qty||!originalQty)return null;
+ const originalOpenCommission=openCommissionValue(active);
+ const ratio=qty/originalQty,econ=prorateOpenEconomics(active,ratio),full=qty>=originalQty-1e-9;
+ const closed=full?active:{...active,id:id(),qty,openCommission:econ.openCommission,creditPrincipal:econ.creditPrincipal,creditCost:econ.creditCost};
+ closed.status="Kapalı";closed.qty=qty;closed.closePrice=Number(closePrice);closed.closeDateTime=closeDateTime||nowLocal();closed.closeDate=closed.closeDateTime.slice(0,10);closed.fxRateAtClose=fxRateTRY(closed.currency)||positionCurrentFx(closed);closed.benchmark=0;closed.closeCommissionUnit=closed.commissionUnit||"onbinde";closed.closeCommissionRate=Number(closed.commissionRate)||0;closed.closeCommission=commissionAmount(tradeNotional(closed,closed.closePrice),closed.closeCommissionUnit,closed.closeCommissionRate);closed.closeReason="netting";closed.autoClosed=false;
+ if(!full){
+  const remainRatio=(originalQty-qty)/originalQty;
+  active.qty=originalQty-qty;active.openCommission=originalOpenCommission*remainRatio;active.creditPrincipal=(Number(active.creditPrincipal)||0)*remainRatio;active.creditCost=(Number(active.creditCost)||0)*remainRatio;recomputePositionMarginCache(active);
+  model.unshift(closed);
+ }
+ return closed;
+}
+function offsetIncomingAgainstOpposite(incoming){
+ let remaining=Math.abs(Number(incoming.qty)||0),closed=[];
+ const side=modelPositionDirectionSide(incoming),matches=modelActiveSameInstrument(incoming).filter(x=>modelPositionDirectionSide(x)!==side).sort((a,b)=>String(a.openDateTime||"").localeCompare(String(b.openDateTime||"")));
+ for(const active of matches){
+  if(remaining<=1e-9)break;
+  const q=Math.min(remaining,Math.abs(Number(active.qty)||0));
+  const row=closePositionSliceForNetting(active,q,incoming.entry,incoming.openDateTime||nowLocal());
+  if(row)closed.push(row);
+  remaining-=q;
+ }
+ incoming.qty=Math.max(0,remaining);
+ incoming.openCommission=commissionAmount(tradeNotional(incoming,incoming.entry),incoming.commissionUnit,incoming.commissionRate);
+ return{remainingQty:incoming.qty,closed};
+}
+function consolidateLegacyActiveModelPositions(){
+ const active=model.filter(p=>p.status==="Aktif").sort((a,b)=>String(a.openDateTime||"").localeCompare(String(b.openDateTime||"")));
+ let changed=false;
+ for(const p of active){
+  if(p.status!=="Aktif")continue;
+  const same=model.filter(x=>x!==p&&x.status==="Aktif"&&modelInstrumentKey(x)===modelInstrumentKey(p));
+  const sameDir=same.find(x=>modelPositionDirectionSide(x)===modelPositionDirectionSide(p));
+  if(sameDir){
+   const first=String(sameDir.openDateTime||"")<=String(p.openDateTime||"")?sameDir:p;
+   const second=first===p?sameDir:p;
+   mergeSameDirectionModelPosition(first,second);
+   model=model.filter(x=>x!==second);changed=true;continue;
+  }
+  const opposite=same.find(x=>modelPositionDirectionSide(x)!==modelPositionDirectionSide(p));
+  if(opposite){
+   const later=String(opposite.openDateTime||"")>=String(p.openDateTime||"")?opposite:p;
+   const earlier=later===p?opposite:p;
+   const laterQty=Math.abs(Number(later.qty)||0),earlierQty=Math.abs(Number(earlier.qty)||0),q=Math.min(laterQty,earlierQty);
+   closePositionSliceForNetting(earlier,q,later.entry,later.openDateTime||nowLocal());
+   if(laterQty<=earlierQty+1e-9){model=model.filter(x=>x!==later)}else{later.qty=laterQty-earlierQty;later.openCommission=openCommissionValue(later)*(later.qty/laterQty);recomputePositionMarginCache(later)}
+   changed=true;
+  }
+ }
+ return changed;
+}
+function resetModelOrderFormAfterSubmit(form){
+ form.reset();$("mOpenDate").value=nowLocal();$("mQty").value=1;$("mCommissionUnit").value="onbinde";$("mCommissionRate").value=0;$("mCurrency").value="TRY";$("mEntryFxRate").value="1";modelEntryManualOverride=false;syncModelViopVisibility();
+}
+
 $("modelForm").addEventListener("submit",e=>{
  e.preventDefault();
  const globalRow=currentGlobalFuture("model");
@@ -6679,38 +6817,50 @@ $("modelForm").addEventListener("submit",e=>{
   const invalidTarget=isLong?p.target<=p.entry:p.target>=p.entry;
   if(invalidTarget){alert(isLong?"Long pozisyonda Kâr Al fiyatı açılış fiyatının üzerinde olmalıdır.":"Short pozisyonda Kâr Al fiyatı açılış fiyatının altında olmalıdır.");return}
  }
+ // Tek kontratta aynı anda Long + Short tutulmaz. Önce ters yön mevcut pozisyonla netleştirilir.
+ consolidateLegacyActiveModelPositions();
+ const modelSnapshotBeforeNetting=JSON.parse(JSON.stringify(model));
+ const netting=offsetIncomingAgainstOpposite(p);
+ if(netting.closed.length){
+  // Ters işlem mevcut pozisyonu kısmen/tamamen kapattı. Kalan miktar varsa yalnız o miktar yeni yön olarak açılır.
+  p.qty=netting.remainingQty;
+ }
+ if(p.qty<=1e-9){
+  settings.pmsEquityHistory=[];settings.pmsEquityHistoryMeta={};pmsRebuildEquityHistory();pmsLiveData=null;pmsLiveSignature="";
+  save();resetModelOrderFormAfterSubmit(e.target);renderModel();renderActivities();renderCashStatement();if(typeof renderReports==="function")renderReports();renderPMS();
+  netting.closed.forEach(row=>notifyPositionClosed(row,"netting"));
+  return;
+ }
  p.openCommission=commissionAmount(tradeNotional(p,p.entry),p.commissionUnit,p.commissionRate);
+ let validationError="";
  if(isViopPosition(p)){
   p.initialMarginRequired=viopInitialMargin(p);
   const free=viopCurrentEquity()-modelUsedViopMargin();
-  if(p.initialMarginRequired>free){
-   alert(`Yetersiz VİOP serbest teminatı. Gerekli: ${f(p.initialMarginRequired,2)} TRY · Serbest: ${f(free,2)} TRY`);return;
-  }
+  if(p.initialMarginRequired>free)validationError=`Yetersiz VİOP serbest teminatı. Gerekli: ${f(p.initialMarginRequired,2)} TRY · Serbest: ${f(free,2)} TRY`;
  }else if(isGlobalFuturesPosition(p)){
   p.initialMarginRequired=Math.abs(Number(p.qty)||0)*(Number(p.initialMargin)||0);
   const marginCurrency=String(p.marginCurrency||p.currency||"USD").toUpperCase();
   const before=globalFuturesMarginState(marginCurrency),required=p.initialMarginRequired+p.openCommission;
-  if(required>before.free+1e-8){
-   alert(`Yetersiz ${marginCurrency} futures teminatı. Gerekli başlangıç teminatı + komisyon: ${f(required,2)} ${marginCurrency} · Serbest: ${f(before.free,2)} ${marginCurrency}. Döviz Exchange bölümünden ${marginCurrency} bakiyesi oluşturun.`);return;
-  }
+  if(required>before.free+1e-8)validationError=`Yetersiz ${marginCurrency} futures teminatı. Gerekli başlangıç teminatı + komisyon: ${f(required,2)} ${marginCurrency} · Serbest: ${f(before.free,2)} ${marginCurrency}. Döviz Exchange bölümünden ${marginCurrency} bakiyesi oluşturun.`;
  }else{
   const required=tradeNotional(p,p.entry)+p.openCommission;
   if(p.currency!=="TRY"){
    const available=currencyCashBalance(p.currency);
-   if(required>available+1e-8){
-    alert(`Yetersiz ${p.currency} nakit. ${p.symbol} yalnızca ${p.currency} bakiyesiyle açılabilir. Gerekli: ${f(required,2)} ${p.currency} · Kullanılabilir: ${f(available,2)} ${p.currency}. Önce Döviz Exchange işlemi yapın.`);return;
-   }
+   if(required>available+1e-8)validationError=`Yetersiz ${p.currency} nakit. ${p.symbol} yalnızca ${p.currency} bakiyesiyle açılabilir. Gerekli: ${f(required,2)} ${p.currency} · Kullanılabilir: ${f(available,2)} ${p.currency}. Önce Döviz Exchange işlemi yapın.`;
    p.creditPrincipal=0;p.creditAnnualRate=0;p.creditDays=0;p.creditCost=0;
   }else{
-   p.creditPrincipal=incrementalCreditFor(p);p.creditAnnualRate=creditAnnualRate();
-   p.creditDays=Math.max(1,Number(settings.creditDays)||2);
-   p.creditCost=p.creditPrincipal*p.creditAnnualRate/100*p.creditDays/365;
+   p.creditPrincipal=incrementalCreditFor(p);p.creditAnnualRate=creditAnnualRate();p.creditDays=Math.max(1,Number(settings.creditDays)||2);p.creditCost=p.creditPrincipal*p.creditAnnualRate/100*p.creditDays/365;
   }
  }
- model.unshift(p);save();e.target.reset();$("mOpenDate").value=nowLocal();$("mQty").value=1;
- $("mCommissionUnit").value="onbinde";$("mCommissionRate").value=0;$("mCurrency").value="TRY";$("mEntryFxRate").value="1";
- modelEntryManualOverride=false;
- syncModelViopVisibility();renderModel();notifyPositionOpened(p);
+ if(validationError){model=modelSnapshotBeforeNetting;alert(validationError);return}
+ const sameDirection=modelActiveSameInstrument(p).find(x=>modelPositionDirectionSide(x)===modelPositionDirectionSide(p));
+ let finalPosition=p,merged=false;
+ if(sameDirection){finalPosition=mergeSameDirectionModelPosition(sameDirection,p);merged=true}else model.unshift(p);
+ settings.pmsEquityHistory=[];settings.pmsEquityHistoryMeta={};pmsRebuildEquityHistory();pmsLiveData=null;pmsLiveSignature="";
+ save();resetModelOrderFormAfterSubmit(e.target);renderModel();renderActivities();renderCashStatement();if(typeof renderReports==="function")renderReports();renderPMS();
+ netting.closed.forEach(row=>notifyPositionClosed(row,"netting"));
+ notifyPositionOpened(finalPosition);
+ if(merged){const msg=`${positionDisplayName(finalPosition)} aynı yön işlemleri tek pozisyonda birleştirildi. Yeni ortalama maliyet: ${f(finalPosition.entry,4)} · Toplam miktar: ${f(finalPosition.qty,2)}`;setTimeout(()=>{if(document.visibilityState==="visible")console.info(msg)},0)}
 });
 $("saveModelSettings").onclick=()=>{
  const previousCapital=Number(settings.capital)||0,previousStartDate=String(settings.startDate||"");
@@ -8298,6 +8448,44 @@ $("changePasswordForm")?.addEventListener("submit",async event=>{
   button.disabled=false;button.textContent="Şifreyi Güncelle";
  }
 });
+
+
+function resetPortfolioMessage(text,tone=""){
+ const el=$("resetModelPortfolioMessage");if(!el)return;el.textContent=text;el.className="resetPortfolioMessage"+(tone?` ${tone}`:"");
+}
+function openResetModelPortfolio(){
+ if(!currentAuthUser){alert("Önce hesabınıza giriş yapın.");return}
+ $("resetModelPortfolioPassword").value="";resetPortfolioMessage("Şifren sunucuda doğrulanmadan sıfırlama yapılmaz.");$("resetModelPortfolioPanel").classList.add("open");setTimeout(()=>$("resetModelPortfolioPassword")?.focus(),40);
+}
+function closeResetModelPortfolio(){$("resetModelPortfolioPanel")?.classList.remove("open");$("resetModelPortfolioPassword").value=""}
+function freshDefaultModelSettings(){return JSON.parse(JSON.stringify(DEFAULT_MODEL_SETTINGS))}
+async function performFullModelPortfolioReset(){
+ const password=$("resetModelPortfolioPassword").value;
+ if(!password){resetPortfolioMessage("Hesaba giriş şifreni gir.","error");return}
+ const button=$("confirmResetModelPortfolio");button.disabled=true;resetPortfolioMessage("Şifre doğrulanıyor ve Model Portföy sıfırlanıyor…");
+ try{
+  await authFetch("/api/account/verify-password",{method:"POST",body:JSON.stringify({password})});
+  clearTimeout(cloudSaveTimer);model=[];general=[];settings=freshDefaultModelSettings();fxRates={TRY:1};
+  pmsLiveData=null;pmsLiveSignature="";pmsLiveFetchedAt=0;tradeNotificationQueue=[];tradeNotificationVisible=false;
+  reportFilters={cash:{mode:"all",date:"",start:"",end:""},transactions:{mode:"all",date:"",start:"",end:"",side:"all",asset:"all"},movements:{mode:"all",date:"",start:"",end:"",account:"all",currency:"all",type:"all"},commission:{mode:"all",date:"",start:"",end:"",side:"all",asset:"all",currency:"all"}};
+  cashStatementFilter={mode:"all",date:"",start:"",end:""};
+  localStorage.setItem(GK,"[]");localStorage.setItem(MK,"[]");localStorage.setItem(SK,JSON.stringify(settings));
+  cloudDirty=true;cloudSaveRevision+=1;
+  const saved=await saveCloudStateNow({force:true});
+  if(!saved)throw new Error("Bulut sıfırlama kaydı tamamlanamadı. Tekrar deneyin.");
+  closeModelCloseTerminal();refreshSettingsInputs();renderModel();renderActivities();renderCashStatement();if(typeof renderReports==="function")renderReports();renderPMS();
+  resetPortfolioMessage("Model Portföy tamamen sıfırlandı.","success");
+  setTimeout(()=>{closeResetModelPortfolio();showMainTab("model")},500);
+ }catch(error){resetPortfolioMessage(error.message||"Portföy sıfırlanamadı.","error")}
+ finally{button.disabled=false;$("resetModelPortfolioPassword").value=""}
+}
+$("resetModelPortfolioBtn")?.addEventListener("click",openResetModelPortfolio);
+$("closeResetModelPortfolio")?.addEventListener("click",closeResetModelPortfolio);
+$("cancelResetModelPortfolio")?.addEventListener("click",closeResetModelPortfolio);
+$("confirmResetModelPortfolio")?.addEventListener("click",performFullModelPortfolioReset);
+$("resetModelPortfolioPassword")?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();performFullModelPortfolioReset()}});
+$("resetModelPortfolioPanel")?.addEventListener("click",event=>{if(event.target===$("resetModelPortfolioPanel"))closeResetModelPortfolio()});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&$("resetModelPortfolioPanel")?.classList.contains("open"))closeResetModelPortfolio()});
 
 $("logoutBtn").addEventListener("click",async()=>{closeAccountSettings();if(cloudDirty)await saveCloudStateNow({force:true});try{await authFetch("/api/auth/logout",{method:"POST"})}catch{}cloudStateReady=false;currentAuthUser=null;clearLocalPortfolioMemory();location.reload()});
 function adminPositionTable(rows){
