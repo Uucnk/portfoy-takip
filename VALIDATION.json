@@ -1,17 +1,16 @@
 {
-  "version": "8.4.6",
-  "base": "8.4.5",
+  "version": "8.4.7",
+  "base": "8.4.6",
   "validated": true,
-  "feature": "Daily persistent full index constituents",
-  "index_count": 131,
-  "cache_ttl_hours": 24,
-  "page_size": 500,
-  "max_rows_per_index": 5000,
-  "persistent_cache": "PostgreSQL index_constituents_cache",
-  "stale_while_revalidate": true,
-  "bist_priority": "Borsa Istanbul official CSV",
-  "tradingview_membership": "symbols.symbolset",
-  "app_sha256": "f9d59c9c5b62b32b764b4dc24564168f89c1f7993466446721ea4364efcb21bd",
-  "renderer_sha256": "cbdd6201ad2c026e8f68df3ee65e62705a9e93c844fe11679227e7c7794927ac",
-  "server_sha256": "e6010cb9e6da3c9e7de6921f90086c84351dab51ed2a9e69a207de1b0e88170b"
+  "feature": "Learning Hub / Extrem Indexes",
+  "extrem_indicator_count": 121,
+  "extrem_category_count": 11,
+  "new_files": [
+    "public/learning-hub-extrem-indexes-data.js",
+    "public/learning-hub-extrem-indexes.js"
+  ],
+  "app_sha256": "aa282dea5fb3f5e1761ee20fe31d6d5cdef7b2337e3a683aad9232302e11ffa2",
+  "learning_hub_sha256": "d2cddd897d70e0ca7c95a27b3f56b76b6bffd373338a0148393257c497e074ee",
+  "extrem_data_sha256": "6c141f0442caf2772e7200ba712a0f7284894c9d2b32ecdad8756c0f3463002d",
+  "extrem_renderer_sha256": "081352e4aba37c25dd121e4a9bbeb59c20b7b2754dc3496232c4d266fa8c2555"
 }
