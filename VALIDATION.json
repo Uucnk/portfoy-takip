@@ -1,8 +1,8 @@
 {
-  "version": "8.4.2",
-  "base": "8.4.1",
+  "version": "8.4.4",
+  "base": "8.4.3",
   "validated": true,
-  "feature": "Learning Hub / Indexes",
+  "feature": "Learning Hub Indexes responsive country card layout",
   "index_count": 131,
   "country_count": 71,
   "region_count": 5,
@@ -10,6 +10,15 @@
     "public/learning-hub-indexes-data.js",
     "public/learning-hub-indexes.js"
   ],
-  "app_sha256": "21b2499bc4edd173d96fb8d627f05b250e212b5bccd9cd34a39037e0d65e3f6d",
-  "index_data_sha256": "35e88fd06a22f346cbc606903e0bb569ad2cf135f8ac060a8f0459e3c0cf87eb"
+  "app_sha256": "a8913f0dd8603e6a74f52993a6718ec446f8ba9a0b91e1f42836c2e2e813a776",
+  "index_data_sha256": "35e88fd06a22f346cbc606903e0bb569ad2cf135f8ac060a8f0459e3c0cf87eb",
+  "indexes_layout": "country_cards",
+  "preserved": [
+    "index data",
+    "search",
+    "region filter",
+    "country filter",
+    "TradingView copy/open actions"
+  ],
+  "index_renderer_sha256": "0571b0bbde01b50d71873bb5a44f5dcaef588e95fa3564881445ad8395bdb050"
 }
