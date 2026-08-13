@@ -3199,6 +3199,186 @@ app.post("/api/pms/live-analytics",authRequired,async(req,res)=>{
  }
 });
 
+
+// ================================================================
+// v8.4.5 — Learning Hub / Index constituent lookup
+// On-demand + cached so broad indices do not slow initial page load.
+// ================================================================
+const indexConstituentCache=new Map();
+const INDEX_CONSTITUENT_TTL=6*60*60*1000;
+
+function decodeHtmlEntitiesBasic(value=""){
+ return String(value)
+  .replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'")
+  .replace(/&lt;/g,"<").replace(/&gt;/g,">")
+  .replace(/\\u0026/g,"&").replace(/\\u003c/g,"<").replace(/\\u003e/g,">");
+}
+function normalizeIndexConstituentRows(rows=[]){
+ const seen=new Set(),out=[];
+ for(const row of rows){
+  const symbol=String(row?.symbol||"").trim().toUpperCase();
+  const ticker=String(row?.ticker||symbol.split(":").pop()||"").trim().toUpperCase();
+  const name=decodeHtmlEntitiesBasic(String(row?.name||ticker||"").trim());
+  if(!ticker||!name)continue;
+  const key=symbol||ticker;
+  if(seen.has(key))continue;
+  seen.add(key);
+  out.push({symbol:symbol||ticker,ticker,name});
+ }
+ return out;
+}
+function tradingViewMarketForCountry(country=""){
+ const map={
+  "ABD":"america","Kanada":"canada","Birleşik Krallık":"uk","Avustralya":"australia","Hindistan":"india",
+  "Brezilya":"brazil","Almanya":"germany","Fransa":"france","İspanya":"spain","İtalya":"italy",
+  "Hollanda":"netherlands","Güney Kore":"korea","Japonya":"japan","Türkiye":"turkey","İsrail":"israel",
+  "Çin":"china","Hong Kong":"hongkong","Tayvan":"taiwan","Singapur":"singapore","Endonezya":"indonesia",
+  "Malezya":"malaysia","Tayland":"thailand","Vietnam":"vietnam","Filipinler":"philippines","Pakistan":"pakistan",
+  "Güney Afrika":"southafrica","Meksika":"mexico","Arjantin":"argentina","Şili":"chile","Kolombiya":"colombia",
+  "Peru":"peru","Polonya":"poland","İsveç":"sweden","İsviçre":"switzerland","Norveç":"norway","Danimarka":"denmark",
+  "Finlandiya":"finland","Belçika":"belgium","Portekiz":"portugal","Yunanistan":"greece","Avusturya":"austria",
+  "İrlanda":"ireland","Yeni Zelanda":"newzealand","Suudi Arabistan":"ksa","Birleşik Arap Emirlikleri":"uae"
+ };
+ return map[String(country||"").trim()]||null;
+}
+async function fetchTradingViewIndexConstituents(indexCode,country=""){
+ const payload={
+  filter:[],
+  options:{lang:"en"},
+  symbols:{symbolset:[indexCode]},
+  sort:{sortBy:"market_cap_basic",sortOrder:"desc"},
+  range:[0,5000],
+  columns:["name","description","exchange","type","market_cap_basic"]
+ };
+ const markets=["global",tradingViewMarketForCountry(country),"america"].filter((x,i,a)=>x&&a.indexOf(x)===i);
+ const errors=[];
+ for(const market of markets){
+  try{
+   const response=await fetch(`https://scanner.tradingview.com/${market}/scan`,{
+    method:"POST",
+    headers:{
+     "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+     "Accept":"application/json,text/plain,*/*",
+     "Content-Type":"application/json",
+     "Origin":"https://www.tradingview.com",
+     "Referer":"https://www.tradingview.com/"
+    },
+    body:JSON.stringify(payload),
+    signal:AbortSignal.timeout(18000)
+   });
+   if(!response.ok){errors.push(`${market}: HTTP ${response.status}`);continue}
+   const json=await response.json();
+   const items=normalizeIndexConstituentRows((json?.data||[]).map(row=>({
+    symbol:row?.s,
+    ticker:row?.d?.[0]||String(row?.s||"").split(":").pop(),
+    name:row?.d?.[1]||row?.d?.[0]||String(row?.s||"").split(":").pop()
+   })));
+   if(items.length)return{items,totalCount:Number(json?.totalCount)||items.length,source:`TradingView Index Screener (${market})`};
+  }catch(error){errors.push(`${market}: ${error?.message||String(error)}`)}
+ }
+ throw new Error(errors.join(" | ")||"TradingView scanner bileşen döndürmedi.");
+}
+function parseBistIndexCsv(text,indexCode){
+ const target=String(indexCode||"").replace(/^BIST:/i,"").trim().toUpperCase();
+ const rows=[];
+ for(const line of String(text||"").split(/\r?\n/)){
+  if(!line.trim())continue;
+  const cols=line.split(";").map(x=>x.trim().replace(/^"|"$/g,""));
+  if(cols.length<4)continue;
+  const stockRaw=cols[0],company=cols[1],code=String(cols[2]||"").toUpperCase();
+  if(code!==target||!stockRaw||!company)continue;
+  const ticker=stockRaw.replace(/\.E$/i,"").toUpperCase();
+  rows.push({symbol:`BIST:${ticker}`,ticker,name:company});
+ }
+ return normalizeIndexConstituentRows(rows);
+}
+async function fetchBistOfficialIndexConstituents(indexCode){
+ const response=await fetch("https://www.borsaistanbul.com/datum/hisse_endeks_ds.csv",{
+  headers:{
+   "User-Agent":"Mozilla/5.0 Chrome/124 Safari/537.36",
+   "Accept":"text/csv,text/plain,*/*",
+   "Referer":"https://www.borsaistanbul.com/"
+  },
+  signal:AbortSignal.timeout(18000)
+ });
+ if(!response.ok)throw new Error(`Borsa İstanbul HTTP ${response.status}`);
+ const text=await response.text();
+ const items=parseBistIndexCsv(text,indexCode);
+ if(!items.length)throw new Error("Borsa İstanbul bileşen CSV'sinde endeks bulunamadı.");
+ return{items,totalCount:items.length,source:"Borsa İstanbul resmi endeks bileşenleri"};
+}
+async function fetchPublicTradingViewComponentPreview(indexCode){
+ const slug=String(indexCode||"").trim().replace(":","-");
+ const response=await fetch(`https://www.tradingview.com/symbols/${encodeURIComponent(slug)}/components/`,{
+  headers:{
+   "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36",
+   "Accept":"text/html,application/xhtml+xml",
+   "Accept-Language":"en-US,en;q=0.9"
+  },
+  signal:AbortSignal.timeout(18000)
+ });
+ if(!response.ok)throw new Error(`TradingView components HTTP ${response.status}`);
+ const html=await response.text();
+ // Embedded TradingView pages commonly repeat ticker + description in JSON.
+ const candidates=[];
+ const patterns=[
+  /"symbol"\s*:\s*"([A-Z0-9_.-]+:[A-Z0-9_.-]+)"[\s\S]{0,900}?"description"\s*:\s*"([^"]{2,180})"/g,
+  /"pro_name"\s*:\s*"([A-Z0-9_.-]+:[A-Z0-9_.-]+)"[\s\S]{0,900}?"description"\s*:\s*"([^"]{2,180})"/g
+ ];
+ for(const pattern of patterns){
+  let m;
+  while((m=pattern.exec(html))!==null){
+   candidates.push({symbol:m[1],ticker:m[1].split(":").pop(),name:m[2]});
+   if(candidates.length>200)break;
+  }
+  if(candidates.length)break;
+ }
+ return{items:normalizeIndexConstituentRows(candidates),totalCount:candidates.length,source:"TradingView public components preview"};
+}
+
+app.get("/api/index-constituents",async(req,res)=>{
+ const code=String(req.query.code||"").trim().toUpperCase();
+ if(!/^[A-Z0-9_.-]+:[A-Z0-9_.!&-]+$/i.test(code))return res.status(400).json({error:"Geçerli TradingView endeks kodu gereklidir."});
+ const cached=indexConstituentCache.get(code);
+ if(cached&&Date.now()-cached.at<INDEX_CONSTITUENT_TTL){
+  res.set("Cache-Control","public, max-age=1800, s-maxage=1800");
+  return res.json(cached.payload);
+ }
+ let result=null,errors=[];
+ // BIST: prefer official exchange constituent file because it is authoritative for local indices.
+ if(code.startsWith("BIST:")){
+  try{result=await fetchBistOfficialIndexConstituents(code)}catch(error){errors.push(error?.message||String(error))}
+ }
+ if(!result?.items?.length){
+  try{result=await fetchTradingViewIndexConstituents(code,String(req.query.country||""))}catch(error){errors.push(error?.message||String(error))}
+ }
+ if(!result?.items?.length){
+  try{
+   const preview=await fetchPublicTradingViewComponentPreview(code);
+   if(preview.items.length)result=preview;
+  }catch(error){errors.push(error?.message||String(error))}
+ }
+ if(!result?.items?.length){
+  return res.status(404).json({
+   error:"Bu endeks için bileşen listesi veri kaynağından alınamadı.",
+   code,
+   details:errors.slice(0,3)
+  });
+ }
+ const payload={
+  code,
+  index:String(req.query.index||""),
+  country:String(req.query.country||""),
+  source:result.source,
+  items:result.items,
+  totalCount:result.totalCount||result.items.length,
+  fetchedAt:new Date().toISOString()
+ };
+ indexConstituentCache.set(code,{at:Date.now(),payload});
+ res.set("Cache-Control","public, max-age=1800, s-maxage=1800");
+ res.json(payload);
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "portfolio-tracker", databaseConfigured: Boolean(DATABASE_URL), databaseReady });
 });
