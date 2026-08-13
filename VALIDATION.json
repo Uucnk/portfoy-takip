@@ -1,14 +1,15 @@
 {
-  "version": "8.4.9",
-  "base": "8.4.8",
+  "version": "8.5.1",
+  "base": "8.5.0",
   "validated": true,
-  "feature": "Learning Hub / Fundamental Analysis",
-  "topic_count": 115,
-  "category_count": 13,
+  "feature": "Learning Hub / Breadth Analysis Academy & Score Lab",
   "new_files": [
-    "public/learning-hub-fundamental-data.js",
-    "public/learning-hub-fundamental.js"
+    "public/learning-hub-breadth-data.js",
+    "public/learning-hub-breadth.js"
   ],
-  "app_sha256": "85124f0f5be304801cf6004da80ed18c24005c43ddb5c7b723a8c9be06217c64",
-  "data_sha256": "9c4043e699659bad316e2609056cbb7827873f398bb1fc5e4ac084a4ee744678"
+  "interactive_signals": 25,
+  "app_sha256": "b1852644461573e058f5ec2314213413f8ac1d57d480c2cb793050ee5cf8dfd7",
+  "learning_hub_sha256": "0f22ccbfad315a2fa1a2a3667ba4ada67d40ea22320f30d7c1381cd5f142876b",
+  "breadth_data_sha256": "c471ebd42667018d1c98edc82f56b78a827ba5c246144bf76f134cf419d302d2",
+  "breadth_renderer_sha256": "112fdb9c13cf520cb39e50caae3043d62ff8cf36c426eaddc6ca9b688d264d55"
 }
